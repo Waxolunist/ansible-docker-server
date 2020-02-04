@@ -1,0 +1,41 @@
+---
+- name: Initialize system
+  block:
+    - name: Add a new user named devops
+      user:
+        name: devops
+        shell: /bin/bash
+        password: "{{ vault_devops_pass | password_hash('sha512') }}"
+    
+    - name: Add devops user to the sudoers
+      copy:
+        dest: "/etc/sudoers.d/devops"
+        content: "devops  ALL=(ALL)  NOPASSWD: ALL"
+
+    - name: Deploy SSH Key
+      authorized_key: user=devops
+                      key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+                      state=present
+    
+    - name: Set locales
+      locale_gen:
+        name: en_US.UTF-8
+        state: present
+
+    - name: Disable Password Authentication
+      lineinfile:
+        dest=/etc/ssh/sshd_config
+        regexp='^PasswordAuthentication'
+        line="PasswordAuthentication no"
+        state=present
+        backup=yes
+
+    - name: Disable Root Login
+      lineinfile:
+        dest=/etc/ssh/sshd_config
+        regexp='^PermitRootLogin'
+        line="PermitRootLogin no"
+        state=present
+        backup=yes
+      notify:
+        - restart ssh
