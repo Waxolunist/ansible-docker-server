@@ -1,0 +1,32 @@
+---
+- name: Upgrade system
+  block:
+    - name: Install aptitude
+      apt:
+        name: "aptitude"
+        state: present
+    - name: Upgrade and update
+      apt:
+        upgrade: dist
+        update_cache: yes
+    - name: Install python
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-setuptools
+        state: latest
+    - name: Test alternatives
+      command: update-alternatives --list python
+      register: python_alternatives
+      changed_when: False
+    - name: Install alternative
+      command: 
+        cmd: update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+      when: python_alternatives.stdout is not search("/usr/bin/python3")
+    - name: Set default python version
+      alternatives:
+        name: python
+        path: /usr/bin/python3
+  become: true
+  

@@ -1,4 +1,36 @@
 ---
-- name: Test
-  debug:
-    msg: Hello world
+- name: Install docker prerequsits
+  block:
+  - name: Remove unused docker packages
+    apt:
+      name:
+        - docker 
+        - docker-engine
+        - docker.io 
+        - containerd 
+        - runc
+      state: absent
+  - name: Install prerequisits
+    apt:
+      name: 
+        - apt-transport-https 
+        - ca-certificates 
+        - curl 
+        - gnupg2 
+        - software-properties-common
+      state: present
+  - apt_key:
+      url: https://download.docker.com/linux/debian/gpg
+  - apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+      state: present
+  - apt:
+      name: docker-ce
+      state: present
+  - pip:
+      name: docker
+  - name: Create directory for docker images
+    file:
+      path: "{{ dockerimage_path }}"
+      state: directory
+  become: yes

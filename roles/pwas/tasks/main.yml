@@ -1,0 +1,44 @@
+---
+  - name: Copy docker image
+    copy:
+      src: paint_latest.tar.gz
+      dest: paint_latest.tar.gz
+      force: no
+  - stat:
+      path: paint_latest.tar.gz
+    register: paint_latest_tar_gz
+  - stat:
+      path: "{{ dockerimage_path }}paint_latest.tar"
+    register: paint_latest_tar
+  - name: Install paint
+    block:
+      - name: Unzip tar
+        command:
+          cmd: gzip -d < paint_latest.tar.gz > paint_latest.tar
+          creates: paint_latest.tar
+      - name: Move to docker images
+        command: mv paint_latest.tar "{{ dockerimage_path }}"
+      - name: Load image
+        docker_image:
+          name: paint
+          source: load
+          load_path: "{{ dockerimage_path }}paint_latest.tar"
+      - name: Start container (Force restart)
+        docker_container:
+          name: paint
+          image: waxolunist/paint
+          state: started
+          restart: yes
+          ports:
+            - "8000:8002"
+    become: yes
+    when: paint_latest_tar.stat.ctime < paint_latest_tar_gz.stat.ctime
+  - name: Start container if not started
+    docker_container:
+      name: paint
+      image: waxolunist/paint
+      state: started
+      ports:
+        - "8000:8002"
+    when: paint_latest_tar.stat.ctime > paint_latest_tar_gz.stat.ctime
+    become: yes
