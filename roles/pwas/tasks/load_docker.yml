@@ -34,5 +34,5 @@
     when: tar_file.stat.ctime < tar_gz_file.stat.ctime
   - include_tasks: start_docker.yml
     vars:
-      restart: yes
+      restart: "{{ restart_container }}"
     when: tar_file.stat.ctime > tar_gz_file.stat.ctime

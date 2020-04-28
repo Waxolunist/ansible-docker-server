@@ -24,5 +24,4 @@
       traefik.http.routers.frontend-secure.tls.certresolver: "myresolver"
       traefik.domain: "{{ pwa.value.host }}"
       traefik.docker.network: "web_proxy"
-
   become: yes

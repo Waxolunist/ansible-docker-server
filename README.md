@@ -10,6 +10,14 @@ Execute
 
     ansible-playbook site.yml --ask-vault-pass
 
+You can pass following environment variables via the -e command line option, like 
+
+    ansible-playbook site.yml --ask-vault-pass -e "restart_container=yes"
+
+Following extra parameters are available:
+
+* `restart_container=yes` | default "no"
+
 Motivation
 ==========
 

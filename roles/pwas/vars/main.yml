@@ -9,4 +9,5 @@
       ports:
         listen: 8002
         exposed: 8000
-    
+  
+  restart_container: no
