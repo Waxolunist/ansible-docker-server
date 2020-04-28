@@ -9,6 +9,22 @@
       apt:
         upgrade: dist
         update_cache: yes
+    - name: Copy bashrc
+      template:
+        src: bashrc.j2
+        dest: .bashrc
+        mode: 0644
+        backup: yes
+    - name: Copy bash_aliases
+      template:
+        src: bash_aliases.j2
+        dest: .bash_aliases
+        mode: 0644
+        backup: yes
+    - name: Install helpful tools
+      apt:
+        name:
+          - bash-completion
     - name: Install python
       apt:
         name:
@@ -28,5 +44,8 @@
       alternatives:
         name: python
         path: /usr/bin/python3
+    - name: Remove dependencies that are no longer required
+      apt:
+        autoremove: yes
   become: true
   

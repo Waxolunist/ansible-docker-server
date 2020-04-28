@@ -1,0 +1,9 @@
+---
+  - debug:
+      var: "{{ pwa.key }}"
+  - debug:
+      var: "{{ pwa.value.ports.listen }}"
+  - debug:
+      var: "{{ pwa.value.ports.listen }}"
+  - debug:
+      msg: "TEST"

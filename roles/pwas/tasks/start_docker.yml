@@ -1,0 +1,28 @@
+---
+- debug:
+    msg: "Start container. Restart: {{ restart }}"
+- name: Start container
+  docker_container:
+    name: "{{ pwa.value.name }}"
+    image: "{{ pwa.value.image_name }}"
+    state: started
+    restart: "{{ restart }}"
+    networks_cli_compatible: no
+    networks:
+      - name: web_proxy
+    ports:
+      - "{{ pwa.value.ports.exposed }}:{{ pwa.value.ports.listen }}"
+    labels: 
+      traefik.enable: "true"
+      traefik.http.routers.frontend.entrypoints: "web"
+      traefik.http.routers.frontend.rule: "Host(`{{ pwa.value.host }}`)"
+      traefik.http.middlewares.frontend-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.frontend.middlewares: "frontend-https-redirect"
+      traefik.http.routers.frontend-secure.entrypoints: "websecure"
+      traefik.http.routers.frontend-secure.rule: "Host(`{{ pwa.value.host }}`)"
+      traefik.http.routers.frontend-secure.tls: "true"
+      traefik.http.routers.frontend-secure.tls.certresolver: "myresolver"
+      traefik.domain: "{{ pwa.value.host }}"
+      traefik.docker.network: "web_proxy"
+
+  become: yes

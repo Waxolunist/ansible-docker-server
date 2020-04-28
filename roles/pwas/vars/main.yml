@@ -1,0 +1,12 @@
+---
+  pwas:
+    paint:
+      tar_gz: paint_latest.tar.gz
+      tar: paint_latest.tar
+      name: paint
+      image_name: waxolunist/paint
+      host: paint.v-collaborate.com
+      ports:
+        listen: 8002
+        exposed: 8000
+    

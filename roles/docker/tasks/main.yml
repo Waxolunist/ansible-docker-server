@@ -1,4 +1,10 @@
 ---
+- name: Add user {{ ansible_user }} to docker group
+  user: name={{ ansible_user }}
+        group={{ ansible_user }}
+        groups=docker
+        append=yes
+  become: yes
 - name: Install docker prerequsits
   block:
   - name: Remove unused docker packages
@@ -25,12 +31,22 @@
       repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
       state: present
   - apt:
-      name: docker-ce
+      name: 
+        - docker-ce
       state: present
   - pip:
-      name: docker
+      name:
+        - docker
+        - docker-compose
+      state: present
   - name: Create directory for docker images
     file:
       path: "{{ dockerimage_path }}"
       state: directory
+  - name: Create log directories
+    file:
+      path: "{{ docker_logpath }}"
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
   become: yes

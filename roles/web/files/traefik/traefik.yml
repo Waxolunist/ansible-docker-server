@@ -1,5 +1,15 @@
+log:
+  filePath: "/var/log/traefik/traefik.log"
+  #format: json
+  level: DEBUG
+
+accessLog:
+  filePath: "/var/log/traefik/access.log"
+  #format: json
+
 api:
   insecure: true
+  dashboard: true
 
 entryPoints:
   web:
@@ -9,15 +19,19 @@ entryPoints:
     address: ":443"
 
 certificatesResolvers:
-  sample:
+  myresolver:
     acme:
       email: christian.sterzl@gmail.com
-      storage: acme.json
+      storage: /etc/traefik/acme.json
       httpChallenge:
         # used during the challenge
         entryPoint: web
 
+tls:
+  stores:
+    default: {}
+
 providers:
   docker:
-    exposedByDefault: false
+    exposedByDefault: true
     endpoint: "unix:///var/run/docker.sock"

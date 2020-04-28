@@ -1,0 +1,38 @@
+---
+  - name: Copy docker image
+    copy:
+      src: "{{ pwa.value.tar_gz }}"
+      dest: "{{ pwa.value.tar_gz }}"
+      force: no
+  - stat:
+      path: "{{ pwa.value.tar_gz }}"
+    register: tar_gz_file
+  - stat:
+      path: "{{ dockerimage_path }}{{ pwa.value.tar }}"
+    register: tar_file
+  - name: Install paint
+    block:
+      - name: Remove tar if present
+        file:
+          path: "{{ pwa.value.tar }}"
+          state: absent
+      - name: Unzip tar
+        shell:
+          cmd: gzip -d < "{{ pwa.value.tar_gz }}" > "{{ pwa.value.tar }}"
+          creates: "{{ pwa.value.tar }}"
+      - name: Move to docker images
+        command: mv "{{ pwa.value.tar }}" "{{ dockerimage_path }}"
+      - name: Load image
+        docker_image:
+          name: "{{ pwa.value.name }}"
+          source: load
+          load_path: "{{ dockerimage_path }}{{ pwa.value.tar }}"
+      - include_tasks: start_docker.yml
+        vars:
+          restart: yes
+    become: yes
+    when: tar_file.stat.ctime < tar_gz_file.stat.ctime
+  - include_tasks: start_docker.yml
+    vars:
+      restart: yes
+    when: tar_file.stat.ctime > tar_gz_file.stat.ctime
