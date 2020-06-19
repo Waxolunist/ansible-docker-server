@@ -28,7 +28,7 @@ Docker
 
 Inspect docker labels of container
 
-    $ docker inspect paint | grep labels -iA 5
+    $ docker inspect paint | grep labels -iA 12
 
 List docker networks
 
@@ -38,3 +38,17 @@ Inspect docker network
 
     $ docker network inspect web_proxy
 
+Execute command
+
+    $ docker exec -it registry /bin/bash
+
+Registry / Portus
+=================
+
+Generate secret
+
+    openssl rand -hex 64
+
+Generate key file and certificate
+
+    openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout roles/web/files/portus/portus.key -out roles/web/files/portus/portus.crt

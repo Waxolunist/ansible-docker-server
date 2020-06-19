@@ -1,0 +1,41 @@
+log:
+  filePath: "/var/log/traefik/traefik.log"
+  format: json
+  level: DEBUG
+
+accessLog:
+  filePath: "/var/log/traefik/access.log"
+  format: json
+
+api:
+  insecure: true
+  dashboard: true
+
+entryPoints:
+  web:
+    address: ":80"
+
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  myresolver:
+    acme:
+      email: christian.sterzl@gmail.com
+      storage: "/var/run/traefik/acme.json"
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      #caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: web
+
+tls:
+  stores:
+    default: {}
+
+metrics:
+  prometheus: {}
+
+providers:
+  docker:
+    exposedByDefault: true
+    endpoint: "unix:///var/run/docker.sock"

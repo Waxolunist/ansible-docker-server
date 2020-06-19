@@ -5,7 +5,7 @@
       tar: paint_latest.tar
       name: paint
       image_name: waxolunist/paint
-      host: paint.v-collaborate.com
+      host: paint.{{ topleveldomain }}
       ports:
         listen: 8002
         exposed: 8000

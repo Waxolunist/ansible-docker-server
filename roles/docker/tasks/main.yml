@@ -39,14 +39,39 @@
         - docker
         - docker-compose
       state: present
-  - name: Create directory for docker images
+  - name: Create directories
     file:
-      path: "{{ dockerimage_path }}"
-      state: directory
-  - name: Create log directories
-    file:
-      path: "{{ docker_logpath }}"
+      path: "{{ item }}"
       state: directory
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+    loop:
+      - "{{ docker.paths.images }}"
+      - "{{ docker.paths.logs }}"
+      - "{{ docker.paths.configs }}"
+      - "{{ docker.paths.data }}"
+      - "{{ docker.paths.work }}"
+  - name: Get Docker IP address
+    shell: ip addr show | grep "\binet\b.*\bdocker0\b" | awk '{print $2}' | cut -d '/' -f 1
+    register: docker_ip_address
+  - set_fact: 
+      docker_ip_address: "{{ docker_ip_address.stdout }}"
+  - debug: 
+      var: docker_ip_address
+  - name: Configure daemon
+    template:
+      src: daemon_json.j2
+      dest: "/etc/docker/daemon.json"
+      mode: 0644
+      backup: yes
+    register: docker_daemon_json
+  - name: restart docker daemon if needed
+    service:
+      name: docker
+      state: restarted
+    when: docker_daemon_json.changed
+  - name: ensure docker daemon started
+    service:
+      name: docker
+      state: started
   become: yes

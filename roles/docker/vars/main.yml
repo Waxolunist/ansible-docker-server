@@ -1,3 +1,9 @@
 ---
-  dockerimage_path: "/var/dockerimages/"
-  docker_logpath: "/var/log/docker"
+  docker_base_path: "/var/docker"
+  docker:
+    paths:
+      images: "{{ docker_base_path }}/images/"
+      logs: "{{ docker_base_path }}/logs/"
+      configs: "{{ docker_base_path }}/configs/"
+      data: "{{ docker_base_path }}/data/"
+      work: "{{ docker_base_path }}/work/"

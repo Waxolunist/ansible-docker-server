@@ -1,3 +1,4 @@
 ---
   ansible_connection: ssh
   ansible_user: devops
+  topleveldomain: v-collaborate.com

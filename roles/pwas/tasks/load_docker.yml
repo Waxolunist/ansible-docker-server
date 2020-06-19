@@ -3,13 +3,15 @@
     copy:
       src: "{{ pwa.value.tar_gz }}"
       dest: "{{ pwa.value.tar_gz }}"
-      force: no
+      force: yes
   - stat:
       path: "{{ pwa.value.tar_gz }}"
     register: tar_gz_file
   - stat:
-      path: "{{ dockerimage_path }}{{ pwa.value.tar }}"
+      path: "{{ docker.paths.images }}{{ pwa.value.tar }}"
     register: tar_file
+  - debug:
+      var: tar_file
   - name: Install paint
     block:
       - name: Remove tar if present
@@ -21,18 +23,18 @@
           cmd: gzip -d < "{{ pwa.value.tar_gz }}" > "{{ pwa.value.tar }}"
           creates: "{{ pwa.value.tar }}"
       - name: Move to docker images
-        command: mv "{{ pwa.value.tar }}" "{{ dockerimage_path }}"
+        command: mv "{{ pwa.value.tar }}" "{{ docker.paths.images }}"
       - name: Load image
         docker_image:
           name: "{{ pwa.value.name }}"
           source: load
-          load_path: "{{ dockerimage_path }}{{ pwa.value.tar }}"
+          load_path: "{{ docker.paths.images }}{{ pwa.value.tar }}"
       - include_tasks: start_docker.yml
         vars:
           restart: yes
     become: yes
-    when: tar_file.stat.ctime < tar_gz_file.stat.ctime
+    when: not tar_file.stat.exists or tar_file.stat.ctime < tar_gz_file.stat.ctime
   - include_tasks: start_docker.yml
     vars:
       restart: "{{ restart_container }}"
-    when: tar_file.stat.ctime > tar_gz_file.stat.ctime
+    when: tar_file.stat.exists and tar_file.stat.ctime > tar_gz_file.stat.ctime

@@ -4,8 +4,3 @@
     vars:
       pwa: "{{ item }}"
     with_dict: "{{ pwas }}"
-  #- name: debug
-  #  include_tasks: debug_test.yml
-  #  vars:
-  #    pwa: "{{ item }}"
-  #  with_dict: "{{ pwas }}"

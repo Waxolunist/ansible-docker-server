@@ -1,0 +1,55 @@
+---
+  - name: Test
+    hosts: web
+    vars:
+      pwa:
+        value:
+          host: paint.v-collaborate.com
+      router_name: paint
+      container_label_keyvalue_pairs:
+        - key: "traefik.enable"
+          value: "true"
+        - key: "traefik.http.routers.{{ router_name }}.entrypoints"
+          value: "web"
+        - key: "traefik.http.routers.{{ router_name }}.entrypoints"
+          value: "web"
+        - key: "traefik.http.routers.{{ router_name }}.rule"
+          value: "Host(`{{ pwa.value.host }}`)"
+        - key: "traefik.http.middlewares.{{ router_name }}-https-redirect.redirectscheme.scheme"
+          value: "https"
+        - key: "traefik.http.routers.{{ router_name }}.middlewares"
+          value: "{{ router_name }}-https-redirect"
+        - key: "traefik.http.routers.{{ router_name }}-secure.entrypoints"
+          value: "websecure"
+        - key: "traefik.http.routers.{{ router_name }}-secure.rule"
+          value: "Host(`{{ pwa.value.host }}`)"
+        - key: "traefik.http.routers.{{ router_name }}-secure.tls"
+          value: "true"
+        - key: "traefik.http.routers.{{ router_name }}-secure.tls.certresolver"
+          value: "myresolver"
+        - key: "traefik.domain"
+          value: "{{ pwa.value.host }}"
+        - key: "traefik.docker.network"
+          value: "web_proxy"
+    tasks:
+      - name: Set variable
+        set_fact:
+          router_name: paint
+      - name: Debug output
+        debug:
+          var: router_name
+      - name: Set dictionary
+        set_fact:
+          labels: "{{ labels|default({}) | combine( {item.key: item.value} ) }}"
+        with_items:
+          - "{{ container_label_keyvalue_pairs }}"
+      - name: Debug container labels
+        debug:
+          var: labels
+      - name: Get Docker IP address
+        shell: ip addr show | grep "\binet\b.*\bdocker0\b" | awk '{print $2}' | cut -d '/' -f 1
+        register: docker_ip_address
+      - set_fact: 
+          docker_ip_address: "{{ docker_ip_address.stdout }}"
+      - debug: 
+          var: docker_ip_address

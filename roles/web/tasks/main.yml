@@ -3,27 +3,41 @@
     file:
       path: web/
       state: directory
-  - name: Sync directories
-    synchronize:
-      src: .
-      dest: web/
-      delete: yes
-      recursive: yes
-    register: output
-  - debug:
-      var: output
-  - name: Create log dirs
+  - name: Create config dirs
     file:
-      path: "{{ docker_logpath }}/{{ item }}"
+      path: "{{ docker.paths.configs }}{{ item }}"
       state: directory
     loop: "{{ web_containers }}"
+  - name: Create work dirs
+    file:
+      path: "{{ docker.paths.work }}{{ item }}"
+      state: directory
+    loop: "{{ web_containers }}"
+  - name: Create log dirs
+    file:
+      path: "{{ docker.paths.logs }}{{ item }}"
+      state: directory
+    loop: "{{ web_containers }}"
+  - name: Create data dirs
+    file:
+      path: "{{ docker.paths.data }}{{ item }}"
+      state: directory
+    loop: "{{ web_containers }}"
+  - name: Run web container specific tasks
+    include_tasks: "{{ item }}.yml"
+    loop: "{{ web_containers }}"
+  - name: Write docker compose file
+    template:
+      src: docker-compose_yml.j2
+      dest: "{{ docker_base_path }}/docker-compose.yml"
+      mode: 0644
+      backup: yes
   - name: Run docker-compose
     block:
       - docker_compose:
-          project_src: web/
+          project_src: "{{ docker_base_path }}"
           state: present
           restarted: yes
         register: compose_output
       - debug:
           var: compose_output
-    when: output.msg != ""

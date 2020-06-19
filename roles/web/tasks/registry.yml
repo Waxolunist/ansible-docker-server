@@ -1,0 +1,19 @@
+---
+  - name: Registry - Write configuration
+    template:
+      src: registry/registry_yml.j2
+      dest: "{{ docker.paths.configs }}registry/config.yml"
+      mode: 0644
+      backup: yes
+  - name: Registry - Create secrets dir
+    file:
+      path: "{{ docker.paths.configs }}registry/secrets"
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: Registry - Copy crt file
+    copy:
+      src: "portus/portus.crt"
+      dest: "{{ docker.paths.configs }}registry/secrets/portus.crt"
+      force: yes
+      mode: 0644

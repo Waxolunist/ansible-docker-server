@@ -1,0 +1,7 @@
+---
+  - name: Write configuration traefik
+    template:
+      src: traefik/traefik_yml.j2
+      dest: "{{ docker.paths.configs }}traefik/traefik.yml"
+      mode: 0644
+      backup: yes

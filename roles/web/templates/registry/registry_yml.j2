@@ -1,0 +1,36 @@
+version: 0.1
+log:
+  level: debug
+  formatter: json
+  fields:
+    service: registry
+storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
+auth:
+  token:
+    autoredirect: false
+    realm: https://{{ portus.domain }}/v2/token
+    service: {{ registry.domain }}
+    issuer: {{ portus.domain }}
+    rootcertbundle: /secrets/portus.crt
+http:
+  addr: 0.0.0.0:{{ registry.port }}
+  host: https://{{ registry.domain }}
+  relativeurls: false
+  secret: {{ vault_registry_http_secret }}
+  debug:
+    addr: 0.0.0.0:5001
+    prometheus:    
+      enabled: true
+      path: /metrics
+notifications:
+  events:
+    includereferences: true
+  endpoints:
+    - name: portus
+      disabled: false
+      url: http://portus:3000/v2/webhooks/events
+      timeout: 2s
+      threshold: 10
+      backoff: 1s
