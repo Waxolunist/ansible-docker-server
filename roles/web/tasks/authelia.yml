@@ -1,0 +1,20 @@
+---
+  - name: Authelia - Write configuration
+    template:
+      src: authelia/authelia_yml.j2
+      dest: "{{ docker.paths.configs }}authelia/configuration.yml"
+      mode: 0644
+      backup: yes
+  - name: Authelia - Write users database
+    template:
+      src: authelia/users_database_yml.j2
+      dest: "{{ docker.paths.configs }}authelia/users_database.yml"
+      mode: 0644
+      backup: yes
+  - name: Touch sqlite db
+    file:
+      path: "{{ docker.paths.data }}authelia/db.sqlite3"
+      state: touch
+      mode: 0644
+      modification_time: preserve
+      access_time: preserve

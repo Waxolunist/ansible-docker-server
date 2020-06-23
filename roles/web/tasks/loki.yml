@@ -1,0 +1,11 @@
+---
+  - name: Loki - Write configuration
+    template:
+      src: loki/loki_yml.j2
+      dest: "{{ docker.paths.configs }}loki/local-config.yaml"
+      mode: 0644
+      backup: yes
+  - name: Loki - Change permissions for work dir
+    file:
+      path: "{{ docker.paths.work }}loki"
+      mode: '0777'

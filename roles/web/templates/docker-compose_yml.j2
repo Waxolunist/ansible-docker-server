@@ -3,14 +3,11 @@ version: '3.8'
 services:
   registry:
     image: registry:2
-    container_name: web_registry
     volumes:
       - "{{ docker.paths.work }}registry:/var/lib/registry"
       - "{{ docker.paths.configs }}registry/config.yml:/etc/docker/registry/config.yml:ro"
       - "{{ docker.paths.logs }}registry:/var/log/docker-registry"
       - "{{ docker.paths.configs }}registry/secrets:/secrets:ro"
-    links:
-      - portus:portus
     networks:
       - proxy
     labels:
@@ -25,16 +22,18 @@ services:
       - traefik.http.routers.registry.entrypoints=web
       - traefik.http.routers.registry.middlewares=registry-https-redirect
       - traefik.http.routers.registry.rule=Host(`{{ registry.domain }}`)
+    environment:
+      - TZ=Europa/Vienna
 
   portus-pg:
     image: postgres:12-alpine
-    container_name: web_portus-pg
     networks:
-      - proxy
+      - portus
     environment:
       - POSTGRES_PASSWORD={{ vault_portus_pg_password }}
       - POSTGRES_USER={{ vault_portus_pg_user }}
       - POSTGRES_DB=portus
+      - TZ=Europa/Vienna
     volumes:
       - "{{ docker.paths.data }}portus/pgdata:/var/lib/postgresql/data"
     labels:
@@ -61,8 +60,10 @@ services:
       - PORTUS_PASSWORD={{ vault_portus_password }}
       - RAILS_SERVE_STATIC_FILES=true
       - PORTUS_CHECK_SSL_USAGE_ENABLED='false'
+      - TZ=Europa/Vienna
     networks:
       - proxy
+      - portus
     volumes:
       - "{{ docker.paths.configs }}portus:/certificates:ro"
       - "{{ docker.paths.configs }}portus/config.yml:/config/config.yml:ro"
@@ -83,7 +84,6 @@ services:
     image: opensuse/portus:head
     container_name: web_portus-background
     depends_on:
-      - portus
       - portus-pg
     links:
       - "portus-pg:database"
@@ -100,8 +100,9 @@ services:
       - PORTUS_KEY_PATH=/certificates/portus.key
       - PORTUS_PASSWORD={{ vault_portus_password }}
       - PORTUS_BACKGROUND=true
+      - TZ=Europa/Vienna
     networks:
-      - proxy
+      - portus
     volumes:
       - "{{ docker.paths.configs }}portus:/certificates:ro"
       - "{{ docker.paths.configs }}portus/config.yml:/config/config.yml:ro"
@@ -112,29 +113,42 @@ services:
     image: traefik:v2.2
     container_name: web_reverse-proxy
     ports:
-      # The HTTP ports
       - "80:80"
       - "443:443"
-      # The Web UI (enabled by --api.insecure=true)
-      - "8080:8080"
+    expose:
+      - 8080
     volumes:
       # So that Traefik can listen to the Docker events
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "{{ docker.paths.configs }}traefik:/etc/traefik"
       - "{{ docker.paths.work }}traefik:/var/run/traefik"
       - "{{ docker.paths.logs }}traefik/:/var/log/traefik"
+    environment:
+      - TZ=Europa/Vienna
     networks:
       - proxy
     labels:
       - traefik.enable=true
+      - traefik.port=8080
       - traefik.docker.network=web_proxy
-  
+      - traefik.domain={{ traefik.domain }}
+      - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.proxy-secure.middlewares=auth@docker
+      - traefik.http.routers.proxy-secure.entrypoints=websecure
+      - traefik.http.routers.proxy-secure.rule=Host(`{{ traefik.domain }}`)
+      - traefik.http.routers.proxy-secure.tls=true
+      - traefik.http.routers.proxy-secure.tls.certresolver=myresolver
+      - traefik.http.routers.proxy-secure.service=api@internal
+      - traefik.http.routers.proxy.entrypoints=web
+      - traefik.http.routers.proxy.middlewares=registry-https-redirect
+      - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`)
+
   prometheus:
     image: prom/prometheus:v2.17.2
     user: root
     container_name: web_prometheus
-    ports:
-      - "9090:9090"
+    expose:
+      - 9090
     volumes:
       - "{{ docker.paths.configs }}prometheus:/etc/prometheus"
       - "{{ docker.paths.data }}prometheus:/prometheus"
@@ -143,6 +157,8 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
+    environment:
+      - TZ=Europa/Vienna
     networks:
       - proxy
     extra_hosts:
@@ -156,10 +172,57 @@ services:
       - traefik.http.routers.metrics-secure.rule=Host(`{{ prometheus.domain }}`)
       - traefik.http.routers.metrics-secure.tls=true
       - traefik.http.routers.metrics-secure.tls.certresolver=myresolver
+      - traefik.http.routers.metrics-secure.middlewares=auth@docker
       - traefik.http.routers.metrics.entrypoints=web
       - traefik.http.routers.metrics.middlewares=metrics-https-redirect
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
 
+  authelia:
+    image: authelia/authelia:4
+    container_name: authelia
+    volumes:
+      - "{{ docker.paths.configs }}authelia:/config:ro"
+      - "{{ docker.paths.work }}authelia:/notifications"
+      - "{{ docker.paths.data }}authelia/db.sqlite3:/var/db.sqlite3"
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ authelia.domain }}
+      - traefik.http.middlewares.auth-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.auth-secure.entrypoints=websecure
+      - traefik.http.routers.auth-secure.rule=Host(`{{ authelia.domain }}`)
+      - traefik.http.routers.auth-secure.tls=true
+      - traefik.http.routers.auth-secure.tls.certresolver=myresolver
+      - traefik.http.routers.auth.entrypoints=web
+      - traefik.http.routers.auth.middlewares=auth-https-redirect
+      - traefik.http.routers.auth.rule=Host(`{{ authelia.domain }}`)
+      - traefik.http.middlewares.auth.forwardauth.address=http://authelia:{{ authelia.port }}/api/verify?rd=https://{{ authelia.domain }}
+      - traefik.http.middlewares.auth.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.auth.forwardauth.authResponseHeaders=Remote-User, Remote-Groups
+    expose:
+      - {{ authelia.port }}
+    environment:
+      - TZ=Europa/Vienna
+
+  loki:
+    image: grafana/loki:1.5.0
+    container_name: loki
+    expose:
+      - 3100
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - "{{ docker.paths.configs }}loki:/etc/loki:ro"
+      - "{{ docker.paths.work }}loki:/loki"
+    environment:
+      - TZ=Europa/Vienna
+    networks:
+      - proxy
+      - portus
+
 networks:
   proxy:
     name: web_proxy
+  portus:
+    name: web_portus

@@ -4,6 +4,8 @@
     - prometheus
     - registry
     - portus
+    - authelia
+    - loki
   portus:
     domain: "portus.{{ topleveldomain }}"
   registry:
@@ -11,3 +13,8 @@
     port: 5000
   prometheus:
     domain: "metrics.{{ topleveldomain }}"
+  authelia:
+    domain: "auth.{{ topleveldomain }}"
+    port: 9091
+  traefik:
+    domain: "proxy.{{ topleveldomain }}"

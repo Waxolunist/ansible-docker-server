@@ -1,0 +1,41 @@
+###############################################################
+#                   Authelia configuration                    #
+###############################################################
+
+host: 0.0.0.0
+port: {{ authelia.port }}
+log_level: debug
+jwt_secret: {{ vault_authelia_jwt_secret }}
+default_redirection_url: https://{{ topleveldomain }}
+totp:
+  issuer: {{ topleveldomain }}
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+
+access_control:
+  default_policy: deny
+  rules:
+    - domain: "*.{{ topleveldomain }}"
+      policy: one_factor
+
+session:
+  name: authelia_session
+  secret: {{ vault_authelia_session_secret }}
+  expiration: 3600 # 1 hour
+  inactivity: 300 # 5 minutes
+  domain: {{ topleveldomain }}
+
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+  local:
+    path: /var/db.sqlite3
+
+notifier:
+  filesystem:
+    filename: /notifications/notification.txt
