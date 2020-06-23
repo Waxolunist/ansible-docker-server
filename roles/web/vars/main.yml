@@ -6,6 +6,7 @@
     - portus
     - authelia
     - loki
+    - grafana
   portus:
     domain: "portus.{{ topleveldomain }}"
   registry:
@@ -18,3 +19,5 @@
     port: 9091
   traefik:
     domain: "proxy.{{ topleveldomain }}"
+  grafana:
+    domain: "graph.{{ topleveldomain }}"
