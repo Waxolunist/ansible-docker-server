@@ -7,6 +7,7 @@
     - authelia
     - loki
     - grafana
+    - pgadmin
   portus:
     domain: "portus.{{ topleveldomain }}"
   registry:
@@ -21,3 +22,6 @@
     domain: "proxy.{{ topleveldomain }}"
   grafana:
     domain: "graph.{{ topleveldomain }}"
+  pgadmin:
+    domain: "pgadmin.{{ topleveldomain }}"
+    port: 5050

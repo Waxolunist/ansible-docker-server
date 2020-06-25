@@ -1,0 +1,7 @@
+---
+  - name: Pgadmin - Change permissions for data dir
+    file:
+      path: "{{ docker.paths.data }}pgadmin"
+      owner: "5050"
+      group: "5050"
+      mode: 0755

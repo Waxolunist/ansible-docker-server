@@ -3,6 +3,11 @@ version: '3.8'
 services:
   registry:
     image: registry:2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     volumes:
       - "{{ docker.paths.work }}registry:/var/lib/registry"
       - "{{ docker.paths.configs }}registry/config.yml:/etc/docker/registry/config.yml:ro"
@@ -27,6 +32,11 @@ services:
 
   portus-pg:
     image: postgres:12-alpine
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     networks:
       - portus
     environment:
@@ -41,6 +51,11 @@ services:
 
   portus:
     image: opensuse/portus:head
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     container_name: web_portus
     depends_on:
       - portus-pg
@@ -60,7 +75,7 @@ services:
       - PORTUS_PASSWORD={{ vault_portus_password }}
       - RAILS_SERVE_STATIC_FILES=true
       - PORTUS_CHECK_SSL_USAGE_ENABLED='false'
-      - TZ=Europa/Vienna
+      - TZ=Vienna
     networks:
       - proxy
       - portus
@@ -82,6 +97,11 @@ services:
 
   portus-background:
     image: opensuse/portus:head
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     container_name: web_portus-background
     depends_on:
       - portus-pg
@@ -100,7 +120,7 @@ services:
       - PORTUS_KEY_PATH=/certificates/portus.key
       - PORTUS_PASSWORD={{ vault_portus_password }}
       - PORTUS_BACKGROUND=true
-      - TZ=Europa/Vienna
+      - TZ=Vienna
     networks:
       - portus
     volumes:
@@ -111,6 +131,11 @@ services:
 
   reverse-proxy:
     image: traefik:v2.2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     container_name: web_reverse-proxy
     ports:
       - "80:80"
@@ -145,6 +170,11 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.17.2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     user: root
     container_name: web_prometheus
     expose:
@@ -180,6 +210,11 @@ services:
 
   authelia:
     image: authelia/authelia:4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     container_name: authelia
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"
@@ -201,7 +236,7 @@ services:
       - traefik.http.routers.auth.rule=Host(`{{ authelia.domain }}`)
       - traefik.http.middlewares.auth.forwardauth.address=http://authelia:{{ authelia.port }}/api/verify?rd=https://{{ authelia.domain }}
       - traefik.http.middlewares.auth.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.auth.forwardauth.authResponseHeaders=Remote-User, Remote-Groups
+      - traefik.http.middlewares.auth.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Redirect
     expose:
       - {{ authelia.port }}
     environment:
@@ -209,6 +244,11 @@ services:
 
   loki:
     image: grafana/loki:1.5.0
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     container_name: loki
     expose:
       - 3100
@@ -222,14 +262,44 @@ services:
       - proxy
       - portus
 
+  grafana-pg:
+    image: postgres:12-alpine
+    container_name: grafana-pg
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
+    networks:
+      - grafana
+    environment:
+      - POSTGRES_PASSWORD={{ vault_grafana_pg_password }}
+      - POSTGRES_USER={{ vault_grafana_pg_user }}
+      - POSTGRES_DB=grafana
+      - TZ=Europa/Vienna
+    volumes:
+      - "{{ docker.paths.data }}grafana/pgdata:/var/lib/postgresql/data"
+    labels:
+      - traefik.enable=false
+
   grafana:
     image: grafana/grafana:7.0.3
-    container_name: grafana
+    container_name: web_grafana
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
     volumes:
+      - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
       - "{{ docker.paths.data }}grafana:/var/lib/grafana"
       - "{{ docker.paths.logs }}grafana:/var/log/grafana"
     expose:
       - 3000
+    depends_on:
+      - grafana-pg
+    links:
+      - "grafana-pg:database"
     environment:
       - TZ=Europa/Vienna
     labels:
@@ -247,9 +317,48 @@ services:
       - traefik.http.routers.grafana.rule=Host(`{{ grafana.domain }}`)
     networks:
       - proxy
+      - grafana
+
+  pgadmin:
+    image: dpage/pgadmin4:4
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
+    container_name: web_pgadmin
+    links:
+      - "portus-pg:database-portus"
+      - "grafana-pg:database-grafana"
+    expose:
+      - {{ pgadmin.port }}
+    volumes:
+      - "{{ docker.paths.data }}pgadmin:/var/lib/pgadmin"
+    environment:
+      - TZ=Europa/Vienna
+      - PGADMIN_DEFAULT_EMAIL={{ vault_pgadmin_default_email }}
+      - PGADMIN_DEFAULT_PASSWORD={{ vault_pgadming_default_password }}
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ pgadmin.domain }}
+      - traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.pgadmin-secure.entrypoints=websecure
+      - traefik.http.routers.pgadmin-secure.rule=Host(`{{ pgadmin.domain }}`)
+      - traefik.http.routers.pgadmin-secure.tls=true
+      - traefik.http.routers.pgadmin-secure.tls.certresolver=myresolver
+      - traefik.http.routers.pgadmin.entrypoints=web
+      - traefik.http.routers.pgadmin.middlewares=pgadmin-https-redirect
+      - traefik.http.routers.pgadmin.rule=Host(`{{ pgadmin.domain }}`)
+    networks:
+      - proxy
+      - portus
+      - grafana
 
 networks:
   proxy:
     name: web_proxy
   portus:
     name: web_portus
+  grafana:
+    name: web_grafana

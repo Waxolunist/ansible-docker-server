@@ -1,1 +1,26 @@
 ---
+  - name: Grafana - Write configuration
+    template:
+      src: grafana/grafana_ini.j2
+      dest: "{{ docker.paths.configs }}grafana/grafana.ini"
+      mode: 0644
+      backup: yes
+  - name: Grafana - Change permissions for work dir
+    file:
+      path: "{{ docker.paths.data }}grafana"
+      mode: '0777'
+  - name: Grafana - Change permissions for logs dir
+    file:
+      path: "{{ docker.paths.logs }}grafana"
+      mode: '0777'
+  - name: Grafana - Check if pgdata exists
+    stat: 
+      path: "{{ docker.paths.data }}grafana/pgdata"
+    register: pgdata_dir
+  - name: Grafana - Create pgdata
+    file:
+      path: "{{ docker.paths.data }}grafana/pgdata"
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    when: pgdata_dir.stat.exists == False

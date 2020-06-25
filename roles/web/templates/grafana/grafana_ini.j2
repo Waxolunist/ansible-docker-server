@@ -1,0 +1,43 @@
+[auth]
+disable_login_form = true
+signout_redirect_url = https://{{ authelia.domain }}?rd=https://{{ grafana.domain }}
+# Login cookie name
+login_cookie_name = grafana_session
+# The lifetime (days) an authenticated user can be inactive before being required to login at next visit. Default is 7 days.
+login_maximum_inactive_lifetime_days = 7
+# The maximum lifetime (days) an authenticated user can be logged in since login time before being required to login. Default is 30 days.
+login_maximum_lifetime_days = 30
+# How often should auth tokens be rotated for authenticated users when being active. The default is each 10 minutes.
+token_rotation_interval_minutes = 10
+# The maximum lifetime (seconds) an API key can be used. If it is set all the API keys should have limited lifetime that is lower than this value.
+api_key_max_seconds_to_live = -1
+
+[auth.proxy]
+# Defaults to false, but set to true to enable this feature
+enabled = true
+# HTTP Header name that will contain the username or email
+header_name = Remote-User
+# HTTP Header property, defaults to `username` but can also be `email`
+header_property = username
+# Set to `true` to enable auto sign up of users who do not exist in Grafana DB. Defaults to `true`.
+auto_sign_up = true
+# Define cache time to live in minutes
+# If combined with Grafana LDAP integration it is also the sync interval
+sync_ttl = 60
+# Limit where auth proxy requests come from by configuring a list of IP addresses.
+# This can be used to prevent users spoofing the X-WEBAUTH-USER header.
+# Example `whitelist = 192.168.1.1, 192.168.1.0/24, 2001::23, 2001::0/120`
+whitelist =
+# Optionally define more headers to sync other user attributes
+# Example `headers = Name:X-WEBAUTH-NAME Email:X-WEBAUTH-EMAIL Groups:X-WEBAUTH-GROUPS`
+headers = Groups:Remote-Groups
+# Check out docs on this for more details on the below setting
+enable_login_token = false
+
+[database]
+type = postgres
+host = database:5432
+name = grafana
+user = {{ vault_grafana_pg_user }}
+password = """{{ vault_grafana_pg_password }}"""
+log_queries = true
