@@ -159,14 +159,17 @@ services:
       - traefik.domain={{ traefik.domain }}
       - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.proxy-secure.middlewares=auth@docker
+      - traefik.http.routers.proxy-secure.middlewares=me-redirectregex
       - traefik.http.routers.proxy-secure.entrypoints=websecure
-      - traefik.http.routers.proxy-secure.rule=Host(`{{ traefik.domain }}`)
+      - traefik.http.routers.proxy-secure.rule=Host(`{{ traefik.domain }}`, `me.v-collaborate.com`, `christian.sterzl.info`)
       - traefik.http.routers.proxy-secure.tls=true
       - traefik.http.routers.proxy-secure.tls.certresolver=myresolver
       - traefik.http.routers.proxy-secure.service=api@internal
       - traefik.http.routers.proxy.entrypoints=web
-      - traefik.http.routers.proxy.middlewares=registry-https-redirect
-      - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`)
+      - traefik.http.routers.proxy.middlewares=proxy-https-redirect
+      - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`, `me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://(me.v-collaborate.com|christian.sterzl.info)(/.*)?
+      - traefik.http.middlewares.me-redirectregex.redirectregex.replacement=https://www.linkedin.com/in/christian-sterzl-59b282182/
 
   prometheus:
     image: prom/prometheus:v2.17.2
@@ -192,6 +195,7 @@ services:
     networks:
       - proxy
       - portus
+      - prometheus
     extra_hosts:
       docker.host: {{ docker_ip_address }}
     labels:
@@ -207,6 +211,24 @@ services:
       - traefik.http.routers.metrics.entrypoints=web
       - traefik.http.routers.metrics.middlewares=metrics-https-redirect
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: web_node-exporter
+    deploy:
+      mode: global
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 250M
+    environment:
+      - TZ=Europa/Vienna
+    expose:
+      - 9100
+    labels:
+      - traefik.enable=false
+    networks:
+      - prometheus
 
   authelia:
     image: authelia/authelia:4
@@ -250,6 +272,8 @@ services:
           cpus: '0.50'
           memory: 250M
     container_name: loki
+    ports:
+      - "{{ docker_ip_address }}:3100:3100"
     expose:
       - 3100
     command: -config.file=/etc/loki/local-config.yaml
@@ -261,6 +285,19 @@ services:
     networks:
       - proxy
       - portus
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ loki.domain }}
+      - traefik.http.middlewares.loki-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.loki-secure.entrypoints=websecure
+      - traefik.http.routers.loki-secure.rule=Host(`{{ loki.domain }}`)
+      - traefik.http.routers.loki-secure.tls=true
+      - traefik.http.routers.loki-secure.tls.certresolver=myresolver
+      - traefik.http.routers.loki-secure.middlewares=auth@docker
+      - traefik.http.routers.loki.entrypoints=web
+      - traefik.http.routers.loki.middlewares=grafana-https-redirect
+      - traefik.http.routers.loki.rule=Host(`{{ loki.domain }}`)
 
   grafana-pg:
     image: postgres:12-alpine
@@ -362,3 +399,5 @@ networks:
     name: web_portus
   grafana:
     name: web_grafana
+  prometheus:
+    name: web_prometheus

@@ -13,6 +13,8 @@ totp:
 authentication_backend:
   file:
     path: /config/users_database.yml
+    password:
+      algorithm: sha512
 
 access_control:
   default_policy: deny
