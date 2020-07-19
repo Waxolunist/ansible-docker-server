@@ -27,3 +27,5 @@
     port: 5050
   loki:
     domain: "logs.{{ topleveldomain }}"
+  
+  restart_container: no

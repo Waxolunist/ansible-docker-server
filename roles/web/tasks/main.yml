@@ -32,12 +32,25 @@
       dest: "{{ docker_base_path }}/docker-compose.yml"
       mode: 0644
       backup: yes
+  - name: Create restart script
+    template:
+      src: start_sh.j2.sh
+      dest: "{{ docker_base_path }}/start.sh"
+      mode: 0755
+      backup: yes
+  - name: Add cronjob to restart docker if neccessary
+    cron:
+      name: "check docker containers"
+      minute: "*/5"
+      user: "{{ ansible_user }}"
+      backup: yes
+      job: "{{ docker_base_path }}/start.sh"
   - name: Run docker-compose
     block:
       - docker_compose:
           project_src: "{{ docker_base_path }}"
           state: present
-          restarted: yes
+          restarted: "{{ restart_container }}"
         register: compose_output
       - debug:
           var: compose_output
