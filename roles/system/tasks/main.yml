@@ -22,7 +22,9 @@
         name: en_US.UTF-8
         state: present
 
-    - name: Disable Password Authentication
+- name: Disable Password Authentication
+  block:
+    - name: Disable Password Authentication ssh service
       lineinfile:
         dest=/etc/ssh/sshd_config
         regexp='^PasswordAuthentication'
@@ -39,3 +41,4 @@
         backup=yes
       notify:
         - restart ssh
+  when: disable_ssh_passwordauthentication

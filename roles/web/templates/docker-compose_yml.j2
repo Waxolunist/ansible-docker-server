@@ -3,11 +3,11 @@ version: '3.8'
 services:
   registry:
     image: registry:2
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     volumes:
       - "{{ docker.paths.work }}registry:/var/lib/registry"
       - "{{ docker.paths.configs }}registry/config.yml:/etc/docker/registry/config.yml:ro"
@@ -31,12 +31,12 @@ services:
       - TZ=Europa/Vienna
 
   portus-pg:
-    image: postgres:12-alpine
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    image: postgres:13-alpine
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     networks:
       - portus
     environment:
@@ -51,11 +51,11 @@ services:
 
   portus:
     image: opensuse/portus:head
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     container_name: web_portus
     depends_on:
       - portus-pg
@@ -97,11 +97,11 @@ services:
 
   portus-background:
     image: opensuse/portus:head
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     container_name: web_portus-background
     depends_on:
       - portus-pg
@@ -130,12 +130,12 @@ services:
       - traefik.enable=false
 
   reverse-proxy:
-    image: traefik:v2.2
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    image: traefik:v2.3
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     container_name: web_reverse-proxy
     ports:
       - "80:80"
@@ -159,25 +159,32 @@ services:
       - traefik.domain={{ traefik.domain }}
       - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.proxy-secure.middlewares=auth@docker
-      - traefik.http.routers.proxy-secure.middlewares=me-redirectregex
       - traefik.http.routers.proxy-secure.entrypoints=websecure
-      - traefik.http.routers.proxy-secure.rule=Host(`{{ traefik.domain }}`, `me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.routers.proxy-secure.rule=Host(`{{ traefik.domain }}`)
       - traefik.http.routers.proxy-secure.tls=true
       - traefik.http.routers.proxy-secure.tls.certresolver=myresolver
       - traefik.http.routers.proxy-secure.service=api@internal
       - traefik.http.routers.proxy.entrypoints=web
       - traefik.http.routers.proxy.middlewares=proxy-https-redirect
-      - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`, `me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`)
+      - traefik.http.routers.mepage.rule=Host(`me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.routers.mepage.entrypoints=web
+      - traefik.http.routers.mepage.middlewares=proxy-https-redirect
+      - traefik.http.routers.mepage-secure.middlewares=me-redirectregex
+      - traefik.http.routers.mepage-secure.entrypoints=websecure
+      - traefik.http.routers.mepage-secure.rule=Host(`me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.routers.mepage-secure.tls=true
+      - traefik.http.routers.mepage-secure.tls.certresolver=myresolver
       - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://(me.v-collaborate.com|christian.sterzl.info)(/.*)?
       - traefik.http.middlewares.me-redirectregex.redirectregex.replacement=https://www.linkedin.com/in/christian-sterzl-59b282182/
 
   prometheus:
-    image: prom/prometheus:v2.17.2
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    image: prom/prometheus:v2.22.0
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     user: root
     container_name: web_prometheus
     expose:
@@ -213,14 +220,14 @@ services:
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
 
   node-exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.0.1
     container_name: web_node-exporter
-    deploy:
-      mode: global
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  mode: global
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     environment:
       - TZ=Europa/Vienna
     expose:
@@ -232,11 +239,11 @@ services:
 
   authelia:
     image: authelia/authelia:4
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     container_name: authelia
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"
@@ -265,12 +272,12 @@ services:
       - TZ=Europa/Vienna
 
   loki:
-    image: grafana/loki:1.5.0
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    image: grafana/loki:2.0.0
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     container_name: loki
     ports:
       - "{{ docker_ip_address }}:3100:3100"
@@ -300,13 +307,13 @@ services:
       - traefik.http.routers.loki.rule=Host(`{{ loki.domain }}`)
 
   grafana-pg:
-    image: postgres:12-alpine
+    image: postgres:13-alpine
     container_name: grafana-pg
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     networks:
       - grafana
     environment:
@@ -320,13 +327,13 @@ services:
       - traefik.enable=false
 
   grafana:
-    image: grafana/grafana:7.0.3
+    image: grafana/grafana:7.3.1
     container_name: web_grafana
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
       - "{{ docker.paths.data }}grafana:/var/lib/grafana"
@@ -358,11 +365,11 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:4
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 250M
+    #deploy:
+    #  resources:
+    #    limits:
+    #      cpus: '0.50'
+    #      memory: 250M
     container_name: web_pgadmin
     links:
       - "portus-pg:database-portus"

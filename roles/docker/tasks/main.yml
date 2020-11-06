@@ -1,4 +1,9 @@
 ---
+- name: Create group docker
+  group:
+    name: docker
+    state: present
+  become: yes
 - name: Add user {{ ansible_user }} to docker group
   user: name={{ ansible_user }}
         group={{ ansible_user }}
@@ -28,7 +33,7 @@
   - apt_key:
       url: https://download.docker.com/linux/debian/gpg
   - apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/debian stretch stable
+      repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ codename }} stable
       state: present
   - apt:
       name: 
@@ -58,6 +63,36 @@
       docker_ip_address: "{{ docker_ip_address.stdout }}"
   - debug: 
       var: docker_ip_address
+
+  - name: ensure docker daemon started
+    service:
+      name: docker
+      state: started
+            
+  - name: Loki Plugin installed
+    shell: docker plugin ls | grep loki | awk '{print $3}'
+    register: loki_plugin
+  - set_fact: 
+      loki_plugin: "{{ loki_plugin.stdout }}"
+  - debug: 
+      var: loki_plugin
+  - name: Install loki docker plugin
+    block:
+      - name: Use configuration without loki
+        template:
+          src: daemon_json_noloki.j2
+          dest: "/etc/docker/daemon.json"
+          mode: 0644
+          backup: no
+      - name: Start docker
+        service:
+          name: docker
+          state: restarted
+      - name: Install loki plugin
+        command:
+          cmd: docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+    when: loki_plugin != "Loki"
+
   - name: Configure daemon
     template:
       src: daemon_json.j2
@@ -65,13 +100,21 @@
       mode: 0644
       backup: yes
     register: docker_daemon_json
+  
   - name: restart docker daemon if needed
-    service:
-      name: docker
-      state: restarted
+    block:
+      - name: Sleep for 5 seconds before restarting to often
+        wait_for:
+          timeout: 5
+      - name: Restart service
+        service:
+          name: docker
+          state: restarted
     when: docker_daemon_json.changed
+
   - name: ensure docker daemon started
     service:
       name: docker
       state: started
+
   become: yes

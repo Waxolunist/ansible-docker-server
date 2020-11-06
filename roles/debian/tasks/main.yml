@@ -36,6 +36,15 @@
       command: update-alternatives --list python
       register: python_alternatives
       changed_when: False
+      ignore_errors: yes
+    - name: Install alternatives 2
+      command:
+        cmd: update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+      when: python_alternatives.stderr is search("no alternatives for python")
+    - name: Install alternatives 3
+      command:
+        cmd: update-alternatives --install /usr/bin/python python /usr/bin/python3 2
+      when: python_alternatives.stderr is search("no alternatives for python")
     - name: Install alternative
       command: 
         cmd: update-alternatives --install /usr/bin/python python /usr/bin/python3 2

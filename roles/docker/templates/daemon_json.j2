@@ -4,6 +4,9 @@
   "log-driver": "loki",
   "log-opts": {
     "loki-url": "http://{{ docker_ip_address }}:3100/loki/api/v1/push",
-    "loki-batch-size": "400"
+    "loki-batch-size": "400",
+    "loki-min-backoff": "1s",
+    "loki-max-backoff": "60s",
+    "loki-retries": "100"
   }
 }

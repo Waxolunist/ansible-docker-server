@@ -9,14 +9,3 @@
     file:
       path: "{{ docker.paths.work }}loki"
       mode: '0777'
-  - name: Loki Plugin installed
-    shell: docker plugin ls | grep loki | awk '{print $3}'
-    register: loki_plugin
-  - set_fact: 
-      loki_plugin: "{{ loki_plugin.stdout }}"
-  - debug: 
-      var: loki_plugin
-  - name: Install loki docker plugin
-    command:
-      cmd: docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
-    when: loki_plugin != "Loki"
