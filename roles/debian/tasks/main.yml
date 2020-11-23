@@ -25,6 +25,7 @@
       apt:
         name:
           - bash-completion
+          - colorized-logs
     - name: Install python
       apt:
         name:

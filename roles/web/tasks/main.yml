@@ -47,10 +47,17 @@
       job: "{{ docker_base_path }}/start.sh"
   - name: Run docker-compose
     block:
+      - name: Find docker compose files
+        find:
+          paths: "{{ docker_base_path }}"
+          patterns: 'docker-compose*.yml'
+          recurse: no
+        register: compose_files
       - docker_compose:
           project_src: "{{ docker_base_path }}"
           state: present
           restarted: "{{ restart_container }}"
+          files: "{{ compose_files.files | map(attribute='path') | list }}"
         register: compose_output
       - debug:
           var: compose_output

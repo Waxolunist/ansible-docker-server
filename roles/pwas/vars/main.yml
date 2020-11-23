@@ -9,5 +9,10 @@
       ports:
         listen: 8002
         exposed: 8000
-  
+  paint2:
+    domain: "paint.{{ topleveldomain }}"
+    port: 8043
+  paint2dev:
+    domain: "paint-dev.{{ topleveldomain }}"
+    port: 8043
   restart_container: no

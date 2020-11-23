@@ -68,7 +68,7 @@
     service:
       name: docker
       state: started
-            
+
   - name: Loki Plugin installed
     shell: docker plugin ls | grep loki | awk '{print $3}'
     register: loki_plugin
@@ -118,3 +118,10 @@
       state: started
 
   become: yes
+
+- name: Log into private registry and force re-authorization
+  docker_login:
+    registry: registry.v-collaborate.com
+    username: "{{ vault_registry_username }}"
+    password: "{{ vault_registry_password }}"
+    reauthorize: yes

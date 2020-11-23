@@ -2,6 +2,7 @@
   - name: Test
     hosts: web
     vars:
+      docker_base_path: "/var/docker"
       pwa:
         value:
           host: paint.v-collaborate.com
@@ -32,24 +33,13 @@
         - key: "traefik.docker.network"
           value: "web_proxy"
     tasks:
-      - name: Set variable
-        set_fact:
-          router_name: paint
-      - name: Debug output
-        debug:
-          var: router_name
-      - name: Set dictionary
-        set_fact:
-          labels: "{{ labels|default({}) | combine( {item.key: item.value} ) }}"
-        with_items:
-          - "{{ container_label_keyvalue_pairs }}"
-      - name: Debug container labels
-        debug:
-          var: labels
-      - name: Get Docker IP address
-        shell: ip addr show | grep "\binet\b.*\bdocker0\b" | awk '{print $2}' | cut -d '/' -f 1
-        register: docker_ip_address
-      - set_fact: 
-          docker_ip_address: "{{ docker_ip_address.stdout }}"
-      - debug: 
-          var: docker_ip_address
+      - name: Find docker compose files
+        find:
+          paths: "{{ docker_base_path }}"
+          patterns: 'docker-compose*.yml'
+          recurse: no
+        register: compose_files
+      - debug:
+          var: compose_files
+      - debug:
+          msg: "{{ compose_files.files | map(attribute='path') | list }}"

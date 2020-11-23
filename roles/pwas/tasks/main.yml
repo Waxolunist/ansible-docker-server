@@ -1,6 +1,12 @@
 ---
-  - name: Load and start docker pwas
-    include_tasks: load_docker.yml
-    vars:
-      pwa: "{{ item }}"
-    with_dict: "{{ pwas }}"
+  - name: Write docker compose file
+    template:
+      src: docker-compose_yml.j2
+      dest: "{{ docker_base_path }}/docker-compose_pwas.yml"
+      mode: 0644
+      backup: yes
+#  - name: Load and start docker pwas
+#    include_tasks: load_docker.yml
+#    vars:
+#      pwa: "{{ item }}"
+#    with_dict: "{{ pwas }}"
