@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   paint2:
-    image: registry.v-collaborate.com/dev/waxolunist/paint2:${PAINT2_BUILDID:-latest}
+    image: registry.v-collaborate.com/dev/waxolunist/paint2:${PAINT2_BUILDID:-1.1.0}
     container_name: paint2
     expose:
       - {{ paint2.port }}
@@ -21,7 +21,7 @@ services:
     networks:
       - proxy
   paint2dev:
-    image: registry.v-collaborate.com/dev/waxolunist/paint2:${PAINT2DEV_BUILDID:-latest}
+    image: registry.v-collaborate.com/dev/waxolunist/paint2:${PAINT2DEV_BUILDID:-1.1.0}
     container_name: paint2-dev
     expose:
       - {{ paint2dev.port }}
@@ -37,6 +37,45 @@ services:
       - traefik.http.routers.paint2dev.entrypoints=web
       - traefik.http.routers.paint2dev.middlewares=paint2dev-https-redirect
       - traefik.http.routers.paint2dev.rule=Host(`{{ paint2dev.domain }}`)
+    networks:
+      - proxy
+
+  #releasemanager:
+  #  image: registry.v-collaborate.com/dev/waxolunist/releasemanager:${RELEASEMANAGER_BUILDID:-1.0.0}
+  #  container_name: releasemanager
+  #  volumes:
+  #    - "{{ docker.paths.data }}releasemanager:/data"
+  #  labels:
+  #    - traefik.enable=true
+  #    - traefik.docker.network=web_proxy
+  #    - traefik.domain={{ releasemanager.domain }}
+  #    - traefik.http.middlewares.releasemanager-https-redirect.redirectscheme.scheme=https
+  #    - traefik.http.routers.releasemanager-secure.entrypoints=websecure
+  #    - traefik.http.routers.releasemanager-secure.rule=Host(`{{ releasemanager.domain }}`)
+  #    - traefik.http.routers.releasemanager-secure.tls=true
+  #    - traefik.http.routers.releasemanager-secure.tls.certresolver=myresolver
+  #    - traefik.http.routers.releasemanager.entrypoints=web
+  #    - traefik.http.routers.releasemanager.middlewares=releasemanager-https-redirect
+  #    - traefik.http.routers.releasemanager.rule=Host(`{{ releasemanager.domain }}`)
+  #  networks:
+  #    - proxy
+  #releasemanagerdev:
+  #  image: registry.v-collaborate.com/dev/waxolunist/releasemanager:${RELEASEMANAGERDEV_BUILDID:-1.0.0}
+  #  container_name: releasemanager-dev
+  #  volumes:
+  #    - "{{ docker.paths.data }}releasemanagerdev:/data"
+  #  labels:
+  #    - traefik.enable=true
+  #    - traefik.docker.network=web_proxy
+  #    - traefik.domain={{ releasemanagerdev.domain }}
+  #    - traefik.http.middlewares.releasemanagerdev-https-redirect.redirectscheme.scheme=https
+  #    - traefik.http.routers.releasemanagerdev-secure.entrypoints=websecure
+  #    - traefik.http.routers.releasemanagerdev-secure.rule=Host(`{{ releasemanagerdev.domain }}`)
+  #    - traefik.http.routers.releasemanagerdev-secure.tls=true
+  #    - traefik.http.routers.releasemanagerdev-secure.tls.certresolver=myresolver
+  #    - traefik.http.routers.releasemanagerdev.entrypoints=web
+  #    - traefik.http.routers.releasemanagerdev.middlewares=releasemanagerdev-https-redirect
+  #    - traefik.http.routers.releasemanagerdev.rule=Host(`{{ releasemanagerdev.domain }}`)
     networks:
       - proxy
 

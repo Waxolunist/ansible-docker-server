@@ -117,11 +117,9 @@
       name: docker
       state: started
 
-  become: yes
+#  - name: Init a new swarm with default parameters
+#    community.general.docker_swarm:
+#      state: present
+#      advertise_addr: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
 
-- name: Log into private registry and force re-authorization
-  docker_login:
-    registry: registry.v-collaborate.com
-    username: "{{ vault_registry_username }}"
-    password: "{{ vault_registry_password }}"
-    reauthorize: yes
+  become: yes

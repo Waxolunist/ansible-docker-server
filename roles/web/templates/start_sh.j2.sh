@@ -12,7 +12,7 @@ if [ "$_NR_CONTAINERS" -lt 1 ]
 then
     echo "No containers running ... starting" | systemd-cat
     cd "{{ docker_base_path }}" || exit
-    docker-compose start
+    /usr/local/bin/docker-compose -f docker-compose.yml -f docker-compose_pwas.yml start
 else
     echo "${_NR_CONTAINERS} containers running ... nothing to do" | systemd-cat
 fi

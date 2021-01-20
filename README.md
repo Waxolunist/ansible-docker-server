@@ -1,3 +1,12 @@
+Prerequsits
+===========
+
+To use this playbook, ansible must be installed.
+
+First install the community.general collection:
+
+    ansible-galaxy collection install community.general
+
 Preparation
 ===========
 
@@ -56,5 +65,4 @@ Generate key file and certificate
 
 TODO
 ====
-- [ ] use docker swarm
-- [ ] Enable docker-compose at startup
+- [ ] backups

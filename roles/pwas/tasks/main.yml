@@ -10,3 +10,10 @@
 #    vars:
 #      pwa: "{{ item }}"
 #    with_dict: "{{ pwas }}"
+#  - name: Create data dirs
+#    file:
+#      path: "{{ docker.paths.data }}{{ item }}"
+#      state: directory
+#    loop:
+#      - "releasemanager"
+#      - "releasemanagerdev"

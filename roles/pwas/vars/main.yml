@@ -15,4 +15,10 @@
   paint2dev:
     domain: "paint-dev.{{ topleveldomain }}"
     port: 8043
+#  releasemanager:
+#    domain: "releasemanager.{{ topleveldomain }}"
+#    port: 3000
+#  releasemanagerdev:
+#    domain: "releasemanager-dev.{{ topleveldomain }}"
+#    port: 3000
   restart_container: no

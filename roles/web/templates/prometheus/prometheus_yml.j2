@@ -56,6 +56,10 @@ scrape_configs:
     static_configs:
       - targets: ['loki:3100']
 
+ # - job_name: releasemanager
+ #   static_configs:
+ #     - targets: ['releasemanager:3000']
+
   - job_name: 'paint'
 
     # Override the global default and scrape targets from this job every 5 seconds.

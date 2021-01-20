@@ -3,11 +3,6 @@ version: '3.8'
 services:
   registry:
     image: registry:2
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     volumes:
       - "{{ docker.paths.work }}registry:/var/lib/registry"
       - "{{ docker.paths.configs }}registry/config.yml:/etc/docker/registry/config.yml:ro"
@@ -32,11 +27,6 @@ services:
 
   portus-pg:
     image: postgres:13-alpine
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     networks:
       - portus
     environment:
@@ -51,11 +41,6 @@ services:
 
   portus:
     image: opensuse/portus:head
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     container_name: web_portus
     depends_on:
       - portus-pg
@@ -97,11 +82,6 @@ services:
 
   portus-background:
     image: opensuse/portus:head
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     container_name: web_portus-background
     depends_on:
       - portus-pg
@@ -131,11 +111,6 @@ services:
 
   reverse-proxy:
     image: traefik:v2.3
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     container_name: web_reverse-proxy
     ports:
       - "80:80"
@@ -180,11 +155,6 @@ services:
 
   prometheus:
     image: prom/prometheus:v2.22.0
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     user: root
     container_name: web_prometheus
     expose:
@@ -222,12 +192,6 @@ services:
   node-exporter:
     image: prom/node-exporter:v1.0.1
     container_name: web_node-exporter
-    #deploy:
-    #  mode: global
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     environment:
       - TZ=Europa/Vienna
     expose:
@@ -239,11 +203,6 @@ services:
 
   authelia:
     image: authelia/authelia:4
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     container_name: authelia
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"
@@ -273,11 +232,6 @@ services:
 
   loki:
     image: grafana/loki:2.0.0
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     container_name: loki
     ports:
       - "{{ docker_ip_address }}:3100:3100"
@@ -309,11 +263,6 @@ services:
   grafana-pg:
     image: postgres:13-alpine
     container_name: grafana-pg
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     networks:
       - grafana
     environment:
@@ -329,11 +278,6 @@ services:
   grafana:
     image: grafana/grafana:7.3.1
     container_name: web_grafana
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
       - "{{ docker.paths.data }}grafana:/var/lib/grafana"
@@ -365,11 +309,6 @@ services:
 
   pgadmin:
     image: dpage/pgadmin4:4
-    #deploy:
-    #  resources:
-    #    limits:
-    #      cpus: '0.50'
-    #      memory: 250M
     container_name: web_pgadmin
     links:
       - "portus-pg:database-portus"

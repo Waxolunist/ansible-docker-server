@@ -61,3 +61,23 @@
         register: compose_output
       - debug:
           var: compose_output
+      #- name: Deploy stack from a compose file
+      #  community.general.docker_stack:
+      #    state: present
+      #    name: default
+      #    compose: "{{ compose_files.files | map(attribute='path') | list }}"
+      #  register: stack_output
+      # - docker_compose:
+      #    project_src: "{{ docker_base_path }}"
+      #    state: present
+      #    restarted: "{{ restart_container }}"
+      #    files: "{{ compose_files.files | map(attribute='path') | list }}"
+      #  register: compose_output
+      #- debug:
+      #    var: stack_output
+  - name: Log into private registry and force re-authorization
+    docker_login:
+      registry: registry.v-collaborate.com
+      username: "{{ vault_registry_username }}"
+      password: "{{ vault_registry_password }}"
+      reauthorize: yes
