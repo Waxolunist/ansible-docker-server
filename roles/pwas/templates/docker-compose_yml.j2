@@ -40,45 +40,6 @@ services:
     networks:
       - proxy
 
-  #releasemanager:
-  #  image: registry.v-collaborate.com/dev/waxolunist/releasemanager:${RELEASEMANAGER_BUILDID:-1.0.0}
-  #  container_name: releasemanager
-  #  volumes:
-  #    - "{{ docker.paths.data }}releasemanager:/data"
-  #  labels:
-  #    - traefik.enable=true
-  #    - traefik.docker.network=web_proxy
-  #    - traefik.domain={{ releasemanager.domain }}
-  #    - traefik.http.middlewares.releasemanager-https-redirect.redirectscheme.scheme=https
-  #    - traefik.http.routers.releasemanager-secure.entrypoints=websecure
-  #    - traefik.http.routers.releasemanager-secure.rule=Host(`{{ releasemanager.domain }}`)
-  #    - traefik.http.routers.releasemanager-secure.tls=true
-  #    - traefik.http.routers.releasemanager-secure.tls.certresolver=myresolver
-  #    - traefik.http.routers.releasemanager.entrypoints=web
-  #    - traefik.http.routers.releasemanager.middlewares=releasemanager-https-redirect
-  #    - traefik.http.routers.releasemanager.rule=Host(`{{ releasemanager.domain }}`)
-  #  networks:
-  #    - proxy
-  #releasemanagerdev:
-  #  image: registry.v-collaborate.com/dev/waxolunist/releasemanager:${RELEASEMANAGERDEV_BUILDID:-1.0.0}
-  #  container_name: releasemanager-dev
-  #  volumes:
-  #    - "{{ docker.paths.data }}releasemanagerdev:/data"
-  #  labels:
-  #    - traefik.enable=true
-  #    - traefik.docker.network=web_proxy
-  #    - traefik.domain={{ releasemanagerdev.domain }}
-  #    - traefik.http.middlewares.releasemanagerdev-https-redirect.redirectscheme.scheme=https
-  #    - traefik.http.routers.releasemanagerdev-secure.entrypoints=websecure
-  #    - traefik.http.routers.releasemanagerdev-secure.rule=Host(`{{ releasemanagerdev.domain }}`)
-  #    - traefik.http.routers.releasemanagerdev-secure.tls=true
-  #    - traefik.http.routers.releasemanagerdev-secure.tls.certresolver=myresolver
-  #    - traefik.http.routers.releasemanagerdev.entrypoints=web
-  #    - traefik.http.routers.releasemanagerdev.middlewares=releasemanagerdev-https-redirect
-  #    - traefik.http.routers.releasemanagerdev.rule=Host(`{{ releasemanagerdev.domain }}`)
-    networks:
-      - proxy
-
 networks:
   proxy:
     name: web_proxy

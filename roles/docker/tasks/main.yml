@@ -10,6 +10,12 @@
         groups=docker
         append=yes
   become: yes
+- name: Set bash_profile_docker
+  template:
+    src: bash_profile_docker.j2
+    dest: .bash_profile_docker
+    mode: 0644
+    backup: no
 - name: Install docker prerequsits
   block:
   - name: Remove unused docker packages
