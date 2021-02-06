@@ -21,4 +21,10 @@
 #  releasemanagerdev:
 #    domain: "releasemanager-dev.{{ topleveldomain }}"
 #    port: 3000
+  labelsbe:
+    domain: "labels.{{ topleveldomain }}"
+    port: 3000
+  labelsbedev:
+    domain: "labels-dev.{{ topleveldomain }}"
+    port: 3000
   restart_container: no

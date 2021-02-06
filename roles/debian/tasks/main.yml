@@ -57,5 +57,11 @@
     - name: Remove dependencies that are no longer required
       apt:
         autoremove: yes
+    - name: Create backup folder
+      file:
+        path: "/backup"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
   become: yes
   

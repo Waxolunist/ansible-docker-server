@@ -47,6 +47,9 @@ user = {{ vault_grafana_pg_user }}
 password = """{{ vault_grafana_pg_password }}"""
 log_queries = true
 
+[server]
+root_url = https://{{ grafana.domain }}/
+
 [smtp]
 enabled = true
 host = smtp.gmail.com:587

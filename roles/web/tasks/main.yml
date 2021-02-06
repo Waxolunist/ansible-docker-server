@@ -45,6 +45,20 @@
       user: "{{ ansible_user }}"
       backup: yes
       job: "{{ docker_base_path }}/start.sh"
+  - name: Create backup file
+    template:
+      src: backup_postgres.j2.sh
+      dest: "{{ docker_base_path }}/backup_postgres.sh"
+      mode: 0755
+      backup: yes
+  - name: Add cronjob for backup job
+    cron:
+      name: "backup postgres databases"
+      minute: "0"
+      hour: "23"
+      user: "{{ ansible_user }}"
+      backup: yes
+      job: "{{ docker_base_path }}/backup_postgres.sh"    
   - name: Run docker-compose
     block:
       - name: Find docker compose files

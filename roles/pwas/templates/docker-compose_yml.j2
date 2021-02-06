@@ -39,6 +39,72 @@ services:
       - traefik.http.routers.paint2dev.rule=Host(`{{ paint2dev.domain }}`)
     networks:
       - proxy
+  labels-be:
+    image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBE_BUILDID:-1.0.0}
+    container_name: labelsbe-dev
+    expose:
+      - {{ labelsbe.port }}
+    links:
+      - "labels-be-pg:database-pg"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ labelsbe.domain }}
+      - traefik.http.middlewares.labelsbe-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.labelsbe-secure.entrypoints=websecure
+      - traefik.http.routers.labelsbe-secure.rule=Host(`{{ labelsbe.domain }}`)
+      - traefik.http.routers.labelsbe-secure.tls=true
+      - traefik.http.routers.labelsbe-secure.tls.certresolver=myresolver
+      - traefik.http.routers.labelsbe.entrypoints=web
+      - traefik.http.routers.labelsbe.middlewares=labelsbe-https-redirect
+      - traefik.http.routers.labelsbe.rule=Host(`{{ labelsbe.domain }}`)
+    networks:
+      - proxy
+  labels-be-pg:
+    image: postgres:13-alpine
+    environment:
+      - POSTGRES_PASSWORD={{ vault_labelsbe_portus_pg_password }}
+      - POSTGRES_USER={{ vault_labelsbe_portus_pg_user }}
+      - POSTGRES_DB=labels
+      - TZ=Europa/Vienna
+    volumes:
+      - "{{ docker.paths.data }}labelsbe/pgdata:/var/lib/postgresql/data"
+    labels:
+      - traefik.enable=false
+  labels-be-dev:
+    image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBEDEV_BUILDID:-1.0.0}
+    container_name: labelsbe-dev
+    expose:
+      - {{ labelsbedev.port }}
+    links:
+      - "labels-be-dev-pg:database-pg"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ labelsbedev.domain }}
+      - traefik.http.middlewares.labelsbedev-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.labelsbedev-secure.entrypoints=websecure
+      - traefik.http.routers.labelsbedev-secure.rule=Host(`{{ labelsbedev.domain }}`)
+      - traefik.http.routers.labelsbedev-secure.tls=true
+      - traefik.http.routers.labelsbedev-secure.tls.certresolver=myresolver
+      - traefik.http.routers.labelsbedev.entrypoints=web
+      - traefik.http.routers.labelsbedev.middlewares=labelsbedev-https-redirect
+      - traefik.http.routers.labelsbedev.rule=Host(`{{ labelsbedev.domain }}`)
+    networks:
+      - proxy
+  labels-be-dev-pg:
+    image: postgres:13-alpine
+    networks:
+      - portus
+    environment:
+      - POSTGRES_PASSWORD={{ vault_labelsbedev_portus_pg_password }}
+      - POSTGRES_USER={{ vault_labelsbedev_portus_pg_user }}
+      - POSTGRES_DB=labels
+      - TZ=Europa/Vienna
+    volumes:
+      - "{{ docker.paths.data }}labelsbedev/pgdata:/var/lib/postgresql/data"
+    labels:
+      - traefik.enable=false
 
 networks:
   proxy:
