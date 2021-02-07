@@ -46,6 +46,10 @@ services:
       - {{ labelsbe.port }}
     links:
       - "labels-be-pg:database-pg"
+    environment:
+      - PG_HOSST="database-pg"
+      - PG_USER="{{ vault_labelsbe_pg_password }}"
+      - PG_PASSWORD="{{ vault_labelsbe_pg_user }}"
     labels:
       - traefik.enable=true
       - traefik.docker.network=web_proxy
@@ -60,11 +64,14 @@ services:
       - traefik.http.routers.labelsbe.rule=Host(`{{ labelsbe.domain }}`)
     networks:
       - proxy
+      - pwas
   labels-be-pg:
     image: postgres:13-alpine
+    networks:
+      - pwas
     environment:
-      - POSTGRES_PASSWORD={{ vault_labelsbe_portus_pg_password }}
-      - POSTGRES_USER={{ vault_labelsbe_portus_pg_user }}
+      - POSTGRES_PASSWORD={{ vault_labelsbe_pg_password }}
+      - POSTGRES_USER={{ vault_labelsbe_pg_user }}
       - POSTGRES_DB=labels
       - TZ=Europa/Vienna
     volumes:
@@ -78,6 +85,10 @@ services:
       - {{ labelsbedev.port }}
     links:
       - "labels-be-dev-pg:database-pg"
+    environment:
+      - PG_HOSST="database-pg"
+      - PG_USER="{{ vault_labelsbedev_pg_user }}"
+      - PG_PASSWORD="{{ vault_labelsbedev_pg_password }}"
     labels:
       - traefik.enable=true
       - traefik.docker.network=web_proxy
@@ -92,13 +103,14 @@ services:
       - traefik.http.routers.labelsbedev.rule=Host(`{{ labelsbedev.domain }}`)
     networks:
       - proxy
+      - pwas
   labels-be-dev-pg:
     image: postgres:13-alpine
     networks:
-      - portus
+      - pwas
     environment:
-      - POSTGRES_PASSWORD={{ vault_labelsbedev_portus_pg_password }}
-      - POSTGRES_USER={{ vault_labelsbedev_portus_pg_user }}
+      - POSTGRES_PASSWORD={{ vault_labelsbedev_pg_password }}
+      - POSTGRES_USER={{ vault_labelsbedev_pg_user }}
       - POSTGRES_DB=labels
       - TZ=Europa/Vienna
     volumes:
@@ -109,3 +121,5 @@ services:
 networks:
   proxy:
     name: web_proxy
+  pwas:
+    name: web_pwas

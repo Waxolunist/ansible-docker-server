@@ -337,6 +337,7 @@ services:
       - proxy
       - portus
       - grafana
+      - pwas
 
 networks:
   proxy:
@@ -347,3 +348,5 @@ networks:
     name: web_grafana
   prometheus:
     name: web_prometheus
+  pwas:
+    name: web_pwas
