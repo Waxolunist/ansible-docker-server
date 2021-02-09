@@ -93,7 +93,8 @@ services:
       - traefik.enable=false
     depends_on:
       - pgadmin
-  
+    restart: on-failure
+
   labels-be-dev:
     image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBEDEV_BUILDID:-1.0.0}
     container_name: labelsbe-dev
@@ -140,6 +141,7 @@ services:
       - traefik.enable=false
     depends_on:
       - pgadmin
+    restart: on-failure
 
 networks:
   proxy:

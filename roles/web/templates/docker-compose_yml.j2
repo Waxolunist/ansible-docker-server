@@ -26,6 +26,7 @@ services:
       - TZ=Europa/Vienna
     depends_on:
       - loki
+    restart: on-failure
 
   portus-pg:
     image: postgres:13-alpine
@@ -40,6 +41,7 @@ services:
       - "{{ docker.paths.data }}portus/pgdata:/var/lib/postgresql/data"
     labels:
       - traefik.enable=false
+    restart: on-failure
 
   portus:
     image: opensuse/portus:head
@@ -84,6 +86,7 @@ services:
       - traefik.http.routers.portus.entrypoints=web
       - traefik.http.routers.portus.middlewares=portus-https-redirect
       - traefik.http.routers.portus.rule=Host(`{{ portus.domain }}`)
+    restart: on-failure
 
   portus-background:
     image: opensuse/portus:head
@@ -114,6 +117,7 @@ services:
       - "{{ docker.paths.configs }}portus/config.yml:/config/config.yml:ro"
     labels:
       - traefik.enable=false
+    restart: on-failure
 
   reverse-proxy:
     image: traefik:v2.3
@@ -162,6 +166,7 @@ services:
       - traefik.http.routers.mepage-secure.tls.certresolver=myresolver
       - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://(me.v-collaborate.com|christian.sterzl.info)(/.*)?
       - traefik.http.middlewares.me-redirectregex.redirectregex.replacement=https://www.linkedin.com/in/christian-sterzl-59b282182/
+    restart: on-failure
 
   prometheus:
     image: prom/prometheus:v2.22.0
@@ -200,6 +205,7 @@ services:
       - traefik.http.routers.metrics.entrypoints=web
       - traefik.http.routers.metrics.middlewares=metrics-https-redirect
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
+    restart: on-failure
 
   node-exporter:
     image: prom/node-exporter:v1.0.1
@@ -214,6 +220,7 @@ services:
       - prometheus
     networks:
       - prometheus
+    restart: on-failure
 
   authelia:
     image: authelia/authelia:4
@@ -245,6 +252,7 @@ services:
       - {{ authelia.port }}
     environment:
       - TZ=Europa/Vienna
+    restart: on-failure
 
   loki:
     image: grafana/loki:2.0.0
@@ -275,6 +283,7 @@ services:
       - traefik.http.routers.loki.entrypoints=web
       - traefik.http.routers.loki.middlewares=grafana-https-redirect
       - traefik.http.routers.loki.rule=Host(`{{ loki.domain }}`)
+    restart: on-failure
 
   grafana-pg:
     image: postgres:13-alpine
@@ -290,6 +299,7 @@ services:
       - "{{ docker.paths.data }}grafana/pgdata:/var/lib/postgresql/data"
     labels:
       - traefik.enable=false
+    restart: on-failure
 
   grafana:
     image: grafana/grafana:7.3.1
@@ -324,6 +334,7 @@ services:
     networks:
       - proxy
       - grafana
+    restart: on-failure
 
   pgadmin:
     image: dpage/pgadmin4:4
@@ -359,6 +370,7 @@ services:
       - portus
       - grafana
       - pwas
+    restart: on-failure
 
 networks:
   proxy:
