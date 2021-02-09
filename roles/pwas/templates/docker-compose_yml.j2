@@ -20,6 +20,10 @@ services:
       - traefik.http.routers.paint2.rule=Host(`{{ paint2.domain }}`)
     networks:
       - proxy
+    depends_on:
+      - portus
+      - reverse-proxy
+
   paint2dev:
     image: registry.v-collaborate.com/dev/waxolunist/paint2:${PAINT2DEV_BUILDID:-1.1.0}
     container_name: paint2-dev
@@ -39,9 +43,13 @@ services:
       - traefik.http.routers.paint2dev.rule=Host(`{{ paint2dev.domain }}`)
     networks:
       - proxy
+    depends_on:
+      - portus
+      - reverse-proxy
+
   labels-be:
     image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBE_BUILDID:-1.0.0}
-    container_name: labelsbe-dev
+    container_name: labelsbe
     expose:
       - {{ labelsbe.port }}
     links:
@@ -65,6 +73,11 @@ services:
     networks:
       - proxy
       - pwas
+    depends_on: 
+      - labels-be-pg
+      - portus
+      - reverse-proxy
+  
   labels-be-pg:
     image: postgres:13-alpine
     networks:
@@ -78,6 +91,9 @@ services:
       - "{{ docker.paths.data }}labelsbe/pgdata:/var/lib/postgresql/data"
     labels:
       - traefik.enable=false
+    depends_on:
+      - pgadmin
+  
   labels-be-dev:
     image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBEDEV_BUILDID:-1.0.0}
     container_name: labelsbe-dev
@@ -104,6 +120,11 @@ services:
     networks:
       - proxy
       - pwas
+    depends_on: 
+      - labels-be-dev-pg
+      - portus
+      - reverse-proxy
+
   labels-be-dev-pg:
     image: postgres:13-alpine
     networks:
@@ -117,6 +138,8 @@ services:
       - "{{ docker.paths.data }}labelsbedev/pgdata:/var/lib/postgresql/data"
     labels:
       - traefik.enable=false
+    depends_on:
+      - pgadmin
 
 networks:
   proxy:

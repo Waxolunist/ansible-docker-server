@@ -24,6 +24,8 @@ services:
       - traefik.http.routers.registry.rule=Host(`{{ registry.domain }}`)
     environment:
       - TZ=Europa/Vienna
+    depends_on:
+      - loki
 
   portus-pg:
     image: postgres:13-alpine
@@ -44,6 +46,9 @@ services:
     container_name: web_portus
     depends_on:
       - portus-pg
+      - portus-background
+      - reverse-proxy
+      - registry
     links:
       - "portus-pg:database"
     environment:
@@ -85,6 +90,7 @@ services:
     container_name: web_portus-background
     depends_on:
       - portus-pg
+      - registry
     links:
       - "portus-pg:database"
     environment:
@@ -112,6 +118,8 @@ services:
   reverse-proxy:
     image: traefik:v2.3
     container_name: web_reverse-proxy
+    depends_on:
+      - loki
     ports:
       - "80:80"
       - "443:443"
@@ -123,6 +131,8 @@ services:
       - "{{ docker.paths.configs }}traefik:/etc/traefik"
       - "{{ docker.paths.work }}traefik:/var/run/traefik"
       - "{{ docker.paths.logs }}traefik/:/var/log/traefik"
+    depends_on:
+      - loki
     environment:
       - TZ=Europa/Vienna
     networks:
@@ -159,6 +169,8 @@ services:
     container_name: web_prometheus
     expose:
       - 9090
+    depends_on:
+      - reverse-proxy
     volumes:
       - "{{ docker.paths.configs }}prometheus:/etc/prometheus"
       - "{{ docker.paths.data }}prometheus:/prometheus"
@@ -198,6 +210,8 @@ services:
       - 9100
     labels:
       - traefik.enable=false
+    depends_on:
+      - prometheus
     networks:
       - prometheus
 
@@ -208,6 +222,8 @@ services:
       - "{{ docker.paths.configs }}authelia:/config:ro"
       - "{{ docker.paths.work }}authelia:/notifications"
       - "{{ docker.paths.data }}authelia/db.sqlite3:/var/db.sqlite3"
+    depends_on:
+      - reverse-proxy
     networks:
       - proxy
     labels:
@@ -286,6 +302,8 @@ services:
       - 3000
     depends_on:
       - grafana-pg
+      - loki
+      - prometheus
     links:
       - "grafana-pg:database"
     environment:
@@ -313,6 +331,9 @@ services:
     links:
       - "portus-pg:database-portus"
       - "grafana-pg:database-grafana"
+    depends_on:
+      - grafana-pg
+      - portus-pg
     expose:
       - {{ pgadmin.port }}
     volumes:
