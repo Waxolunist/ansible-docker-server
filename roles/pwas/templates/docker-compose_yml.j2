@@ -55,9 +55,9 @@ services:
     links:
       - "labels-be-pg:database-pg"
     environment:
-      - PG_HOSST="database-pg"
-      - PG_USER="{{ vault_labelsbe_pg_password }}"
-      - PG_PASSWORD="{{ vault_labelsbe_pg_user }}"
+      - PG_HOST=database-pg
+      - PG_PASSWORD={{ vault_labelsbe_pg_password }}
+      - PG_USERNAME={{ vault_labelsbe_pg_user }}
     labels:
       - traefik.enable=true
       - traefik.docker.network=web_proxy
@@ -103,9 +103,9 @@ services:
     links:
       - "labels-be-dev-pg:database-pg"
     environment:
-      - PG_HOSST="database-pg"
-      - PG_USER="{{ vault_labelsbedev_pg_user }}"
-      - PG_PASSWORD="{{ vault_labelsbedev_pg_password }}"
+      - PG_HOST=database-pg
+      - PG_USERNAME={{ vault_labelsbedev_pg_user }}
+      - PG_PASSWORD={{ vault_labelsbedev_pg_password }}
     labels:
       - traefik.enable=true
       - traefik.docker.network=web_proxy
