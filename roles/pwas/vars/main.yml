@@ -27,4 +27,7 @@
   labelsbedev:
     domain: "labels-dev.{{ topleveldomain }}"
     port: 3000
+  cryptocurrency:
+    domain: "crypto.{{ topleveldomain }}"
+    port: 6150
   restart_container: no

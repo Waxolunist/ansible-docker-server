@@ -143,6 +143,35 @@ services:
       - pgadmin
     restart: on-failure
 
+  cryptocurrency:
+    image: registry.v-collaborate.com/dev/waxolunist/cryptoreport:${CRYPTOREPORT_BUILDID:-1.14}
+    container_name: cryptocurrency
+    expose:
+      - {{ cryptocurrency.port }}
+    volumes:
+      - "{{ docker.paths.data }}cryptoreport:/data"
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ cryptocurrency.domain }}
+      - traefik.http.middlewares.cryptocurrency-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.cryptocurrency-secure.entrypoints=websecure
+      - traefik.http.routers.cryptocurrency-secure.rule=Host(`{{ cryptocurrency.domain }}`)
+      - traefik.http.routers.cryptocurrency-secure.tls=true
+      - traefik.http.routers.cryptocurrency-secure.tls.certresolver=myresolver
+      - traefik.http.routers.cryptocurrency-secure.middlewares=auth@docker
+      - traefik.http.routers.cryptocurrency.entrypoints=web
+      - traefik.http.routers.cryptocurrency.middlewares=cryptocurrency-https-redirect
+      - traefik.http.routers.cryptocurrency.rule=Host(`{{ cryptocurrency.domain }}`)
+    networks:
+      - proxy
+      - prometheus
+    depends_on:
+      - portus
+      - reverse-proxy
+      - prometheus
+    restart: on-failure
+
 networks:
   proxy:
     name: web_proxy
