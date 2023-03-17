@@ -47,130 +47,130 @@ services:
       - portus
       - reverse-proxy
 
-  labels-be:
-    image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBE_BUILDID:-1.0.0}
-    container_name: labelsbe
-    expose:
-      - {{ labelsbe.port }}
-    links:
-      - "labels-be-pg:database-pg"
-    environment:
-      - PG_HOST=database-pg
-      - PG_PASSWORD={{ vault_labelsbe_pg_password }}
-      - PG_USERNAME={{ vault_labelsbe_pg_user }}
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ labelsbe.domain }}
-      - traefik.http.middlewares.labelsbe-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.labelsbe-secure.entrypoints=websecure
-      - traefik.http.routers.labelsbe-secure.rule=Host(`{{ labelsbe.domain }}`)
-      - traefik.http.routers.labelsbe-secure.tls=true
-      - traefik.http.routers.labelsbe-secure.tls.certresolver=myresolver
-      - traefik.http.routers.labelsbe.entrypoints=web
-      - traefik.http.routers.labelsbe.middlewares=labelsbe-https-redirect
-      - traefik.http.routers.labelsbe.rule=Host(`{{ labelsbe.domain }}`)
-    networks:
-      - proxy
-      - pwas
-    depends_on: 
-      - labels-be-pg
-      - portus
-      - reverse-proxy
+#  labels-be:
+#    image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBE_BUILDID:-1.0.0}
+#    container_name: labelsbe
+#    expose:
+#      - {{ labelsbe.port }}
+#    links:
+#      - "labels-be-pg:database-pg"
+#    environment:
+#      - PG_HOST=database-pg
+#      - PG_PASSWORD={{ vault_labelsbe_pg_password }}
+#      - PG_USERNAME={{ vault_labelsbe_pg_user }}
+#    labels:
+#      - traefik.enable=true
+#      - traefik.docker.network=web_proxy
+#      - traefik.domain={{ labelsbe.domain }}
+#      - traefik.http.middlewares.labelsbe-https-redirect.redirectscheme.scheme=https
+#      - traefik.http.routers.labelsbe-secure.entrypoints=websecure
+#      - traefik.http.routers.labelsbe-secure.rule=Host(`{{ labelsbe.domain }}`)
+#      - traefik.http.routers.labelsbe-secure.tls=true
+#      - traefik.http.routers.labelsbe-secure.tls.certresolver=myresolver
+#      - traefik.http.routers.labelsbe.entrypoints=web
+#      - traefik.http.routers.labelsbe.middlewares=labelsbe-https-redirect
+#      - traefik.http.routers.labelsbe.rule=Host(`{{ labelsbe.domain }}`)
+#    networks:
+#      - proxy
+#      - pwas
+#    depends_on: 
+#      - labels-be-pg
+#      - portus
+#      - reverse-proxy
   
-  labels-be-pg:
-    image: postgres:13-alpine
-    networks:
-      - pwas
-    environment:
-      - POSTGRES_PASSWORD={{ vault_labelsbe_pg_password }}
-      - POSTGRES_USER={{ vault_labelsbe_pg_user }}
-      - POSTGRES_DB=labels
-      - TZ=Europa/Vienna
-    volumes:
-      - "{{ docker.paths.data }}labelsbe/pgdata:/var/lib/postgresql/data"
-    labels:
-      - traefik.enable=false
-    depends_on:
-      - pgadmin
-    restart: on-failure
+#  labels-be-pg:
+#    image: postgres:13-alpine
+#    networks:
+#      - pwas
+#    environment:
+#      - POSTGRES_PASSWORD={{ vault_labelsbe_pg_password }}
+#      - POSTGRES_USER={{ vault_labelsbe_pg_user }}
+#      - POSTGRES_DB=labels
+#      - TZ=Europa/Vienna
+#    volumes:
+#      - "{{ docker.paths.data }}labelsbe/pgdata:/var/lib/postgresql/data"
+#    labels:
+#      - traefik.enable=false
+#    depends_on:
+#      - pgadmin
+#    restart: on-failure
 
-  labels-be-dev:
-    image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBEDEV_BUILDID:-1.0.0}
-    container_name: labelsbe-dev
-    expose:
-      - {{ labelsbedev.port }}
-    links:
-      - "labels-be-dev-pg:database-pg"
-    environment:
-      - PG_HOST=database-pg
-      - PG_USERNAME={{ vault_labelsbedev_pg_user }}
-      - PG_PASSWORD={{ vault_labelsbedev_pg_password }}
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ labelsbedev.domain }}
-      - traefik.http.middlewares.labelsbedev-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.labelsbedev-secure.entrypoints=websecure
-      - traefik.http.routers.labelsbedev-secure.rule=Host(`{{ labelsbedev.domain }}`)
-      - traefik.http.routers.labelsbedev-secure.tls=true
-      - traefik.http.routers.labelsbedev-secure.tls.certresolver=myresolver
-      - traefik.http.routers.labelsbedev.entrypoints=web
-      - traefik.http.routers.labelsbedev.middlewares=labelsbedev-https-redirect
-      - traefik.http.routers.labelsbedev.rule=Host(`{{ labelsbedev.domain }}`)
-    networks:
-      - proxy
-      - pwas
-    depends_on: 
-      - labels-be-dev-pg
-      - portus
-      - reverse-proxy
+#  labels-be-dev:
+#    image: registry.v-collaborate.com/dev/waxolunist/labels-be:${LABELSBEDEV_BUILDID:-1.0.0}
+#    container_name: labelsbe-dev
+#    expose:
+#      - {{ labelsbedev.port }}
+#    links:
+#      - "labels-be-dev-pg:database-pg"
+#    environment:
+#      - PG_HOST=database-pg
+#      - PG_USERNAME={{ vault_labelsbedev_pg_user }}
+#      - PG_PASSWORD={{ vault_labelsbedev_pg_password }}
+#    labels:
+#      - traefik.enable=true
+#      - traefik.docker.network=web_proxy
+#      - traefik.domain={{ labelsbedev.domain }}
+#      - traefik.http.middlewares.labelsbedev-https-redirect.redirectscheme.scheme=https
+#      - traefik.http.routers.labelsbedev-secure.entrypoints=websecure
+#      - traefik.http.routers.labelsbedev-secure.rule=Host(`{{ labelsbedev.domain }}`)
+#      - traefik.http.routers.labelsbedev-secure.tls=true
+#      - traefik.http.routers.labelsbedev-secure.tls.certresolver=myresolver
+#      - traefik.http.routers.labelsbedev.entrypoints=web
+#      - traefik.http.routers.labelsbedev.middlewares=labelsbedev-https-redirect
+#      - traefik.http.routers.labelsbedev.rule=Host(`{{ labelsbedev.domain }}`)
+#    networks:
+#      - proxy
+#      - pwas
+#    depends_on: 
+#      - labels-be-dev-pg
+#      - portus
+#      - reverse-proxy
 
-  labels-be-dev-pg:
-    image: postgres:13-alpine
-    networks:
-      - pwas
-    environment:
-      - POSTGRES_PASSWORD={{ vault_labelsbedev_pg_password }}
-      - POSTGRES_USER={{ vault_labelsbedev_pg_user }}
-      - POSTGRES_DB=labels
-      - TZ=Europa/Vienna
-    volumes:
-      - "{{ docker.paths.data }}labelsbedev/pgdata:/var/lib/postgresql/data"
-    labels:
-      - traefik.enable=false
-    depends_on:
-      - pgadmin
-    restart: on-failure
+#  labels-be-dev-pg:
+#    image: postgres:13-alpine
+#    networks:
+#      - pwas
+#    environment:
+#      - POSTGRES_PASSWORD={{ vault_labelsbedev_pg_password }}
+#      - POSTGRES_USER={{ vault_labelsbedev_pg_user }}
+#      - POSTGRES_DB=labels
+#      - TZ=Europa/Vienna
+#    volumes:
+#      - "{{ docker.paths.data }}labelsbedev/pgdata:/var/lib/postgresql/data"
+#    labels:
+#      - traefik.enable=false
+#    depends_on:
+#      - pgadmin
+#    restart: on-failure
 
-  cryptocurrency:
-    image: registry.v-collaborate.com/dev/waxolunist/cryptoreport:${CRYPTOREPORT_BUILDID:-1.14}
-    container_name: cryptocurrency
-    expose:
-      - {{ cryptocurrency.port }}
-    volumes:
-      - "{{ docker.paths.data }}cryptoreport:/data"
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ cryptocurrency.domain }}
-      - traefik.http.middlewares.cryptocurrency-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.cryptocurrency-secure.entrypoints=websecure
-      - traefik.http.routers.cryptocurrency-secure.rule=Host(`{{ cryptocurrency.domain }}`)
-      - traefik.http.routers.cryptocurrency-secure.tls=true
-      - traefik.http.routers.cryptocurrency-secure.tls.certresolver=myresolver
-      - traefik.http.routers.cryptocurrency-secure.middlewares=auth@docker
-      - traefik.http.routers.cryptocurrency.entrypoints=web
-      - traefik.http.routers.cryptocurrency.middlewares=cryptocurrency-https-redirect
-      - traefik.http.routers.cryptocurrency.rule=Host(`{{ cryptocurrency.domain }}`)
-    networks:
-      - proxy
-      - prometheus
-    depends_on:
-      - portus
-      - reverse-proxy
-      - prometheus
-    restart: on-failure
+#  cryptocurrency:
+#    image: registry.v-collaborate.com/dev/waxolunist/cryptoreport:${CRYPTOREPORT_BUILDID:-1.14}
+#    container_name: cryptocurrency
+#    expose:
+#      - {{ cryptocurrency.port }}
+#    volumes:
+#      - "{{ docker.paths.data }}cryptoreport:/data"
+#    labels:
+#      - traefik.enable=true
+#      - traefik.docker.network=web_proxy
+#      - traefik.domain={{ cryptocurrency.domain }}
+#      - traefik.http.middlewares.cryptocurrency-https-redirect.redirectscheme.scheme=https
+#      - traefik.http.routers.cryptocurrency-secure.entrypoints=websecure
+#      - traefik.http.routers.cryptocurrency-secure.rule=Host(`{{ cryptocurrency.domain }}`)
+#      - traefik.http.routers.cryptocurrency-secure.tls=true
+#      - traefik.http.routers.cryptocurrency-secure.tls.certresolver=myresolver
+#      - traefik.http.routers.cryptocurrency-secure.middlewares=auth@docker
+#      - traefik.http.routers.cryptocurrency.entrypoints=web
+#      - traefik.http.routers.cryptocurrency.middlewares=cryptocurrency-https-redirect
+#      - traefik.http.routers.cryptocurrency.rule=Host(`{{ cryptocurrency.domain }}`)
+#    networks:
+#      - proxy
+#      - prometheus
+#    depends_on:
+#      - portus
+#      - reverse-proxy
+#      - prometheus
+#    restart: on-failure
 
 networks:
   proxy:

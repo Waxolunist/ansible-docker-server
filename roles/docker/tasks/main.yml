@@ -75,33 +75,33 @@
       name: docker
       state: started
 
-  - name: Loki Plugin installed
-    shell: docker plugin ls | grep loki | awk '{print $3}'
-    register: loki_plugin
-  - set_fact: 
-      loki_plugin: "{{ loki_plugin.stdout }}"
-  - debug: 
-      var: loki_plugin
-  - name: Install loki docker plugin
-    block:
-      - name: Use configuration without loki
-        template:
-          src: daemon_json_noloki.j2
-          dest: "/etc/docker/daemon.json"
-          mode: 0644
-          backup: no
-      - name: Start docker
-        service:
-          name: docker
-          state: restarted
-      - name: Install loki plugin
-        command:
-          cmd: docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
-    when: loki_plugin != "Loki"
+ # - name: Loki Plugin installed
+ #   shell: docker plugin ls | grep loki | awk '{print $3}'
+ #   register: loki_plugin
+ # - set_fact: 
+ #     loki_plugin: "{{ loki_plugin.stdout }}"
+ # - debug: 
+ #     var: loki_plugin
+ # - name: Configure docker
+ #   block:
+ #     - name: Use configuration without loki
+ #       template:
+ #         src: daemon_json_noloki.j2
+ #         dest: "/etc/docker/daemon.json"
+ #         mode: 0644
+ #         backup: no
+ #     - name: Start docker
+ #       service:
+ #         name: docker
+ #         state: restarted
+ #     - name: Install loki plugin
+ #       command:
+ #         cmd: docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+ #   when: loki_plugin != "Loki"
 
   - name: Configure daemon
     template:
-      src: daemon_json.j2
+      src: daemon_json_noloki.j2
       dest: "/etc/docker/daemon.json"
       mode: 0644
       backup: yes

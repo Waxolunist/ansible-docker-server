@@ -8,6 +8,7 @@
     - loki
     - grafana
     - pgadmin
+    - minecraft
   portus:
     domain: "portus.{{ topleveldomain }}"
   registry:
@@ -27,5 +28,7 @@
     port: 5050
   loki:
     domain: "logs.{{ topleveldomain }}"
+  minecraft:
+    port: 25565
   
   restart_container: no

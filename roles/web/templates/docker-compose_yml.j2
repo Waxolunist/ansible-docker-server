@@ -24,8 +24,6 @@ services:
       - traefik.http.routers.registry.rule=Host(`{{ registry.domain }}`)
     environment:
       - TZ=Europa/Vienna
-    depends_on:
-      - loki
     restart: on-failure
 
   portus-pg:
@@ -122,8 +120,6 @@ services:
   reverse-proxy:
     image: traefik:v2.3
     container_name: web_reverse-proxy
-    depends_on:
-      - loki
     ports:
       - "80:80"
       - "443:443"
@@ -135,8 +131,6 @@ services:
       - "{{ docker.paths.configs }}traefik:/etc/traefik"
       - "{{ docker.paths.work }}traefik:/var/run/traefik"
       - "{{ docker.paths.logs }}traefik/:/var/log/traefik"
-    depends_on:
-      - loki
     environment:
       - TZ=Europa/Vienna
     networks:
@@ -182,6 +176,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=100d'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     environment:
@@ -254,36 +249,36 @@ services:
       - TZ=Europa/Vienna
     restart: on-failure
 
-  loki:
-    image: grafana/loki:2.0.0
-    container_name: loki
-    ports:
-      - "{{ docker_ip_address }}:3100:3100"
-    expose:
-      - 3100
-    command: -config.file=/etc/loki/local-config.yaml
-    volumes:
-      - "{{ docker.paths.configs }}loki:/etc/loki:ro"
-      - "{{ docker.paths.work }}loki:/loki"
-    environment:
-      - TZ=Europa/Vienna
-    networks:
-      - proxy
-      - portus
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ loki.domain }}
-      - traefik.http.middlewares.loki-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.loki-secure.entrypoints=websecure
-      - traefik.http.routers.loki-secure.rule=Host(`{{ loki.domain }}`)
-      - traefik.http.routers.loki-secure.tls=true
-      - traefik.http.routers.loki-secure.tls.certresolver=myresolver
-      - traefik.http.routers.loki-secure.middlewares=auth@docker
-      - traefik.http.routers.loki.entrypoints=web
-      - traefik.http.routers.loki.middlewares=grafana-https-redirect
-      - traefik.http.routers.loki.rule=Host(`{{ loki.domain }}`)
-    restart: on-failure
+#  loki:
+#    image: grafana/loki:2.7.1
+#    container_name: loki
+#    ports:
+#      - "{{ docker_ip_address }}:3100:3100"
+#    expose:
+#      - 3100
+#    command: -config.file=/etc/loki/local-config.yaml
+#    volumes:
+#      - "{{ docker.paths.configs }}loki:/etc/loki:ro"
+#      - "{{ docker.paths.work }}loki:/loki"
+#    environment:
+#      - TZ=Europa/Vienna
+#    networks:
+#      - proxy
+#      - portus
+#    labels:
+#      - traefik.enable=true
+#      - traefik.docker.network=web_proxy
+#      - traefik.domain={{ loki.domain }}
+#      - traefik.http.middlewares.loki-https-redirect.redirectscheme.scheme=https
+#      - traefik.http.routers.loki-secure.entrypoints=websecure
+#      - traefik.http.routers.loki-secure.rule=Host(`{{ loki.domain }}`)
+#      - traefik.http.routers.loki-secure.tls=true
+#      - traefik.http.routers.loki-secure.tls.certresolver=myresolver
+#      - traefik.http.routers.loki-secure.middlewares=auth@docker
+#      - traefik.http.routers.loki.entrypoints=web
+#      - traefik.http.routers.loki.middlewares=grafana-https-redirect
+#      - traefik.http.routers.loki.rule=Host(`{{ loki.domain }}`)
+#    restart: on-failure
 
   grafana-pg:
     image: postgres:13-alpine
@@ -312,7 +307,6 @@ services:
       - 3000
     depends_on:
       - grafana-pg
-      - loki
       - prometheus
     links:
       - "grafana-pg:database"
@@ -370,6 +364,26 @@ services:
       - portus
       - grafana
       - pwas
+    restart: on-failure
+
+  minecraft:
+    image: itzg/minecraft-server:latest
+    container_name: minecraft
+    environment:
+      - EULA=TRUE
+      - TZ=Europa/Vienna
+      - ENABLE_ROLLING_LOGS=true
+    ports:
+      - {{ minecraft.port }}:{{ minecraft.port }}
+    expose:
+      - {{ minecraft.port }}
+    volumes:
+      - "{{ docker.paths.data }}minecraft:/data"
+    healthcheck:
+      test: mc-health
+      start_period: 1m
+      interval: 5s
+      retries: 20
     restart: on-failure
 
 networks:

@@ -72,6 +72,7 @@
           state: present
           restarted: "{{ restart_container }}"
           files: "{{ compose_files.files | map(attribute='path') | list }}"
+          remove_orphans: true
         register: compose_output
       - debug:
           var: compose_output

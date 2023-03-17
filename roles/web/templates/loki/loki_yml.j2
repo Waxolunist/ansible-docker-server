@@ -2,6 +2,7 @@ auth_enabled: false
 
 server:
   http_listen_port: 3100
+  grpc_listen_port: 9096
 
 ingester:
   lifecycler:
@@ -17,8 +18,8 @@ ingester:
 
 schema_config:
   configs:
-    - from: 2018-04-15
-      store: boltdb
+    - from: 2020-10-24
+      store: boltdb-shipper
       object_store: filesystem
       schema: v11
       index:
