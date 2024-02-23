@@ -10,24 +10,24 @@
 #    vars:
 #      pwa: "{{ item }}"
 #    with_dict: "{{ pwas }}"
-  - name: Create data dirs
-    file:
-      path: "{{ docker.paths.data }}{{ item }}"
-      state: directory
-    loop:
-      - "labelsbe"
-      - "labelsbedev"
-      - "cryptoreport"
-  - name: Create update crypt file
-    template:
-      src: update_crypto.j2.sh
-      dest: "{{ docker_base_path }}/update_crypto.sh"
-      mode: 0755
-      backup: yes
-  - name: Add cronjob for update_crypto job
-    cron:
-      name: "update crypto data"
-      special_time: hourly
-      user: "{{ ansible_user }}"
-      backup: yes
-      job: "{{ docker_base_path }}/update_crypto.sh"    
+#  - name: Create data dirs
+#    file:
+#      path: "{{ docker.paths.data }}{{ item }}"
+#      state: directory
+#    loop:
+#      - "labelsbe"
+#      - "labelsbedev"
+#      - "cryptoreport"
+ # - name: Create update crypt file
+ #   template:
+ #     src: update_crypto.j2.sh
+ #     dest: "{{ docker_base_path }}/update_crypto.sh"
+ #     mode: 0755
+ #     backup: yes
+ # - name: Add cronjob for update_crypto job
+ #   cron:
+ #     name: "update crypto data"
+ #     special_time: hourly
+ #     user: "{{ ansible_user }}"
+ #     backup: yes
+ #     job: "{{ docker_base_path }}/update_crypto.sh"    

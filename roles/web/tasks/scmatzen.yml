@@ -1,0 +1,12 @@
+---
+  - name: SC Matzen - Check if dbdata exists
+    stat: 
+      path: "{{ docker.paths.data }}scmatzen/dbdata"
+    register: dbdata_dir
+  - name: SC Matzen - Create dbdata
+    file:
+      path: "{{ docker.paths.data }}scmatzen/dbdata"
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    when: dbdata_dir.stat.exists == False

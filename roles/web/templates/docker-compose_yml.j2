@@ -118,7 +118,7 @@ services:
     restart: on-failure
 
   reverse-proxy:
-    image: traefik:v2.3
+    image: traefik:v2.11
     container_name: web_reverse-proxy
     ports:
       - "80:80"
@@ -163,7 +163,7 @@ services:
     restart: on-failure
 
   prometheus:
-    image: prom/prometheus:v2.22.0
+    image: prom/prometheus:v2.50.0
     user: root
     container_name: web_prometheus
     expose:
@@ -203,7 +203,7 @@ services:
     restart: on-failure
 
   node-exporter:
-    image: prom/node-exporter:v1.0.1
+    image: prom/node-exporter:v1.7.0
     container_name: web_node-exporter
     environment:
       - TZ=Europa/Vienna
@@ -297,7 +297,7 @@ services:
     restart: on-failure
 
   grafana:
-    image: grafana/grafana:7.4.3
+    image: grafana/grafana:10.3.3
     container_name: web_grafana
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
@@ -331,7 +331,7 @@ services:
     restart: on-failure
 
   pgadmin:
-    image: dpage/pgadmin4:4
+    image: dpage/pgadmin4:8.3
     container_name: web_pgadmin
     links:
       - "portus-pg:database-portus"
@@ -364,6 +364,7 @@ services:
       - portus
       - grafana
       - pwas
+      - scmatzen
     restart: on-failure
 
   minecraft:
@@ -386,6 +387,51 @@ services:
       retries: 20
     restart: on-failure
 
+  scmatzen-db:
+    image: mysql:5.7
+    container_name: scmatzen-db
+    networks:
+      - scmatzen
+    environment:
+      - MYSQL_PASSWORD={{ vault_scmatzen_db_password }}
+      - MYSQL_USER={{ vault_scmatzen_db_user }}
+      - MYSQL_DATABASE=scmatzen
+      - MYSQL_ROOT_PASSWORD={{ vault_scmatzen_db_root_password }}
+      - TZ=Europa/Vienna
+    volumes:
+      - "{{ docker.paths.data }}scmatzen/dbdata:/var/lib/mysql"
+    labels:
+      - traefik.enable=false
+    restart: on-failure
+
+  scmatzen:
+    image: wordpress:6-php8.0-apache
+    depends_on:
+      - scmatzen-db
+    volumes:
+      - "{{ docker.paths.work }}scmatzen:/var/www/html"
+    networks:
+      - scmatzen
+      - proxy
+    environment:
+      - WORDPRESS_DB_HOST=scmatzen-db
+      - WORDPRESS_DB_USER={{ vault_scmatzen_db_user }}
+      - WORDPRESS_DB_PASSWORD={{ vault_scmatzen_db_password }}
+      - WORDPRESS_DB_NAME=scmatzen
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=web_proxy
+      - traefik.domain={{ scmatzen.domain }}
+      - traefik.http.middlewares.scmatzen-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.scmatzen-secure.entrypoints=websecure
+      - traefik.http.routers.scmatzen-secure.rule=Host(`{{ scmatzen.domain }}`, `scmatzen.shop`, `shop.scmatzen.at`)
+      - traefik.http.routers.scmatzen-secure.tls=true
+      - traefik.http.routers.scmatzen-secure.tls.certresolver=myresolver
+      - traefik.http.routers.scmatzen.entrypoints=web
+      - traefik.http.routers.scmatzen.middlewares=scmatzen-https-redirect
+      - traefik.http.routers.scmatzen.rule=Host(`{{ scmatzen.domain }}`, `scmatzen.shop`, `shop.scmatzen.at`)
+    restart: on-failure
+
 networks:
   proxy:
     name: web_proxy
@@ -397,3 +443,5 @@ networks:
     name: web_prometheus
   pwas:
     name: web_pwas
+  scmatzen:
+    name: web_scmatzen

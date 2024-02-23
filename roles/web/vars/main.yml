@@ -9,6 +9,7 @@
     - grafana
     - pgadmin
     - minecraft
+    - scmatzen
   portus:
     domain: "portus.{{ topleveldomain }}"
   registry:
@@ -30,5 +31,7 @@
     domain: "logs.{{ topleveldomain }}"
   minecraft:
     port: 25565
+  scmatzen:
+    domain: "scmatzen.{{ topleveldomain }}"
   
   restart_container: no
