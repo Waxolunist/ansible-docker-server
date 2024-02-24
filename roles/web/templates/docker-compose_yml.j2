@@ -26,97 +26,6 @@ services:
       - TZ=Europa/Vienna
     restart: on-failure
 
-  portus-pg:
-    image: postgres:13-alpine
-    networks:
-      - portus
-    environment:
-      - POSTGRES_PASSWORD={{ vault_portus_pg_password }}
-      - POSTGRES_USER={{ vault_portus_pg_user }}
-      - POSTGRES_DB=portus
-      - TZ=Europa/Vienna
-    volumes:
-      - "{{ docker.paths.data }}portus/pgdata:/var/lib/postgresql/data"
-    labels:
-      - traefik.enable=false
-    restart: on-failure
-
-  portus:
-    image: opensuse/portus:2.5
-    container_name: web_portus
-    depends_on:
-      - portus-pg
-      - portus-background
-      - reverse-proxy
-      - registry
-    links:
-      - "portus-pg:database"
-    environment:
-      - CCONFIG_PREFIX=PORTUS
-      - PORTUS_MACHINE_FQDN_VALUE={{ portus.domain }}
-      - PORTUS_DB_ADAPTER=postgresql
-      - PORTUS_DB_HOST=database
-      - PORTUS_DB_DATABASE=portus
-      - PORTUS_DB_USERNAME={{ vault_portus_pg_user }}
-      - PORTUS_DB_PASSWORD={{ vault_portus_pg_password }}
-      - PORTUS_DB_POOL=5
-      - PORTUS_SECRET_KEY_BASE={{ vault_portus_secret_key_base }}
-      - PORTUS_KEY_PATH=/certificates/portus.key
-      - PORTUS_PASSWORD={{ vault_portus_password }}
-      - RAILS_SERVE_STATIC_FILES=true
-      - PORTUS_CHECK_SSL_USAGE_ENABLED='false'
-      - TZ=Vienna
-    networks:
-      - proxy
-      - portus
-    volumes:
-      - "{{ docker.paths.configs }}portus:/certificates:ro"
-      - "{{ docker.paths.configs }}portus/config.yml:/config/config.yml:ro"
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ portus.domain }}
-      - traefik.http.middlewares.portus-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.portus-secure.entrypoints=websecure
-      - traefik.http.routers.portus-secure.rule=Host(`{{ portus.domain }}`)
-      - traefik.http.routers.portus-secure.tls=true
-      - traefik.http.routers.portus-secure.tls.certresolver=myresolver
-      - traefik.http.routers.portus.entrypoints=web
-      - traefik.http.routers.portus.middlewares=portus-https-redirect
-      - traefik.http.routers.portus.rule=Host(`{{ portus.domain }}`)
-    restart: on-failure
-
-  portus-background:
-    image: opensuse/portus:2.5
-    container_name: web_portus-background
-    depends_on:
-      - portus-pg
-      - registry
-    links:
-      - "portus-pg:database"
-    environment:
-      - CCONFIG_PREFIX=PORTUS
-      - PORTUS_MACHINE_FQDN_VALUE={{ portus.domain }}
-      - PORTUS_DB_ADAPTER=postgresql
-      - PORTUS_DB_HOST=database
-      - PORTUS_DB_DATABASE=portus
-      - PORTUS_DB_USERNAME={{ vault_portus_pg_user }}
-      - PORTUS_DB_PASSWORD={{ vault_portus_pg_password }}
-      - PORTUS_DB_POOL=5
-      - PORTUS_SECRET_KEY_BASE={{ vault_portus_secret_key_base }}
-      - PORTUS_KEY_PATH=/certificates/portus.key
-      - PORTUS_PASSWORD={{ vault_portus_password }}
-      - PORTUS_BACKGROUND=true
-      - TZ=Vienna
-    networks:
-      - portus
-    volumes:
-      - "{{ docker.paths.configs }}portus:/certificates:ro"
-      - "{{ docker.paths.configs }}portus/config.yml:/config/config.yml:ro"
-    labels:
-      - traefik.enable=false
-    restart: on-failure
-
   reverse-proxy:
     image: traefik:v2.11
     container_name: web_reverse-proxy
@@ -183,7 +92,6 @@ services:
       - TZ=Europa/Vienna
     networks:
       - proxy
-      - portus
       - prometheus
     extra_hosts:
       docker.host: {{ docker_ip_address }}
@@ -249,37 +157,6 @@ services:
       - TZ=Europa/Vienna
     restart: on-failure
 
-#  loki:
-#    image: grafana/loki:2.7.1
-#    container_name: loki
-#    ports:
-#      - "{{ docker_ip_address }}:3100:3100"
-#    expose:
-#      - 3100
-#    command: -config.file=/etc/loki/local-config.yaml
-#    volumes:
-#      - "{{ docker.paths.configs }}loki:/etc/loki:ro"
-#      - "{{ docker.paths.work }}loki:/loki"
-#    environment:
-#      - TZ=Europa/Vienna
-#    networks:
-#      - proxy
-#      - portus
-#    labels:
-#      - traefik.enable=true
-#      - traefik.docker.network=web_proxy
-#      - traefik.domain={{ loki.domain }}
-#      - traefik.http.middlewares.loki-https-redirect.redirectscheme.scheme=https
-#      - traefik.http.routers.loki-secure.entrypoints=websecure
-#      - traefik.http.routers.loki-secure.rule=Host(`{{ loki.domain }}`)
-#      - traefik.http.routers.loki-secure.tls=true
-#      - traefik.http.routers.loki-secure.tls.certresolver=myresolver
-#      - traefik.http.routers.loki-secure.middlewares=auth@docker
-#      - traefik.http.routers.loki.entrypoints=web
-#      - traefik.http.routers.loki.middlewares=grafana-https-redirect
-#      - traefik.http.routers.loki.rule=Host(`{{ loki.domain }}`)
-#    restart: on-failure
-
   grafana-pg:
     image: postgres:13-alpine
     container_name: grafana-pg
@@ -334,12 +211,10 @@ services:
     image: dpage/pgadmin4:8.3
     container_name: web_pgadmin
     links:
-      - "portus-pg:database-portus"
       - "grafana-pg:database-grafana"
       - "timescaledb:timescaledb"
     depends_on:
       - grafana-pg
-      - portus-pg
     expose:
       - {{ pgadmin.port }}
     volumes:
@@ -362,7 +237,6 @@ services:
       - traefik.http.routers.pgadmin.rule=Host(`{{ pgadmin.domain }}`)
     networks:
       - proxy
-      - portus
       - grafana
       - pwas
       - scmatzen
@@ -453,7 +327,6 @@ services:
 
 networks:
   proxy:
-  portus:
   grafana:
   prometheus:
   pwas:
