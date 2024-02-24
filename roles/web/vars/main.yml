@@ -10,6 +10,7 @@
     - pgadmin
     - minecraft
     - scmatzen
+    - timescale
   portus:
     domain: "portus.{{ topleveldomain }}"
   registry:
@@ -33,5 +34,5 @@
     port: 25565
   scmatzen:
     domain: "scmatzen.{{ topleveldomain }}"
-  
+
   restart_container: no

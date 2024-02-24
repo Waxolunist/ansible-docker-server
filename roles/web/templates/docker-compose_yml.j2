@@ -42,7 +42,7 @@ services:
     restart: on-failure
 
   portus:
-    image: opensuse/portus:head
+    image: opensuse/portus:2.5
     container_name: web_portus
     depends_on:
       - portus-pg
@@ -87,7 +87,7 @@ services:
     restart: on-failure
 
   portus-background:
-    image: opensuse/portus:head
+    image: opensuse/portus:2.5
     container_name: web_portus-background
     depends_on:
       - portus-pg
@@ -336,6 +336,7 @@ services:
     links:
       - "portus-pg:database-portus"
       - "grafana-pg:database-grafana"
+      - "timescaledb:timescaledb"
     depends_on:
       - grafana-pg
       - portus-pg
@@ -432,16 +433,28 @@ services:
       - traefik.http.routers.scmatzen.rule=Host(`{{ scmatzen.domain }}`, `scmatzen.shop`, `shop.scmatzen.at`)
     restart: on-failure
 
+  timescaledb:
+    image: timescale/timescaledb:2.14.2-pg16
+    container_name: web_timescaledb
+    networks:
+      - grafana
+    environment:
+      - POSTGRES_PASSWORD={{ vault_timescale_pg_password }}
+      - POSTGRES_USER={{ vault_timescale_pg_user }}
+      - POSTGRES_DB=timescale_home
+      - TZ=Europa/Vienna
+    ports:
+      - "5432:5432"
+    volumes:
+      - "{{ docker.paths.data }}timescale/pgdata:/home/postgres/pgdata/data"
+    labels:
+      - traefik.enable=false
+    restart: on-failure
+
 networks:
   proxy:
-    name: web_proxy
   portus:
-    name: web_portus
   grafana:
-    name: web_grafana
   prometheus:
-    name: web_prometheus
   pwas:
-    name: web_pwas
   scmatzen:
-    name: web_scmatzen

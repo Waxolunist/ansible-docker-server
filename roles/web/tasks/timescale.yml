@@ -1,0 +1,20 @@
+---
+  - name: Timescale - Change permissions for work dir
+    file:
+      path: "{{ docker.paths.data }}timescale"
+      mode: '0777'
+  - name: Timescale - Change permissions for logs dir
+    file:
+      path: "{{ docker.paths.logs }}timescale"
+      mode: '0777'
+  - name: Timescale - Check if pgdata exists
+    stat: 
+      path: "{{ docker.paths.data }}timescale/pgdata"
+    register: timescale_pgdata_dir
+  - name: Timescale - Create pgdata
+    file:
+      path: "{{ docker.paths.data }}timescale/pgdata"
+      state: directory
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    when: timescale_pgdata_dir.stat.exists == False
