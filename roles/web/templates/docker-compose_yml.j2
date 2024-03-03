@@ -308,7 +308,7 @@ services:
     restart: on-failure
 
   timescaledb:
-    image: timescale/timescaledb:2.14.2-pg16
+    image: timescale/timescaledb-ha:pg16
     container_name: web_timescaledb
     networks:
       - grafana
@@ -327,6 +327,7 @@ services:
 
 networks:
   proxy:
+    name: web_proxy
   grafana:
   prometheus:
   pwas:

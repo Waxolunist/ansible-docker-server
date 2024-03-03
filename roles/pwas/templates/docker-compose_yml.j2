@@ -8,7 +8,6 @@ services:
       - {{ paint2.port }}
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
       - traefik.domain={{ paint2.domain }}
       - traefik.http.middlewares.paint2-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.paint2-secure.entrypoints=websecure
@@ -30,7 +29,6 @@ services:
       - {{ paint2dev.port }}
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
       - traefik.domain={{ paint2dev.domain }}
       - traefik.http.middlewares.paint2dev-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.paint2dev-secure.entrypoints=websecure

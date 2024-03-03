@@ -73,3 +73,5 @@ Push
 TODO
 ====
 - [ ] backups
+- [ ] Container registry
+- [ ] Logging
