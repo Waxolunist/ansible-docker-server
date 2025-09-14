@@ -70,6 +70,22 @@ Push
     docker login registry.v-collaborate.com
     docker push registry.v-collaborate.com/scmatzen/scmatzen-php:${VERSION}
 
+
+Upgrade Timescale
+-----------------
+
+After upgrading timescale, probably you have to update the extensions.
+
+Log in in docker:
+
+    docker compose -f docker-compose.yml -f docker-compose_pwas.yml exec timescaledb psql -U timescale -d timescale_home
+
+    ALTER EXTENSION timescaledb UPDATE;
+    ALTER EXTENSION timescaledb_toolkit UPDATE;
+    SELECT extname, extversion FROM pg_extension;
+    CREATE SCHEMA IF NOT EXISTS timescaledb_experimental;
+    exit
+
 TODO
 ====
 - [ ] backups

@@ -249,6 +249,9 @@ services:
       - EULA=TRUE
       - TZ=Europa/Vienna
       - ENABLE_ROLLING_LOGS=true
+      - INIT_MEMORY=1G 
+      - MAX_MEMORY=2G
+    mem_limit: "2048M"
     ports:
       - {{ minecraft.port }}:{{ minecraft.port }}
     expose:
