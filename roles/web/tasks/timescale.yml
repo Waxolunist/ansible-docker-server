@@ -2,11 +2,11 @@
   - name: Timescale - Change permissions for work dir
     file:
       path: "{{ docker.paths.data }}timescale"
-      mode: '0777'
+      mode: '0755'
   - name: Timescale - Change permissions for logs dir
     file:
       path: "{{ docker.paths.logs }}timescale"
-      mode: '0777'
+      mode: '0755'
   - name: Timescale - Check if pgdata exists
     stat: 
       path: "{{ docker.paths.data }}timescale/pgdata"

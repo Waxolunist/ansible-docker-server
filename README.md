@@ -63,14 +63,6 @@ Generate key file and certificate
     openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout roles/web/files/portus/portus.key -out roles/web/files/portus/portus.crt
 
 
-Push
-----
-
-    docker build -t scmatzen/scmatzen-php:${VERSION} -t registry.v-collaborate.com/scmatzen/scmatzen-php:${VERSION} .
-    docker login registry.v-collaborate.com
-    docker push registry.v-collaborate.com/scmatzen/scmatzen-php:${VERSION}
-
-
 Upgrade Timescale
 -----------------
 

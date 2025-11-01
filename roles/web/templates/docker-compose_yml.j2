@@ -222,7 +222,7 @@ services:
     environment:
       - TZ=Europa/Vienna
       - PGADMIN_DEFAULT_EMAIL={{ vault_pgadmin_default_email }}
-      - PGADMIN_DEFAULT_PASSWORD={{ vault_pgadming_default_password }}
+      - PGADMIN_DEFAULT_PASSWORD={{ vault_pgadmin_default_password }}
     labels:
       - traefik.enable=true
       - traefik.docker.network=web_proxy
@@ -238,8 +238,6 @@ services:
     networks:
       - proxy
       - grafana
-      - pwas
-      - scmatzen
     restart: on-failure
 
   minecraft:
@@ -265,51 +263,6 @@ services:
       retries: 20
     restart: on-failure
 
-  scmatzen-db:
-    image: mysql:5.7
-    container_name: scmatzen-db
-    networks:
-      - scmatzen
-    environment:
-      - MYSQL_PASSWORD={{ vault_scmatzen_db_password }}
-      - MYSQL_USER={{ vault_scmatzen_db_user }}
-      - MYSQL_DATABASE=scmatzen
-      - MYSQL_ROOT_PASSWORD={{ vault_scmatzen_db_root_password }}
-      - TZ=Europa/Vienna
-    volumes:
-      - "{{ docker.paths.data }}scmatzen/dbdata:/var/lib/mysql"
-    labels:
-      - traefik.enable=false
-    restart: on-failure
-
-  scmatzen:
-    image: wordpress:6-php8.0-apache
-    depends_on:
-      - scmatzen-db
-    volumes:
-      - "{{ docker.paths.work }}scmatzen:/var/www/html"
-    networks:
-      - scmatzen
-      - proxy
-    environment:
-      - WORDPRESS_DB_HOST=scmatzen-db
-      - WORDPRESS_DB_USER={{ vault_scmatzen_db_user }}
-      - WORDPRESS_DB_PASSWORD={{ vault_scmatzen_db_password }}
-      - WORDPRESS_DB_NAME=scmatzen
-    labels:
-      - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ scmatzen.domain }}
-      - traefik.http.middlewares.scmatzen-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.scmatzen-secure.entrypoints=websecure
-      - traefik.http.routers.scmatzen-secure.rule=Host(`{{ scmatzen.domain }}`, `scmatzen.shop`, `shop.scmatzen.at`)
-      - traefik.http.routers.scmatzen-secure.tls=true
-      - traefik.http.routers.scmatzen-secure.tls.certresolver=myresolver
-      - traefik.http.routers.scmatzen.entrypoints=web
-      - traefik.http.routers.scmatzen.middlewares=scmatzen-https-redirect
-      - traefik.http.routers.scmatzen.rule=Host(`{{ scmatzen.domain }}`, `scmatzen.shop`, `shop.scmatzen.at`)
-    restart: on-failure
-
   timescaledb:
     image: timescale/timescaledb-ha:pg16
     container_name: web_timescaledb
@@ -333,5 +286,3 @@ networks:
     name: web_proxy
   grafana:
   prometheus:
-  pwas:
-  scmatzen:

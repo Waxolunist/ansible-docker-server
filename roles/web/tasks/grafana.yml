@@ -8,11 +8,11 @@
   - name: Grafana - Change permissions for work dir
     file:
       path: "{{ docker.paths.data }}grafana"
-      mode: '0777'
+      mode: '0755'
   - name: Grafana - Change permissions for logs dir
     file:
       path: "{{ docker.paths.logs }}grafana"
-      mode: '0777'
+      mode: '0755'
   - name: Grafana - Check if pgdata exists
     stat: 
       path: "{{ docker.paths.data }}grafana/pgdata"

@@ -8,4 +8,4 @@
   - name: Loki - Change permissions for work dir
     file:
       path: "{{ docker.paths.work }}loki"
-      mode: '0777'
+      mode: '0755'
