@@ -51,6 +51,12 @@
       dest: "{{ docker_base_path }}/backup_databases.sh"
       mode: 0755
       backup: yes
+  - name: Create restore script
+    template:
+      src: restore_grafana.j2.sh
+      dest: "{{ docker_base_path }}/restore_grafana.sh"
+      mode: 0755
+      backup: yes
   - name: Add cronjob for backup job
     cron:
       name: "backup databases"
@@ -67,10 +73,10 @@
           patterns: 'docker-compose*.yml'
           recurse: no
         register: compose_files
-      - docker_compose:
+      - community.docker.docker_compose_v2:
           project_src: "{{ docker_base_path }}"
           state: present
-          restarted: "{{ restart_container }}"
+          recreate: "{{ 'always' if restart_container else 'never' }}"
           files: "{{ compose_files.files | map(attribute='path') | list }}"
           remove_orphans: true
         register: compose_output

@@ -11,9 +11,3 @@
       state: directory
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
-  - name: Registry - Copy crt file
-    copy:
-      src: "portus/portus.crt"
-      dest: "{{ docker.paths.configs }}registry/secrets/portus.crt"
-      force: yes
-      mode: 0644

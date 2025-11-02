@@ -32,37 +32,6 @@ Motivation
 
 The motivation for the separation of system and site is that system is run with the user root, whereas the site.yml playbook is run with a devops user. The system playbook disables the root login via ssh for security reasons.
 
-Docker
-======
-
-Inspect docker labels of container
-
-    $ docker inspect paint | grep labels -iA 12
-
-List docker networks
-
-    $ docker network ls
-
-Inspect docker network
-
-    $ docker network inspect web_proxy
-
-Execute command
-
-    $ docker exec -it registry /bin/bash
-
-Registry / Portus
-=================
-
-Generate secret
-
-    openssl rand -hex 64
-
-Generate key file and certificate
-
-    openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout roles/web/files/portus/portus.key -out roles/web/files/portus/portus.crt
-
-
 Upgrade Timescale
 -----------------
 
@@ -70,7 +39,7 @@ After upgrading timescale, probably you have to update the extensions.
 
 Log in in docker:
 
-    docker compose -f docker-compose.yml -f docker-compose_pwas.yml exec timescaledb psql -U timescale -d timescale_home
+    docker compose exec timescaledb psql -U timescale -d timescale_home
 
     ALTER EXTENSION timescaledb UPDATE;
     ALTER EXTENSION timescaledb_toolkit UPDATE;
@@ -78,8 +47,36 @@ Log in in docker:
     CREATE SCHEMA IF NOT EXISTS timescaledb_experimental;
     exit
 
+Restoring backup
+================
+
+
+    cd {{ docker_base_path }}
+
+    # Find the latest backup
+    LATEST_BACKUP=$(ls -t /backup/dump_grafana_*.sql.zip | head -1)
+
+    if [ -z "$LATEST_BACKUP" ]; then
+        echo "No Grafana backups found in /backup/"
+        exit 1
+    fi
+
+    echo "Using backup: $LATEST_BACKUP"
+    echo "Backup date: $(stat -c %y "$LATEST_BACKUP")"
+
+    # Stop Grafana
+    docker compose stop grafana
+
+    # Restore the database
+    echo "Restoring database..."
+    zcat "$LATEST_BACKUP" | docker compose exec -T grafana-pg psql -U '{{ vault_grafana_pg_user }}' -d grafana
+
+    # Start Grafana
+    docker compose start grafana
+
+    echo "Restoration complete!"
+
 TODO
 ====
-- [ ] backups
 - [ ] Container registry
 - [ ] Logging

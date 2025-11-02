@@ -27,23 +27,66 @@
         - containerd 
         - runc
       state: absent
+  - name: Update apt cache
+    apt:
+      update_cache: yes
+    retries: 3
+    delay: 10
+    ignore_errors: yes
+  
   - name: Install prerequisits
     apt:
-      name: 
-        - apt-transport-https 
-        - ca-certificates 
-        - curl 
-        - gnupg2 
-        - software-properties-common
+      name:
+        - ca-certificates
+        - curl
       state: present
-  - apt_key:
+  
+  - name: Create keyrings directory
+    file:
+      path: /etc/apt/keyrings
+      state: directory
+      mode: '0755'
+  
+  - name: Download Docker GPG key
+    get_url:
       url: https://download.docker.com/linux/debian/gpg
-  - apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ codename }} stable
+      dest: /etc/apt/keyrings/docker.asc
+      mode: '0644'
+    retries: 3
+    delay: 5
+  
+  - name: Get architecture
+    shell: dpkg --print-architecture
+    register: system_architecture
+    changed_when: false
+  
+  - name: Get distribution codename
+    shell: . /etc/os-release && echo "$VERSION_CODENAME"
+    register: distribution_codename
+    changed_when: false
+  
+  - name: Add Docker repository
+    apt_repository:
+      repo: "deb [arch={{ system_architecture.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ distribution_codename.stdout }} stable"
       state: present
-  - apt:
-      name: 
+      filename: docker
+      update_cache: no
+  
+  - name: Update apt cache after adding Docker repository
+    apt:
+      update_cache: yes
+    retries: 3
+    delay: 10
+    ignore_errors: yes
+  
+  - name: Install Docker packages
+    apt:
+      name:
         - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
       state: present
   - pip:
       name:

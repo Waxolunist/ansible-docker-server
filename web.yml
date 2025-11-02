@@ -1,5 +1,4 @@
 ---
   - hosts: web
     roles:
-      - pwas
       - web

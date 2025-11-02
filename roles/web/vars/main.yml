@@ -3,15 +3,12 @@
     - traefik
     - prometheus
     - registry
-    - portus
     - authelia
     - loki
     - grafana
     - pgadmin
     - minecraft
     - timescale
-  portus:
-    domain: "portus.{{ topleveldomain }}"
   registry:
     domain: "registry.{{ topleveldomain }}"
     port: 5000

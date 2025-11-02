@@ -56,18 +56,3 @@ scrape_configs:
     metrics_path: /metrics/
     static_configs:
       - targets: ['cryptocurrency:6150']
-
- # - job_name: releasemanager
- #   static_configs:
- #     - targets: ['releasemanager:3000']
-
-  - job_name: 'paint'
-
-    # Override the global default and scrape targets from this job every 5 seconds.
-    scrape_interval: 5s
-
-    dns_sd_configs:
-    - names:
-      - 'tasks.paint'
-      type: 'A'
-      port: 8002
