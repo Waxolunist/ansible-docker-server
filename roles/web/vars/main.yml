@@ -9,6 +9,7 @@
     - pgadmin
     - minecraft
     - timescale
+    - photoprism
   registry:
     domain: "registry.{{ topleveldomain }}"
     port: 5000
@@ -28,5 +29,7 @@
     domain: "logs.{{ topleveldomain }}"
   minecraft:
     port: 25565
+  photoprism:
+    domain: "photos.{{ topleveldomain }}"
 
   restart_container: no

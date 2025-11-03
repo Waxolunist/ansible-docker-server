@@ -36,11 +36,25 @@ else
     rm -f "${TIMESCALE_BACKUP}"
 fi
 
+# Backup PhotoPrism MariaDB database
+echo "Backing up PhotoPrism MariaDB database..."
+PHOTOPRISM_BACKUP="/backup/dump_photoprism_${TIMESTAMP}.sql.gz"
+docker compose exec -T photoprism-mariadb mariadb-dump -u root -p'{{ vault_photoprism_db_root_password }}' --single-transaction --routines --triggers photoprism | gzip -9 > "${PHOTOPRISM_BACKUP}"
+
+# Check if PhotoPrism backup was successful
+if [ -s "${PHOTOPRISM_BACKUP}" ]; then
+    echo "PhotoPrism backup successful: $(ls -lh "${PHOTOPRISM_BACKUP}")"
+else
+    echo "ERROR: PhotoPrism backup failed or is empty!"
+    rm -f "${PHOTOPRISM_BACKUP}"
+fi
+
 echo "Database backups completed at $(date)"
 
 # Clean up old backups (keep last 7 days)
 echo "Cleaning up old backups..."
 find /backup -name "dump_grafana_*.sql.gz" -type f -mtime +7 -delete
 find /backup -name "dump_timescale_*.sql.gz" -type f -mtime +7 -delete
+find /backup -name "dump_photoprism_*.sql.gz" -type f -mtime +7 -delete
 
 echo "Backup cleanup completed"

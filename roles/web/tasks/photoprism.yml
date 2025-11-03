@@ -1,0 +1,21 @@
+---
+  - name: PhotoPrism - Create originals directory
+    file:
+      path: "{{ docker.paths.work }}photoprism/originals"
+      state: directory
+      mode: '0755'
+  - name: PhotoPrism - Create import directory
+    file:
+      path: "{{ docker.paths.work }}photoprism/import"
+      state: directory
+      mode: '0755'
+  - name: PhotoPrism - Create storage directory
+    file:
+      path: "{{ docker.paths.data }}photoprism/storage"
+      state: directory
+      mode: '0755'
+  - name: PhotoPrism - Create database directory
+    file:
+      path: "{{ docker.paths.data }}photoprism/database"
+      state: directory
+      mode: '0755'
