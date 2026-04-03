@@ -64,10 +64,21 @@
     shell: . /etc/os-release && echo "$VERSION_CODENAME"
     register: distribution_codename
     changed_when: false
+
+  - name: Check if Docker repo exists for this codename
+    uri:
+      url: "https://download.docker.com/linux/debian/dists/{{ distribution_codename.stdout }}/Release"
+      method: HEAD
+      status_code: [200, 404]
+    register: docker_repo_check
+
+  - name: Set Docker repo codename (fallback to bookworm if not available)
+    set_fact:
+      docker_repo_codename: "{{ distribution_codename.stdout if docker_repo_check.status == 200 else 'bookworm' }}"
   
   - name: Add Docker repository
     apt_repository:
-      repo: "deb [arch={{ system_architecture.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ distribution_codename.stdout }} stable"
+      repo: "deb [arch={{ system_architecture.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ docker_repo_codename }} stable"
       state: present
       filename: docker
       update_cache: no
@@ -88,10 +99,9 @@
         - docker-buildx-plugin
         - docker-compose-plugin
       state: present
-  - pip:
-      name:
-        - docker
-        - docker-compose
+  - name: Install Docker Python SDK via apt
+    apt:
+      name: python3-docker
       state: present
   - name: Create directories
     file:
@@ -118,33 +128,9 @@
       name: docker
       state: started
 
- # - name: Loki Plugin installed
- #   shell: docker plugin ls | grep loki | awk '{print $3}'
- #   register: loki_plugin
- # - set_fact: 
- #     loki_plugin: "{{ loki_plugin.stdout }}"
- # - debug: 
- #     var: loki_plugin
- # - name: Configure docker
- #   block:
- #     - name: Use configuration without loki
- #       template:
- #         src: daemon_json_noloki.j2
- #         dest: "/etc/docker/daemon.json"
- #         mode: 0644
- #         backup: no
- #     - name: Start docker
- #       service:
- #         name: docker
- #         state: restarted
- #     - name: Install loki plugin
- #       command:
- #         cmd: docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
- #   when: loki_plugin != "Loki"
-
   - name: Configure daemon
     template:
-      src: daemon_json_noloki.j2
+      src: daemon_json.j2
       dest: "/etc/docker/daemon.json"
       mode: 0644
       backup: yes

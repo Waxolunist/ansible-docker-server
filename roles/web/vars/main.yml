@@ -4,7 +4,6 @@
     - prometheus
     - registry
     - authelia
-    - loki
     - grafana
     - pgadmin
     - minecraft
@@ -25,8 +24,6 @@
   pgadmin:
     domain: "pgadmin.{{ topleveldomain }}"
     port: 5050
-  loki:
-    domain: "logs.{{ topleveldomain }}"
   minecraft:
     port: 25565
   photoprism:
