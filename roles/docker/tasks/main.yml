@@ -1,160 +1,168 @@
 ---
 - name: Create group docker
-  group:
+  ansible.builtin.group:
     name: docker
     state: present
   become: yes
+
 - name: Add user {{ ansible_user }} to docker group
-  user: name={{ ansible_user }}
-        group={{ ansible_user }}
-        groups=docker
-        append=yes
+  ansible.builtin.user:
+    name: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    groups: docker
+    append: yes
   become: yes
+
 - name: Set bash_profile_docker
-  template:
+  ansible.builtin.template:
     src: bash_profile_docker.j2
     dest: .bash_profile_docker
-    mode: 0644
+    mode: '0644'
     backup: no
-- name: Install docker prerequsits
+
+- name: Install Docker Engine
   block:
-  - name: Remove unused docker packages
-    apt:
-      name:
-        - docker 
-        - docker-engine
-        - docker.io 
-        - containerd 
-        - runc
-      state: absent
-  - name: Update apt cache
-    apt:
-      update_cache: yes
-    retries: 3
-    delay: 10
-    ignore_errors: yes
-  
-  - name: Install prerequisits
-    apt:
-      name:
-        - ca-certificates
-        - curl
-      state: present
-  
-  - name: Create keyrings directory
-    file:
-      path: /etc/apt/keyrings
-      state: directory
-      mode: '0755'
-  
-  - name: Download Docker GPG key
-    get_url:
-      url: https://download.docker.com/linux/debian/gpg
-      dest: /etc/apt/keyrings/docker.asc
-      mode: '0644'
-    retries: 3
-    delay: 5
-  
-  - name: Get architecture
-    shell: dpkg --print-architecture
-    register: system_architecture
-    changed_when: false
-  
-  - name: Get distribution codename
-    shell: . /etc/os-release && echo "$VERSION_CODENAME"
-    register: distribution_codename
-    changed_when: false
+    - name: Remove conflicting docker packages
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
 
-  - name: Check if Docker repo exists for this codename
-    uri:
-      url: "https://download.docker.com/linux/debian/dists/{{ distribution_codename.stdout }}/Release"
-      method: HEAD
-      status_code: [200, 404]
-    register: docker_repo_check
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+      retries: 3
+      delay: 10
+      ignore_errors: yes
 
-  - name: Set Docker repo codename (fallback to bookworm if not available)
-    set_fact:
-      docker_repo_codename: "{{ distribution_codename.stdout if docker_repo_check.status == 200 else 'bookworm' }}"
-  
-  - name: Add Docker repository
-    apt_repository:
-      repo: "deb [arch={{ system_architecture.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ docker_repo_codename }} stable"
-      state: present
-      filename: docker
-      update_cache: no
-  
-  - name: Update apt cache after adding Docker repository
-    apt:
-      update_cache: yes
-    retries: 3
-    delay: 10
-    ignore_errors: yes
-  
-  - name: Install Docker packages
-    apt:
-      name:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
-        - docker-buildx-plugin
-        - docker-compose-plugin
-      state: present
-  - name: Install Docker Python SDK via apt
-    apt:
-      name: python3-docker
-      state: present
-  - name: Create directories
-    file:
-      path: "{{ item }}"
-      state: directory
-      owner: "{{ ansible_user }}"
-      group: "{{ ansible_user }}"
-    loop:
-      - "{{ docker.paths.images }}"
-      - "{{ docker.paths.logs }}"
-      - "{{ docker.paths.configs }}"
-      - "{{ docker.paths.data }}"
-      - "{{ docker.paths.work }}"
-  - name: Get Docker IP address
-    shell: ip addr show | grep "\binet\b.*\bdocker0\b" | awk '{print $2}' | cut -d '/' -f 1
-    register: docker_ip_address
-  - set_fact: 
-      docker_ip_address: "{{ docker_ip_address.stdout }}"
-  - debug: 
-      var: docker_ip_address
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
 
-  - name: ensure docker daemon started
-    service:
-      name: docker
-      state: started
+    - name: Create keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
 
-  - name: Configure daemon
-    template:
-      src: daemon_json.j2
-      dest: "/etc/docker/daemon.json"
-      mode: 0644
-      backup: yes
-    register: docker_daemon_json
-  
-  - name: restart docker daemon if needed
-    block:
-      - name: Sleep for 5 seconds before restarting to often
-        wait_for:
-          timeout: 5
-      - name: Restart service
-        service:
-          name: docker
-          state: restarted
-    when: docker_daemon_json.changed
+    - name: Download Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+      retries: 3
+      delay: 5
 
-  - name: ensure docker daemon started
-    service:
-      name: docker
-      state: started
+    - name: Get architecture
+      ansible.builtin.shell: dpkg --print-architecture
+      register: system_architecture
+      changed_when: false
 
-#  - name: Init a new swarm with default parameters
-#    community.general.docker_swarm:
-#      state: present
-#      advertise_addr: "{{ ansible_default_ipv4.address|default(ansible_all_ipv4_addresses[0]) }}"
+    - name: Get distribution codename
+      ansible.builtin.shell: . /etc/os-release && echo "$VERSION_CODENAME"
+      register: distribution_codename
+      changed_when: false
+
+    - name: Remove old Docker repository list file
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Add Docker repository (DEB822 format)
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/docker.sources
+        content: |
+          Types: deb
+          URIs: https://download.docker.com/linux/debian
+          Suites: {{ distribution_codename.stdout }}
+          Components: stable
+          Architectures: {{ system_architecture.stdout }}
+          Signed-By: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Update apt cache after adding Docker repository
+      ansible.builtin.apt:
+        update_cache: yes
+      retries: 3
+      delay: 10
+      ignore_errors: yes
+
+    - name: Install Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Install Docker Python SDK via apt
+      ansible.builtin.apt:
+        name: python3-docker
+        state: present
+
+    - name: Create directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+      loop:
+        - "{{ docker.paths.images }}"
+        - "{{ docker.paths.logs }}"
+        - "{{ docker.paths.configs }}"
+        - "{{ docker.paths.data }}"
+        - "{{ docker.paths.work }}"
+
+    - name: Get Docker IP address
+      ansible.builtin.shell: ip addr show | grep "\binet\b.*\bdocker0\b" | awk '{print $2}' | cut -d '/' -f 1
+      register: docker_ip_address
+      changed_when: false
+
+    - name: Set docker_ip_address fact
+      ansible.builtin.set_fact:
+        docker_ip_address: "{{ docker_ip_address.stdout }}"
+
+    - name: Debug docker_ip_address
+      ansible.builtin.debug:
+        var: docker_ip_address
+
+    - name: Ensure docker daemon started
+      ansible.builtin.service:
+        name: docker
+        state: started
+
+    - name: Configure daemon
+      ansible.builtin.template:
+        src: daemon_json.j2
+        dest: "/etc/docker/daemon.json"
+        mode: '0644'
+        backup: yes
+      register: docker_daemon_json
+
+    - name: Restart docker daemon if needed
+      block:
+        - name: Sleep for 5 seconds before restarting too often
+          ansible.builtin.wait_for:
+            timeout: 5
+        - name: Restart service
+          ansible.builtin.service:
+            name: docker
+            state: restarted
+      when: docker_daemon_json.changed
+
+    - name: Ensure docker daemon started
+      ansible.builtin.service:
+        name: docker
+        state: started
 
   become: yes

@@ -30,6 +30,7 @@
         name:
           - bash-completion
           - colorized-logs
+          - cron
         update_cache: no
     - name: Install python
       apt:
@@ -51,7 +52,7 @@
     - name: Install alternative
       command: 
         cmd: update-alternatives --install /usr/bin/python python /usr/bin/python3 2
-      when: python_alternatives.stdout is not search("/usr/bin/python3")
+      when: python_alternatives is succeeded and python_alternatives.stdout is not search("/usr/bin/python3")
     - name: Set default python version
       alternatives:
         name: python
