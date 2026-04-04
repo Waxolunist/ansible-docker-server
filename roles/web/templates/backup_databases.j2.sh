@@ -26,7 +26,7 @@ fi
 # Backup TimescaleDB database
 echo "Backing up TimescaleDB database..."
 TIMESCALE_BACKUP="/backup/dump_timescale_${TIMESTAMP}.sql.gz"
-docker compose exec -T timescaledb pg_dump -c -U '{{ vault_timescale_pg_user }}' -d 'timescale_home' | gzip -9 > "${TIMESCALE_BACKUP}"
+docker compose exec -T timescaledb pg_dump -Fc --no-owner --no-privileges -U '{{ vault_timescale_pg_user }}' -d 'timescale_home' | gzip -9 > "${TIMESCALE_BACKUP}"
 
 # Check if TimescaleDB backup was successful
 if [ -s "${TIMESCALE_BACKUP}" ]; then
