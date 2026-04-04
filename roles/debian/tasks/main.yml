@@ -31,6 +31,7 @@
           - bash-completion
           - colorized-logs
           - cron
+          - rsync
         update_cache: no
     - name: Install python
       apt:

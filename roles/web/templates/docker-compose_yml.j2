@@ -124,7 +124,7 @@ services:
     restart: on-failure
 
   authelia:
-    image: authelia/authelia:4
+    image: authelia/authelia:4.37.2
     container_name: authelia
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"

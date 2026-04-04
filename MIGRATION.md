@@ -430,20 +430,42 @@ ls -la /backup/
 
 ### 4.3 Daten per rsync übertragen
 
-Die drei kritischen Verzeichnisse vom alten auf den neuen Server übertragen:
+`rsync` unterstützt keinen direkten Transfer zwischen zwei Remote-Hosts. Stattdessen per SSH auf den **neuen Server** verbinden und die Daten vom alten Server **pullen**:
+
+#### Voraussetzung: SSH-Agent-Forwarding nutzen
+
+Da auf dem alten Server die Passwort-Authentifizierung deaktiviert ist, kann kein neuer SSH-Key vom neuen Server aus hinterlegt werden. Stattdessen wird **SSH-Agent-Forwarding** verwendet — der lokale SSH-Key wird durch die SSH-Verbindung zum neuen Server weitergeleitet und ermöglicht so den Zugriff auf den alten Server.
 
 ```bash
-# Anwendungsdaten
-rsync -avz --progress devops@178.77.98.179:/var/docker/data/ devops@<NEUE_IP_ADRESSE>:/var/docker/data/
+# Sicherstellen, dass der SSH-Agent lokal läuft und der Key geladen ist
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
 
-# Arbeitsdaten (Traefik-Zertifikate, Registry-Daten, PhotoPrism-Fotos)
-rsync -avz --progress devops@178.77.98.179:/var/docker/work/ devops@<NEUE_IP_ADRESSE>:/var/docker/work/
-
-# Datenbank-Backups
-rsync -avz --progress devops@178.77.98.179:/backup/ devops@<NEUE_IP_ADRESSE>:/backup/
+# Prüfen ob der Key geladen ist
+ssh-add -l
 ```
 
-> **Hinweis**: Falls kein direkter Server-zu-Server-Transfer möglich ist, können die Daten über den lokalen Rechner als Zwischenstation übertragen werden.
+#### Daten übertragen
+
+Mit Agent-Forwarding (`-A`) auf den neuen Server verbinden und die Daten vom alten Server pullen:
+
+```bash
+# Mit Agent-Forwarding auf den neuen Server verbinden
+ssh -A devops@<NEUE_IP_ADRESSE>
+
+# Anwendungsdaten
+rsync -avz --progress devops@178.77.98.179:/var/docker/data/ /var/docker/data/
+
+# Arbeitsdaten (Traefik-Zertifikate, Registry-Daten, PhotoPrism-Fotos)
+rsync -avz --progress devops@178.77.98.179:/var/docker/work/ /var/docker/work/
+
+# Datenbank-Backups
+rsync -avz --progress devops@178.77.98.179:/backup/ /backup/
+```
+
+> **Hinweis**: Da die Zielverzeichnisse auf dem neuen Server lokal sind, funktioniert rsync korrekt. Die Daten werden direkt vom alten Server über SSH gezogen.
+
+> **Alternative**: Falls kein SSH-Key zwischen den Servern eingerichtet werden kann, können die Daten über den lokalen Rechner als Zwischenstation übertragen werden (erst herunterladen, dann hochladen).
 
 ### 4.4 Berechtigungen korrigieren
 
