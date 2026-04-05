@@ -1,6 +1,11 @@
 services:
   registry:
-    image: registry:2
+    image: registry:3.0.0
+    container_name: web_registry
+    depends_on:
+      - reverse-proxy
+    expose:
+      - {{ registry.port }}
     volumes:
       - "{{ docker.paths.work }}registry:/var/lib/registry"
       - "{{ docker.paths.configs }}registry/config.yml:/etc/docker/registry/config.yml:ro"
@@ -17,11 +22,18 @@ services:
       - traefik.http.routers.registry-secure.rule=Host(`{{ registry.domain }}`)
       - traefik.http.routers.registry-secure.tls=true
       - traefik.http.routers.registry-secure.tls.certresolver=myresolver
+      - traefik.http.routers.registry-secure.middlewares=auth@docker
       - traefik.http.routers.registry.entrypoints=web
       - traefik.http.routers.registry.middlewares=registry-https-redirect
       - traefik.http.routers.registry.rule=Host(`{{ registry.domain }}`)
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:{{ registry.port }}/v2/", "||", "exit", "1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: on-failure
 
   reverse-proxy:
@@ -39,7 +51,7 @@ services:
       - "{{ docker.paths.work }}traefik:/var/run/traefik"
       - "{{ docker.paths.logs }}traefik/:/var/log/traefik"
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     networks:
       - proxy
     labels:
@@ -87,7 +99,7 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     networks:
       - proxy
       - prometheus
@@ -112,7 +124,7 @@ services:
     image: prom/node-exporter:v1.7.0
     container_name: web_node-exporter
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     expose:
       - 9100
     labels:
@@ -152,7 +164,7 @@ services:
     expose:
       - {{ authelia.port }}
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     restart: on-failure
 
   grafana-pg:
@@ -164,7 +176,7 @@ services:
       - POSTGRES_PASSWORD={{ vault_grafana_pg_password }}
       - POSTGRES_USER={{ vault_grafana_pg_user }}
       - POSTGRES_DB=grafana
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     volumes:
       - "{{ docker.paths.data }}grafana/pgdata:/var/lib/postgresql/data"
     labels:
@@ -186,7 +198,7 @@ services:
     links:
       - "grafana-pg:database"
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     labels:
       - traefik.enable=true
       - traefik.docker.network=web_proxy
@@ -218,7 +230,7 @@ services:
     volumes:
       - "{{ docker.paths.data }}pgadmin:/var/lib/pgadmin"
     environment:
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
       - PGADMIN_DEFAULT_EMAIL={{ vault_pgadmin_default_email }}
       - PGADMIN_DEFAULT_PASSWORD={{ vault_pgadmin_default_password }}
     labels:
@@ -243,7 +255,7 @@ services:
     container_name: minecraft
     environment:
       - EULA=TRUE
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
       - ENABLE_ROLLING_LOGS=true
       - INIT_MEMORY=1G 
       - MAX_MEMORY=2G
@@ -270,7 +282,7 @@ services:
       - POSTGRES_PASSWORD={{ vault_timescale_pg_password }}
       - POSTGRES_USER={{ vault_timescale_pg_user }}
       - POSTGRES_DB=timescale_home
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     ports:
       - "5432:5432"
     volumes:
@@ -297,7 +309,7 @@ services:
       - MARIADB_USER=photoprism
       - MARIADB_PASSWORD={{ vault_photoprism_db_password }}
       - MARIADB_ROOT_PASSWORD={{ vault_photoprism_db_root_password }}
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     networks:
       - photoprism
     labels:
@@ -348,7 +360,7 @@ services:
       - PHOTOPRISM_SITE_CAPTION=AI-Powered Photos App
       - PHOTOPRISM_SITE_DESCRIPTION=
       - PHOTOPRISM_SITE_AUTHOR=
-      - TZ=Europa/Vienna
+      - TZ=Europe/Vienna
     user: "1000:1000"
     working_dir: "/photoprism"
     volumes:

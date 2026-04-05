@@ -11,3 +11,10 @@
       state: directory
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+  - name: Registry - Setup garbage collection cron
+    cron:
+      name: "Registry garbage collection"
+      minute: "0"
+      hour: "3"
+      job: "docker exec web_registry bin/registry garbage-collect /etc/docker/registry/config.yml --delete-untagged 2>&1 | logger -t registry-gc"
+      user: "{{ ansible_user }}"
