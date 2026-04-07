@@ -173,6 +173,8 @@ services:
     container_name: grafana-pg
     networks:
       - grafana
+    expose:
+      - 5432
     environment:
       - POSTGRES_PASSWORD={{ vault_grafana_pg_password }}
       - POSTGRES_USER={{ vault_grafana_pg_user }}
@@ -182,10 +184,16 @@ services:
       - "{{ docker.paths.data }}grafana/pgdata:/var/lib/postgresql/data"
     labels:
       - traefik.enable=false
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ vault_grafana_pg_user }} -d grafana"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: on-failure
 
   grafana:
-    image: grafana/grafana:12.2
+    image: grafana/grafana:12.2.8
     container_name: web_grafana
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
@@ -194,10 +202,10 @@ services:
     expose:
       - 3000
     depends_on:
-      - grafana-pg
-      - prometheus
-    links:
-      - "grafana-pg:database"
+      grafana-pg:
+        condition: service_healthy
+      prometheus:
+        condition: service_started
     environment:
       - TZ=Europe/Vienna
     labels:
@@ -216,6 +224,12 @@ services:
     networks:
       - proxy
       - grafana
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     restart: on-failure
 
   pgadmin:

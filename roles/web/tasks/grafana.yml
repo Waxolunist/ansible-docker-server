@@ -5,14 +5,21 @@
       dest: "{{ docker.paths.configs }}grafana/grafana.ini"
       mode: 0644
       backup: yes
-  - name: Grafana - Change permissions for work dir
+  - name: Grafana - Change permissions for data dir
     file:
       path: "{{ docker.paths.data }}grafana"
       mode: '0755'
+      owner: '472'
+      group: '0'
+      recurse: yes
+    become: yes
   - name: Grafana - Change permissions for logs dir
     file:
       path: "{{ docker.paths.logs }}grafana"
       mode: '0755'
+      owner: '472'
+      group: '0'
+    become: yes
   - name: Grafana - Check if pgdata exists
     stat: 
       path: "{{ docker.paths.data }}grafana/pgdata"

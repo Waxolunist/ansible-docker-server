@@ -41,7 +41,7 @@ enable_login_token = false
 
 [database]
 type = postgres
-host = database:5432
+host = grafana-pg:5432
 name = grafana
 user = {{ vault_grafana_pg_user }}
 password = """{{ vault_grafana_pg_password }}"""
@@ -57,3 +57,6 @@ user = {{ vault_smtp_server_user }}
 password = {{ vault_smtp_server_password }}
 from_address = {{ vault_smtp_server_user }}
 from_name = Grafana
+
+[feature_toggles]
+dashboardNewLayouts = true
