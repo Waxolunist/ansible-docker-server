@@ -15,8 +15,6 @@ services:
       - proxy
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ registry.domain }}
       - traefik.http.middlewares.registry-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.registry-secure.entrypoints=websecure
       - traefik.http.routers.registry-secure.rule=Host(`{{ registry.domain }}`)
@@ -38,7 +36,7 @@ services:
     restart: on-failure
 
   reverse-proxy:
-    image: traefik:v2.11
+    image: traefik:v3.6.13
     container_name: web_reverse-proxy
     ports:
       - "80:80"
@@ -57,9 +55,6 @@ services:
       - proxy
     labels:
       - traefik.enable=true
-      - traefik.port=8080
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ traefik.domain }}
       - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.proxy-secure.middlewares=auth@docker
       - traefik.http.routers.proxy-secure.entrypoints=websecure
@@ -78,6 +73,7 @@ services:
       - traefik.http.routers.mepage-secure.rule=Host(`me.v-collaborate.com`, `christian.sterzl.info`)
       - traefik.http.routers.mepage-secure.tls=true
       - traefik.http.routers.mepage-secure.tls.certresolver=myresolver
+      - traefik.http.routers.mepage-secure.service=noop@internal
       - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://(me.v-collaborate.com|christian.sterzl.info)(/.*)?
       - traefik.http.middlewares.me-redirectregex.redirectregex.replacement=https://www.linkedin.com/in/christian-sterzl-59b282182/
     restart: on-failure
@@ -108,8 +104,6 @@ services:
       docker.host: {{ docker_ip_address }}
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ prometheus.domain }}
       - traefik.http.middlewares.metrics-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.metrics-secure.entrypoints=websecure
       - traefik.http.routers.metrics-secure.rule=Host(`{{ prometheus.domain }}`)
@@ -149,8 +143,6 @@ services:
       - proxy
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ authelia.domain }}
       - traefik.http.middlewares.auth-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.auth-secure.entrypoints=websecure
       - traefik.http.routers.auth-secure.rule=Host(`{{ authelia.domain }}`)
@@ -210,8 +202,6 @@ services:
       - TZ=Europe/Vienna
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ grafana.domain }}
       - traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.grafana-secure.entrypoints=websecure
       - traefik.http.routers.grafana-secure.rule=Host(`{{ grafana.domain }}`)
@@ -250,8 +240,6 @@ services:
       - PGADMIN_DEFAULT_PASSWORD={{ vault_pgadmin_default_password }}
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ pgadmin.domain }}
       - traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.pgadmin-secure.entrypoints=websecure
       - traefik.http.routers.pgadmin-secure.rule=Host(`{{ pgadmin.domain }}`)
@@ -393,8 +381,6 @@ services:
       - photoprism
     labels:
       - traefik.enable=true
-      - traefik.docker.network=web_proxy
-      - traefik.domain={{ photoprism.domain }}
       - traefik.http.middlewares.photoprism-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.photoprism-secure.entrypoints=websecure
       - traefik.http.routers.photoprism-secure.rule=Host(`{{ photoprism.domain }}`)

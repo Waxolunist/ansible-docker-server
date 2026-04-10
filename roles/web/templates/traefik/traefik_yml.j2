@@ -1,7 +1,7 @@
 log:
   filePath: "/var/log/traefik/traefik.log"
   format: json
-  level: DEBUG
+  level: INFO
 
 accessLog:
   filePath: "/var/log/traefik/access.log"
@@ -39,3 +39,4 @@ providers:
   docker:
     exposedByDefault: true
     endpoint: "unix:///var/run/docker.sock"
+    network: web_proxy
