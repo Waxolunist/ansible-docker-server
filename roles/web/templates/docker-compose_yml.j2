@@ -35,17 +35,31 @@ services:
       start_period: 10s
     restart: on-failure
 
+  socket-proxy:
+    image: tecnativa/docker-socket-proxy:0.3.0
+    container_name: web_socket-proxy
+    environment:
+      - CONTAINERS=1
+      - NETWORKS=1
+      - EVENTS=1
+      - POST=0
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - socket_proxy
+    restart: on-failure
+
   reverse-proxy:
     image: traefik:v3.6.13
     container_name: web_reverse-proxy
+    depends_on:
+      - socket-proxy
     ports:
       - "80:80"
       - "443:443"
     expose:
       - 8080
     volumes:
-      # So that Traefik can listen to the Docker events
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "{{ docker.paths.configs }}traefik:/etc/traefik"
       - "{{ docker.paths.work }}traefik:/var/run/traefik"
       - "{{ docker.paths.logs }}traefik/:/var/log/traefik"
@@ -53,6 +67,7 @@ services:
       - TZ=Europe/Vienna
     networks:
       - proxy
+      - socket_proxy
     labels:
       - traefik.enable=true
       - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
@@ -65,17 +80,23 @@ services:
       - traefik.http.routers.proxy.entrypoints=web
       - traefik.http.routers.proxy.middlewares=proxy-https-redirect
       - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`)
-      - traefik.http.routers.mepage.rule=Host(`me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.routers.mepage.rule=Host(`me.v-collaborate.com`) || Host(`christian.sterzl.info`)
       - traefik.http.routers.mepage.entrypoints=web
       - traefik.http.routers.mepage.middlewares=proxy-https-redirect
       - traefik.http.routers.mepage-secure.middlewares=me-redirectregex
       - traefik.http.routers.mepage-secure.entrypoints=websecure
-      - traefik.http.routers.mepage-secure.rule=Host(`me.v-collaborate.com`, `christian.sterzl.info`)
+      - traefik.http.routers.mepage-secure.rule=Host(`me.v-collaborate.com`) || Host(`christian.sterzl.info`)
       - traefik.http.routers.mepage-secure.tls=true
       - traefik.http.routers.mepage-secure.tls.certresolver=myresolver
       - traefik.http.routers.mepage-secure.service=noop@internal
       - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://(me.v-collaborate.com|christian.sterzl.info)(/.*)?
       - traefik.http.middlewares.me-redirectregex.redirectregex.replacement=https://www.linkedin.com/in/christian-sterzl-59b282182/
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: on-failure
 
   prometheus:
@@ -393,6 +414,8 @@ services:
 networks:
   proxy:
     name: web_proxy
+  socket_proxy:
+    internal: true
   grafana:
   prometheus:
   photoprism:

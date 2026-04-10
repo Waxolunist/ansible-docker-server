@@ -11,6 +11,8 @@ api:
   insecure: true
   dashboard: true
 
+ping: {}
+
 entryPoints:
   web:
     address: ":80"
@@ -38,5 +40,5 @@ metrics:
 providers:
   docker:
     exposedByDefault: true
-    endpoint: "unix:///var/run/docker.sock"
+    endpoint: "tcp://socket-proxy:2375"
     network: web_proxy
