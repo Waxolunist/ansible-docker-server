@@ -37,11 +37,11 @@ Current state: password auth disabled, root login disabled, key-based auth. Miss
 - Install `unattended-upgrades` and configure for security-only updates
 - Template `/etc/apt/apt.conf.d/50unattended-upgrades`
 
-### 1d. Firewall — IONOS Cloud Panel (manual)
+### 1d. Firewall — IONOS Cloud Panel (manual) - TBD
 - **CRITICAL:** Restrict port 5432 to the Raspberry Pi's public IP only (currently open to 0.0.0.0/0)
 - Document allowed source IPs for each exposed port in a `FIREWALL.md`
 
-### 1e. Vault password rotation
+### 1e. Vault password rotation - TBD
 - Rotate vault password, store new `.vault_pass` **outside** the repo (e.g., `~/.ansible/vault_pass`) and reference via `ansible.cfg` `vault_password_file`
 - Verify `.vault_pass` remains in `.gitignore`
 

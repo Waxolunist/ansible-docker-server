@@ -53,8 +53,105 @@
           state: present
         notify: restart sshd
 
+      # --- fail2ban ---
+
+      - name: Install fail2ban
+        apt:
+          name: fail2ban
+          state: present
+          update_cache: yes
+          cache_valid_time: 3600
+
+      - name: Configure fail2ban SSH jail
+        copy:
+          dest: /etc/fail2ban/jail.d/sshd.conf
+          content: |
+            [sshd]
+            enabled = true
+            port = ssh
+            filter = sshd
+            backend = systemd
+            maxretry = 3
+            findtime = 600
+            bantime = 3600
+          mode: "0644"
+        notify: restart fail2ban
+
+      - name: Configure fail2ban Traefik jail
+        copy:
+          dest: /etc/fail2ban/jail.d/traefik.conf
+          content: |
+            [traefik-auth]
+            enabled = true
+            port = http,https
+            filter = traefik-auth
+            logpath = /var/docker/logs/reverse-proxy/access.log
+            maxretry = 5
+            findtime = 300
+            bantime = 3600
+          mode: "0644"
+        notify: restart fail2ban
+
+      - name: Create fail2ban filter for Traefik auth failures
+        copy:
+          dest: /etc/fail2ban/filter.d/traefik-auth.conf
+          content: |
+            [Definition]
+            failregex = ^.*"ClientAddr":"<HOST>:\d+".*"OriginStatus":(401|403).*$
+            ignoreregex =
+          mode: "0644"
+        notify: restart fail2ban
+
+      - name: Enable and start fail2ban
+        service:
+          name: fail2ban
+          state: started
+          enabled: true
+
+      # --- Automated security updates ---
+
+      - name: Install unattended-upgrades
+        apt:
+          name:
+            - unattended-upgrades
+            - apt-listchanges
+          state: present
+          update_cache: yes
+          cache_valid_time: 3600
+
+      - name: Configure unattended-upgrades
+        copy:
+          dest: /etc/apt/apt.conf.d/50unattended-upgrades
+          content: |
+            Unattended-Upgrade::Origins-Pattern {
+                "origin=Debian,codename=${distro_codename},label=Debian-Security";
+                "origin=Debian,codename=${distro_codename}-security,label=Debian-Security";
+            };
+            Unattended-Upgrade::Package-Blacklist {
+            };
+            Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+            Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+            Unattended-Upgrade::Remove-Unused-Dependencies "true";
+            Unattended-Upgrade::Automatic-Reboot "false";
+            Unattended-Upgrade::SyslogEnable "true";
+          mode: "0644"
+
+      - name: Enable automatic update checks
+        copy:
+          dest: /etc/apt/apt.conf.d/20auto-upgrades
+          content: |
+            APT::Periodic::Update-Package-Lists "1";
+            APT::Periodic::Unattended-Upgrade "1";
+            APT::Periodic::AutocleanInterval "7";
+          mode: "0644"
+
     handlers:
       - name: restart sshd
         service:
           name: sshd
+          state: restarted
+
+      - name: restart fail2ban
+        service:
+          name: fail2ban
           state: restarted
