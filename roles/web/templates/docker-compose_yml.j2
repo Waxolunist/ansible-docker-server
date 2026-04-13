@@ -21,7 +21,7 @@ services:
       - traefik.http.routers.registry-secure.rule=Host(`{{ registry.domain }}`)
       - traefik.http.routers.registry-secure.tls=true
       - traefik.http.routers.registry-secure.tls.certresolver=myresolver
-      - traefik.http.routers.registry-secure.middlewares=auth@docker
+      - traefik.http.routers.registry-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.registry.entrypoints=web
       - traefik.http.routers.registry.middlewares=registry-https-redirect
       - traefik.http.routers.registry.rule=Host(`{{ registry.domain }}`)
@@ -69,8 +69,13 @@ services:
       - "443:443"
     expose:
       - 8080
+    read_only: true
+    tmpfs:
+      - /tmp
+    mem_limit: 512M
+    cpus: 1.0
     volumes:
-      - "{{ docker.paths.configs }}traefik:/etc/traefik"
+      - "{{ docker.paths.configs }}traefik:/etc/traefik:ro"
       - "{{ docker.paths.work }}traefik:/var/run/traefik"
       - "{{ docker.paths.logs }}traefik/:/var/log/traefik"
     environment:
@@ -81,8 +86,23 @@ services:
     labels:
       - autoheal=true
       - traefik.enable=true
+      # --- Global security headers middleware ---
+      - traefik.http.middlewares.security-headers.headers.stsSeconds=63072000
+      - traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true
+      - traefik.http.middlewares.security-headers.headers.stsPreload=true
+      - traefik.http.middlewares.security-headers.headers.forceSTSHeader=true
+      - traefik.http.middlewares.security-headers.headers.customFrameOptionsValue=DENY
+      - traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin
+      - traefik.http.middlewares.security-headers.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=()
+      - traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-XSS-Protection=0
+      # --- Global rate limiting middleware ---
+      - traefik.http.middlewares.rate-limit.ratelimit.average=100
+      - traefik.http.middlewares.rate-limit.ratelimit.burst=200
+      - traefik.http.middlewares.rate-limit.ratelimit.period=1m
+      # --- Traefik dashboard routes ---
       - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.proxy-secure.middlewares=auth@docker
+      - traefik.http.routers.proxy-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.proxy-secure.entrypoints=websecure
       - traefik.http.routers.proxy-secure.rule=Host(`{{ traefik.domain }}`)
       - traefik.http.routers.proxy-secure.tls=true
@@ -91,10 +111,11 @@ services:
       - traefik.http.routers.proxy.entrypoints=web
       - traefik.http.routers.proxy.middlewares=proxy-https-redirect
       - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`)
+      # --- me-page redirect routes ---
       - traefik.http.routers.mepage.rule=Host(`me.v-collaborate.com`) || Host(`christian.sterzl.info`)
       - traefik.http.routers.mepage.entrypoints=web
       - traefik.http.routers.mepage.middlewares=proxy-https-redirect
-      - traefik.http.routers.mepage-secure.middlewares=me-redirectregex
+      - traefik.http.routers.mepage-secure.middlewares=me-redirectregex,security-headers@docker
       - traefik.http.routers.mepage-secure.entrypoints=websecure
       - traefik.http.routers.mepage-secure.rule=Host(`me.v-collaborate.com`) || Host(`christian.sterzl.info`)
       - traefik.http.routers.mepage-secure.tls=true
@@ -142,7 +163,7 @@ services:
       - traefik.http.routers.metrics-secure.rule=Host(`{{ prometheus.domain }}`)
       - traefik.http.routers.metrics-secure.tls=true
       - traefik.http.routers.metrics-secure.tls.certresolver=myresolver
-      - traefik.http.routers.metrics-secure.middlewares=auth@docker
+      - traefik.http.routers.metrics-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.metrics.entrypoints=web
       - traefik.http.routers.metrics.middlewares=metrics-https-redirect
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
@@ -190,7 +211,7 @@ services:
       - traefik.http.routers.cadvisor-secure.rule=Host(`{{ cadvisor.domain }}`)
       - traefik.http.routers.cadvisor-secure.tls=true
       - traefik.http.routers.cadvisor-secure.tls.certresolver=myresolver
-      - traefik.http.routers.cadvisor-secure.middlewares=auth@docker
+      - traefik.http.routers.cadvisor-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.cadvisor.entrypoints=web
       - traefik.http.routers.cadvisor.middlewares=cadvisor-https-redirect
       - traefik.http.routers.cadvisor.rule=Host(`{{ cadvisor.domain }}`)
@@ -215,6 +236,7 @@ services:
       - traefik.http.middlewares.auth-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.auth-secure.entrypoints=websecure
       - traefik.http.routers.auth-secure.rule=Host(`{{ authelia.domain }}`)
+      - traefik.http.routers.auth-secure.middlewares=security-headers@docker,rate-limit@docker
       - traefik.http.routers.auth-secure.tls=true
       - traefik.http.routers.auth-secure.tls.certresolver=myresolver
       - traefik.http.routers.auth.entrypoints=web
@@ -278,7 +300,7 @@ services:
       - traefik.http.routers.grafana-secure.rule=Host(`{{ grafana.domain }}`)
       - traefik.http.routers.grafana-secure.tls=true
       - traefik.http.routers.grafana-secure.tls.certresolver=myresolver
-      - traefik.http.routers.grafana-secure.middlewares=auth@docker
+      - traefik.http.routers.grafana-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.grafana.entrypoints=web
       - traefik.http.routers.grafana.middlewares=grafana-https-redirect
       - traefik.http.routers.grafana.rule=Host(`{{ grafana.domain }}`)
@@ -315,6 +337,7 @@ services:
       - traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.pgadmin-secure.entrypoints=websecure
       - traefik.http.routers.pgadmin-secure.rule=Host(`{{ pgadmin.domain }}`)
+      - traefik.http.routers.pgadmin-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.pgadmin-secure.tls=true
       - traefik.http.routers.pgadmin-secure.tls.certresolver=myresolver
       - traefik.http.routers.pgadmin.entrypoints=web
@@ -383,6 +406,7 @@ services:
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
+      - no-new-privileges:false
     command: mariadbd --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     volumes:
       - "{{ docker.paths.data }}photoprism/database:/var/lib/mysql"
@@ -411,6 +435,7 @@ services:
     security_opt:
       - seccomp:unconfined
       - apparmor:unconfined
+      - no-new-privileges:false
     expose:
       - 2342
     environment:
@@ -461,6 +486,7 @@ services:
       - traefik.http.middlewares.photoprism-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.photoprism-secure.entrypoints=websecure
       - traefik.http.routers.photoprism-secure.rule=Host(`{{ photoprism.domain }}`)
+      - traefik.http.routers.photoprism-secure.middlewares=security-headers@docker,rate-limit@docker
       - traefik.http.routers.photoprism-secure.tls=true
       - traefik.http.routers.photoprism-secure.tls.certresolver=myresolver
       - traefik.http.routers.photoprism.entrypoints=web

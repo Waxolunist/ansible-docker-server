@@ -37,11 +37,22 @@ Current state: password auth disabled, root login disabled, key-based auth. Miss
 - Install `unattended-upgrades` and configure for security-only updates
 - Template `/etc/apt/apt.conf.d/50unattended-upgrades`
 
-### 1d. Firewall — IONOS Cloud Panel (manual) - TBD
+### 1d. SSH cipher and MAC hardening (`hardening.yml`)
+Remove weak ciphers and MACs from the OpenSSH defaults. KexAlgorithms and HostKeyAlgorithms are already strong (includes post-quantum ML-KEM) — no changes needed there.
+
+**Ciphers** — keep only AEAD + AES-256-CTR, drop `aes128-ctr`, `aes192-ctr`:
+`chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr`
+
+**MACs** — keep only ETM variants with SHA-2/UMAC-128, drop SHA-1 and 64-bit MACs (`hmac-sha1-etm`, `hmac-sha1`, `umac-64-etm`, `umac-64`, non-ETM `hmac-sha2-*`):
+`hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com`
+
+Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change needed.
+
+### 1e. Firewall — IONOS Cloud Panel (manual) - TBD
 - **CRITICAL:** Restrict port 5432 to the Raspberry Pi's public IP only (currently open to 0.0.0.0/0)
 - Document allowed source IPs for each exposed port in a `FIREWALL.md`
 
-### 1e. Vault password rotation - TBD
+### 1f. Vault password rotation - TBD
 - Rotate vault password, store new `.vault_pass` **outside** the repo (e.g., `~/.ansible/vault_pass`) and reference via `ansible.cfg` `vault_password_file`
 - Verify `.vault_pass` remains in `.gitignore`
 

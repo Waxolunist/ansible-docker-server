@@ -1,4 +1,7 @@
 {
     "metrics-addr": "{{ docker_ip_address }}:9323",
-    "exec-opts": ["native.cgroupdriver=systemd"]
+    "exec-opts": ["native.cgroupdriver=systemd"],
+    "live-restore": true,
+    "no-new-privileges": true,
+    "userland-proxy": false
 }
