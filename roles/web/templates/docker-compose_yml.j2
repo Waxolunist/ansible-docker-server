@@ -460,7 +460,7 @@ services:
       start_period: 30s
 
   photoprism:
-    image: photoprism/photoprism:latest
+    image: photoprism/photoprism:260305
     container_name: photoprism
     depends_on:
       - photoprism-mariadb
@@ -478,8 +478,8 @@ services:
       - PHOTOPRISM_ADMIN_PASSWORD={{ vault_photoprism_admin_password }}
       - PHOTOPRISM_AUTH_MODE=password
       - PHOTOPRISM_SITE_URL=https://{{ photoprism.domain }}/
-      - PHOTOPRISM_DISABLE_TLS=false
-      - PHOTOPRISM_DEFAULT_TLS=true
+      - PHOTOPRISM_DISABLE_TLS=true
+      - PHOTOPRISM_DEFAULT_TLS=false
       - PHOTOPRISM_ORIGINALS_LIMIT=5000
       - PHOTOPRISM_HTTP_COMPRESSION=gzip
       - PHOTOPRISM_LOG_LEVEL=info
@@ -528,11 +528,11 @@ services:
       - traefik.http.routers.photoprism.middlewares=photoprism-https-redirect
       - traefik.http.routers.photoprism.rule=Host(`{{ photoprism.domain }}`)
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2342/api/v1/status || exit 1"]
+      test: ["CMD-SHELL", "photoprism", "status"]
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 60s
+      start_period: 30s
 
 networks:
   proxy:
