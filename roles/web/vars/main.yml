@@ -26,6 +26,8 @@
     port: 5050
   minecraft:
     port: 25565
+  cadvisor:
+    domain: "cadvisor.{{ topleveldomain }}"
   photoprism:
     domain: "photos.{{ topleveldomain }}"
 

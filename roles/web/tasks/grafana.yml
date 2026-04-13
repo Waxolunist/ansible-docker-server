@@ -5,13 +5,45 @@
       dest: "{{ docker.paths.configs }}grafana/grafana.ini"
       mode: 0644
       backup: yes
-  - name: Grafana - Change permissions for data dir
+  - name: Grafana - Create provisioning directories
+    file:
+      path: "{{ docker.paths.configs }}grafana/provisioning/{{ item }}"
+      state: directory
+      mode: '0755'
+      owner: '472'
+      group: '0'
+    become: yes
+    loop:
+      - datasources
+      - dashboards
+  - name: Grafana - Remove datasource provisioning file (conflicts with existing DB datasource)
+    file:
+      path: "{{ docker.paths.configs }}grafana/provisioning/datasources/prometheus.yml"
+      state: absent
+    become: yes
+  - name: Grafana - Write dashboard provider provisioning
+    template:
+      src: grafana/provisioning/dashboards/provider.yml.j2
+      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/provider.yml"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
+  - name: Grafana - Write status page dashboard
+    copy:
+      src: grafana/provisioning/dashboards/status_page.json
+      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/status_page.json"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
+  - name: Grafana - Change permissions for data dir (top level only)
     file:
       path: "{{ docker.paths.data }}grafana"
       mode: '0755'
       owner: '472'
       group: '0'
-      recurse: yes
+      recurse: no
     become: yes
   - name: Grafana - Change permissions for logs dir
     file:
@@ -20,14 +52,11 @@
       owner: '472'
       group: '0'
     become: yes
-  - name: Grafana - Check if pgdata exists
-    stat: 
-      path: "{{ docker.paths.data }}grafana/pgdata"
-    register: pgdata_dir
-  - name: Grafana - Create pgdata
+  - name: Grafana - Ensure pgdata dir exists with correct postgres ownership
     file:
       path: "{{ docker.paths.data }}grafana/pgdata"
       state: directory
-      owner: "{{ ansible_user }}"
-      group: "{{ ansible_user }}"
-    when: pgdata_dir.stat.exists == False
+      mode: '0700'
+      owner: '70'
+      group: '70'
+    become: yes

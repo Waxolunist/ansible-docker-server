@@ -164,6 +164,39 @@ services:
       - prometheus
     restart: on-failure
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
+    container_name: web_cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg
+    group_add:
+      - "{{ docker_gid }}"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+    expose:
+      - 8080
+    networks:
+      - proxy
+      - prometheus
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.http.middlewares.cadvisor-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.cadvisor-secure.entrypoints=websecure
+      - traefik.http.routers.cadvisor-secure.rule=Host(`{{ cadvisor.domain }}`)
+      - traefik.http.routers.cadvisor-secure.tls=true
+      - traefik.http.routers.cadvisor-secure.tls.certresolver=myresolver
+      - traefik.http.routers.cadvisor-secure.middlewares=auth@docker
+      - traefik.http.routers.cadvisor.entrypoints=web
+      - traefik.http.routers.cadvisor.middlewares=cadvisor-https-redirect
+      - traefik.http.routers.cadvisor.rule=Host(`{{ cadvisor.domain }}`)
+    depends_on:
+      - prometheus
+    restart: on-failure
+
   authelia:
     image: authelia/authelia:4.37.2
     container_name: authelia

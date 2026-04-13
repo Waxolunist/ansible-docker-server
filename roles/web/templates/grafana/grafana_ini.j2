@@ -60,3 +60,8 @@ from_name = Grafana
 
 [feature_toggles]
 dashboardNewLayouts = true
+
+[plugins]
+# Suppress signature validation failures for bundled Grafana plugins that
+# cannot reach grafana.com for online verification (context canceled).
+allow_loading_unsigned_plugins = grafana-lokiexplore-app,grafana-pyroscope-app

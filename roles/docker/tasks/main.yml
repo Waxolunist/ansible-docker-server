@@ -5,6 +5,16 @@
     state: present
   become: yes
 
+- name: Get docker group GID
+  ansible.builtin.getent:
+    database: group
+    key: docker
+  become: yes
+
+- name: Set docker_gid fact
+  ansible.builtin.set_fact:
+    docker_gid: "{{ ansible_facts.getent_group.docker[1] }}"
+
 - name: Add user {{ ansible_user }} to docker group
   ansible.builtin.user:
     name: "{{ ansible_user }}"

@@ -24,8 +24,10 @@
       state: directory
     loop: "{{ web_containers }}"
   - name: Run web container specific tasks
-    include_tasks: "{{ item }}.yml"
+    include_tasks: "{{ container_name }}.yml"
     loop: "{{ web_containers }}"
+    loop_control:
+      loop_var: container_name
   - name: Write docker compose file
     template:
       src: docker-compose_yml.j2

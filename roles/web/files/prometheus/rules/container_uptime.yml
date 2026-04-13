@@ -1,0 +1,12 @@
+groups:
+  - name: container_uptime
+    # Evaluated every minute to produce a binary up/down time series with
+    # sufficient resolution for 30-day uptime percentage calculations.
+    interval: 1m
+    rules:
+      # container_up_bool = 1 when the container was last seen by cAdvisor
+      # within the past 90 seconds (2× scrape interval + buffer), 0 otherwise.
+      # Excludes the cAdvisor root "/" pseudo-container and empty names.
+      - record: container_up_bool
+        expr: |
+          container_last_seen{name!="",name!="/"} > bool (time() - 90)

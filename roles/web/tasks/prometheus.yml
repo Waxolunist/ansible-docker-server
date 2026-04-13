@@ -5,3 +5,14 @@
       dest: "{{ docker.paths.configs }}prometheus/prometheus.yml"
       mode: 0644
       backup: yes
+  - name: Prometheus - Create rules directory
+    file:
+      path: "{{ docker.paths.configs }}prometheus/rules"
+      state: directory
+      mode: 0755
+  - name: Prometheus - Write container uptime recording rules
+    copy:
+      src: prometheus/rules/container_uptime.yml
+      dest: "{{ docker.paths.configs }}prometheus/rules/container_uptime.yml"
+      mode: 0644
+      backup: yes

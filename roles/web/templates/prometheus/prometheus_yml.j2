@@ -11,9 +11,7 @@ global:
 
 # Load and evaluate rules in this file every 'evaluation_interval' seconds.
 rule_files:
-  # - 'alert.rules'
-  # - "first.rules"
-  # - "second.rules"
+  - '/etc/prometheus/rules/*.yml'
 
 # alert
 # alerting:
@@ -56,3 +54,7 @@ scrape_configs:
     metrics_path: /metrics/
     static_configs:
       - targets: ['cryptocurrency:6150']
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
