@@ -120,7 +120,7 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "Time" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",

@@ -34,7 +34,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    restart: on-failure
+    restart: unless-stopped
 
   autoheal:
     image: willfarrell/autoheal:latest
@@ -57,7 +57,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - socket_proxy
-    restart: on-failure
+    restart: unless-stopped
 
   reverse-proxy:
     image: traefik:v3.6.13
@@ -108,7 +108,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    restart: on-failure
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:v2.50.0
@@ -146,7 +146,7 @@ services:
       - traefik.http.routers.metrics.entrypoints=web
       - traefik.http.routers.metrics.middlewares=metrics-https-redirect
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
-    restart: on-failure
+    restart: unless-stopped
 
   node-exporter:
     image: prom/node-exporter:v1.7.0
@@ -162,10 +162,10 @@ services:
       - prometheus
     networks:
       - prometheus
-    restart: on-failure
+    restart: unless-stopped
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.51.0
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: web_cadvisor
     privileged: true
     devices:
@@ -176,6 +176,7 @@ services:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     expose:
       - 8080
     networks:
@@ -195,7 +196,7 @@ services:
       - traefik.http.routers.cadvisor.rule=Host(`{{ cadvisor.domain }}`)
     depends_on:
       - prometheus
-    restart: on-failure
+    restart: unless-stopped
 
   authelia:
     image: authelia/authelia:4.37.2
@@ -226,7 +227,7 @@ services:
       - {{ authelia.port }}
     environment:
       - TZ=Europe/Vienna
-    restart: on-failure
+    restart: unless-stopped
 
   grafana-pg:
     image: postgres:13-alpine
@@ -251,7 +252,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    restart: on-failure
+    restart: unless-stopped
 
   grafana:
     image: grafana/grafana:12.2.8
@@ -290,7 +291,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    restart: on-failure
+    restart: unless-stopped
 
   pgadmin:
     image: dpage/pgadmin4:9.14.0
@@ -328,7 +329,7 @@ services:
     networks:
       - proxy
       - grafana
-    restart: on-failure
+    restart: unless-stopped
 
   minecraft:
     image: itzg/minecraft-server:latest
@@ -353,7 +354,7 @@ services:
       start_period: 1m
       interval: 5s
       retries: 20
-    restart: on-failure
+    restart: unless-stopped
 
   timescaledb:
     image: timescale/timescaledb-ha:pg16
@@ -372,7 +373,7 @@ services:
     labels:
       - autoheal=true
       - traefik.enable=false
-    restart: on-failure
+    restart: unless-stopped
 
   photoprism-mariadb:
     image: mariadb:10.11

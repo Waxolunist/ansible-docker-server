@@ -43,3 +43,23 @@
       notify:
         - restart ssh
   when: disable_ssh_passwordauthentication
+
+- name: Enable cgroups v2 unified hierarchy
+  block:
+    - name: Ensure systemd.unified_cgroup_hierarchy=1 in GRUB
+      ansible.builtin.lineinfile:
+        path: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet systemd.unified_cgroup_hierarchy=1"'
+        backup: yes
+      register: grub_config
+
+    - name: Update GRUB
+      ansible.builtin.command: update-grub
+      when: grub_config.changed
+
+    - name: Reboot to apply cgroups v2
+      ansible.builtin.reboot:
+        msg: "Rebooting to enable cgroups v2"
+        reboot_timeout: 300
+      when: grub_config.changed
