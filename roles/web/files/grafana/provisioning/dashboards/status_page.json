@@ -833,7 +833,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb\"}",
+          "expr": "max by (name) (container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb\"})",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
