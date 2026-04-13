@@ -112,7 +112,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Add `mem_limit: 512M`, `cpus: 1.0`
 
-### 3d. Grafana-PG (Postgres for Grafana) - TBD
+### 3d. Grafana-PG (Postgres for Grafana)
 
 - Already has health check — good
 - Add `mem_limit: 256M`, `cpus: 0.5`
@@ -129,7 +129,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Add `read_only: true` with tmpfs for `/tmp` and named volume for `/prometheus`
 
-### 3f. Node-Exporter - TBD
+### 3f. Node-Exporter
 
 - Already minimal exposure (internal network only)
 - Add `mem_limit: 128M`, `cpus: 0.25`
@@ -156,7 +156,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 256M`, `cpus: 0.5`
 - Add `read_only: true` with tmpfs for `/tmp`
 
-### 3i. Registry - TBD
+### 3i. Registry
 
 - Already behind Authelia — good
 - Add `mem_limit: 256M`, `cpus: 0.5`

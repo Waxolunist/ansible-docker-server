@@ -2,6 +2,8 @@ services:
   registry:
     image: registry:3.0.0
     container_name: web_registry
+    mem_limit: 256M
+    cpus: 0.5
     depends_on:
       - reverse-proxy
     expose:
@@ -186,6 +188,9 @@ services:
   node-exporter:
     image: prom/node-exporter:v1.11.1
     container_name: web_node-exporter
+    mem_limit: 128M
+    cpus: 0.25
+    read_only: true
     environment:
       - TZ=Europe/Vienna
     expose:
