@@ -32,6 +32,8 @@
         line="PasswordAuthentication no"
         state=present
         backup=yes
+      notify:
+        - restart ssh
 
     - name: Disable Root Login
       lineinfile:
