@@ -89,7 +89,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 512M` and `cpus: 1.0`
 - Add `read_only: true` with tmpfs for `/tmp`
 
-### 3b. TimescaleDB
+### 3b. TimescaleDB - TBD
 
 | Issue | Fix |
 |---|---|
@@ -112,7 +112,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Add `mem_limit: 512M`, `cpus: 1.0`
 
-### 3d. Grafana-PG (Postgres for Grafana)
+### 3d. Grafana-PG (Postgres for Grafana) - TBD
 
 - Already has health check — good
 - Add `mem_limit: 256M`, `cpus: 0.5`
@@ -129,13 +129,13 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Add `read_only: true` with tmpfs for `/tmp` and named volume for `/prometheus`
 
-### 3f. Node-Exporter
+### 3f. Node-Exporter - TBD
 
 - Already minimal exposure (internal network only)
 - Add `mem_limit: 128M`, `cpus: 0.25`
 - Add `read_only: true`
 
-### 3g. cAdvisor
+### 3g. cAdvisor - TBD
 
 | Issue | Fix |
 |---|---|
@@ -144,7 +144,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 256M`, `cpus: 0.5`
 - Add `read_only: true` with tmpfs for `/tmp`
 
-### 3h. Authelia
+### 3h. Authelia - TBD
 
 **File:** `roles/web/templates/authelia/authelia_yml.j2`
 
@@ -156,18 +156,18 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 256M`, `cpus: 0.5`
 - Add `read_only: true` with tmpfs for `/tmp`
 
-### 3i. Registry
+### 3i. Registry - TBD
 
 - Already behind Authelia — good
 - Add `mem_limit: 256M`, `cpus: 0.5`
 
-### 3j. PgAdmin
+### 3j. PgAdmin - TBD
 
 - Already behind Authelia — good
 - Add `mem_limit: 512M`, `cpus: 0.5`
 - Consider: is PgAdmin needed in production? If only used occasionally, keep it stopped by default
 
-### 3k. PhotoPrism + MariaDB
+### 3k. PhotoPrism + MariaDB - TBD
 
 | Issue | Fix |
 |---|---|
@@ -176,7 +176,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Add `mem_limit: 2G` (PhotoPrism), `mem_limit: 512M` (MariaDB)
 
-### 3l. Minecraft
+### 3l. Minecraft - TBD
 
 | Issue | Fix |
 |---|---|
@@ -185,7 +185,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Already has `mem_limit: 2048M` — good
 
-### 3m. Autoheal
+### 3m. Autoheal - TBD
 
 | Issue | Fix |
 |---|---|
@@ -195,7 +195,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 ---
 
-## 4. Backup Hardening
+## 4. Backup Hardening - TBD
 
 **File:** `roles/web/templates/backup_databases.j2.sh`
 
@@ -213,16 +213,16 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 ---
 
-## 5. Logging & Monitoring
+## 5. Logging & Monitoring - TBD
 
-### 5a. Cron job logging
+### 5a. Cron job logging - TBD
 - Redirect `start.sh` and `backup_databases.sh` output to `/var/docker/logs/`
 - Add logrotate config for `/var/docker/logs/*.log`
 
-### 5b. Traefik access logs
+### 5b. Traefik access logs - TBD
 - Enable `accessLog` in `traefik_yml.j2` writing to a file (for fail2ban and audit)
 
-### 5c. Prometheus alerts (new file: `roles/web/templates/prometheus/alerts_yml.j2`)
+### 5c. Prometheus alerts (new file: `roles/web/templates/prometheus/alerts_yml.j2`) - TBD
 - Certificate expiry < 14 days
 - Container restart count > 3 in 15 minutes
 - Disk usage > 85%
