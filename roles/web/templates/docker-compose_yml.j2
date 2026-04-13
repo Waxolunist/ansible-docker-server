@@ -57,6 +57,12 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - socket_proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2375/version || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   reverse-proxy:
@@ -178,7 +184,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
-    image: prom/node-exporter:v1.7.0
+    image: prom/node-exporter:v1.11.1
     container_name: web_node-exporter
     environment:
       - TZ=Europe/Vienna
@@ -191,6 +197,12 @@ services:
       - prometheus
     networks:
       - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:9100/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   cadvisor:
@@ -407,6 +419,12 @@ services:
     labels:
       - autoheal=true
       - traefik.enable=false
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ vault_timescale_pg_user }} -d timescale_home"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   photoprism-mariadb:
@@ -434,6 +452,12 @@ services:
     labels:
       - autoheal=true
       - traefik.enable=false
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   photoprism:
     image: photoprism/photoprism:latest
@@ -503,6 +527,12 @@ services:
       - traefik.http.routers.photoprism.entrypoints=web
       - traefik.http.routers.photoprism.middlewares=photoprism-https-redirect
       - traefik.http.routers.photoprism.rule=Host(`{{ photoprism.domain }}`)
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:2342/api/v1/status || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
 networks:
   proxy:
