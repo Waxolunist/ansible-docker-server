@@ -1,4 +1,12 @@
 ---
+  - name: Prometheus - Fix data directory ownership for non-root
+    file:
+      path: "{{ docker.paths.data }}prometheus"
+      state: directory
+      owner: "65534"
+      group: "65534"
+      recurse: yes
+    become: true
   - name: Write configuration prometheus
     template:
       src: prometheus/prometheus_yml.j2

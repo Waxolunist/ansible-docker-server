@@ -46,7 +46,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
   socket-proxy:
-    image: tecnativa/docker-socket-proxy:0.3.0
+    image: tecnativa/docker-socket-proxy:v0.4.2
     container_name: web_socket-proxy
     environment:
       - CONTAINERS=1
@@ -132,22 +132,24 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v2.50.0
-    user: root
+    image: prom/prometheus:v3.11.1
     container_name: web_prometheus
+    read_only: true
+    tmpfs:
+      - /tmp
+    mem_limit: 1G
+    cpus: 1.0
     expose:
       - 9090
     depends_on:
       - reverse-proxy
     volumes:
-      - "{{ docker.paths.configs }}prometheus:/etc/prometheus"
+      - "{{ docker.paths.configs }}prometheus:/etc/prometheus:ro"
       - "{{ docker.paths.data }}prometheus:/prometheus"
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention.time=100d'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
     environment:
       - TZ=Europe/Vienna
     networks:
