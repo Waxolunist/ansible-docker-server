@@ -169,6 +169,12 @@ services:
       - traefik.http.routers.metrics.entrypoints=web
       - traefik.http.routers.metrics.middlewares=metrics-https-redirect
       - traefik.http.routers.metrics.rule=Host(`{{ prometheus.domain }}`)
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
 
   node-exporter:
@@ -256,6 +262,9 @@ services:
   grafana-pg:
     image: postgres:13-alpine
     container_name: grafana-pg
+    user: "70:70"
+    mem_limit: 256M
+    cpus: 0.5
     networks:
       - grafana
     expose:
