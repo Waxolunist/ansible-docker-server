@@ -41,6 +41,8 @@ services:
   autoheal:
     image: willfarrell/autoheal:latest
     container_name: web_autoheal
+    mem_limit: 64M
+    cpus: 0.1
     restart: always
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal
@@ -320,6 +322,8 @@ services:
         condition: service_started
     environment:
       - TZ=Europe/Vienna
+      - GF_SMTP_USER={{ vault_smtp_server_user }}
+      - GF_SMTP_PASSWORD={{ vault_smtp_server_password }}
     labels:
       - autoheal=true
       - traefik.enable=true
@@ -383,7 +387,7 @@ services:
     restart: unless-stopped
 
   minecraft:
-    image: itzg/minecraft-server:latest
+    image: itzg/minecraft-server:2026.4.1
     container_name: minecraft
     environment:
       - EULA=TRUE
@@ -433,14 +437,13 @@ services:
     restart: unless-stopped
 
   photoprism-mariadb:
-    image: mariadb:10.11
+    image: mariadb:10.11.16
     container_name: photoprism-mariadb
+    mem_limit: 512M
     restart: unless-stopped
     stop_grace_period: 5s
     security_opt:
-      - seccomp:unconfined
-      - apparmor:unconfined
-      - no-new-privileges:false
+      - no-new-privileges:true
     command: mariadbd --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     volumes:
       - "{{ docker.paths.data }}photoprism/database:/var/lib/mysql"
@@ -467,15 +470,15 @@ services:
   photoprism:
     image: photoprism/photoprism:260305
     container_name: photoprism
+    mem_limit: 2G
     depends_on:
       - photoprism-mariadb
       - reverse-proxy
     restart: unless-stopped
     stop_grace_period: 10s
     security_opt:
-      - seccomp:unconfined
-      - apparmor:unconfined
-      - no-new-privileges:false
+      - no-new-privileges:true
+      - seccomp:{{ docker.paths.configs }}photoprism/seccomp.json
     expose:
       - 2342
     environment:
@@ -511,7 +514,6 @@ services:
       - PHOTOPRISM_SITE_DESCRIPTION=
       - PHOTOPRISM_SITE_AUTHOR=
       - TZ=Europe/Vienna
-    user: "1000:1000"
     working_dir: "/photoprism"
     volumes:
       - "{{ docker.paths.work }}photoprism/originals:/photoprism/originals"

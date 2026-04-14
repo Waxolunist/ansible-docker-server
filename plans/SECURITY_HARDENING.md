@@ -176,7 +176,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Add `mem_limit: 2G` (PhotoPrism), `mem_limit: 512M` (MariaDB)
 
-### 3l. Minecraft - TBD
+### 3l. Minecraft
 
 | Issue | Fix |
 |---|---|
@@ -185,7 +185,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 - Already has `mem_limit: 2048M` — good
 
-### 3m. Autoheal - TBD
+### 3m. Autoheal
 
 | Issue | Fix |
 |---|---|

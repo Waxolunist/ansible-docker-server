@@ -19,3 +19,8 @@
       path: "{{ docker.paths.data }}photoprism/database"
       state: directory
       mode: '0755'
+  - name: PhotoPrism - Deploy seccomp profile
+    template:
+      src: photoprism/seccomp_json.j2
+      dest: "{{ docker.paths.configs }}photoprism/seccomp.json"
+      mode: '0644'
