@@ -9,7 +9,7 @@
     template:
       src: authelia/users_database_yml.j2
       dest: "{{ docker.paths.configs }}authelia/users_database.yml"
-      mode: 0644
+      mode: 0600
       backup: yes
   - name: Touch sqlite db
     file:

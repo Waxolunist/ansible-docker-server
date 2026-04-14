@@ -262,6 +262,8 @@ services:
       - "{{ docker.paths.configs }}authelia:/config:ro"
       - "{{ docker.paths.work }}authelia:/notifications"
       - "{{ docker.paths.data }}authelia/db.sqlite3:/var/db.sqlite3"
+    tmpfs:
+      - /tmp
     depends_on:
       - reverse-proxy
     networks:
@@ -285,6 +287,9 @@ services:
       - {{ authelia.port }}
     environment:
       - TZ=Europe/Vienna
+    mem_limit: 256M
+    cpus: 0.5
+    read_only: true
     restart: unless-stopped
 
   grafana-pg:
