@@ -91,12 +91,12 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 ### 3b. TimescaleDB - TBD
 
-| Issue | Fix |
-|---|---|
+| Issue                                | Fix |
+|--------------------------------------|---|
 | Port 5432 exposed to host (and internet) | Remove `ports: - "5432:5432"` — access only via `grafana` Docker network. Raspberry Pi connects through a WireGuard/SSH tunnel instead of direct port exposure |
-| Credentials in env vars | Move to Docker secrets or `.env` file with mode 0600 mounted as volume |
-| No health check | Add `pg_isready` health check like grafana-pg |
-| Single superuser for everything | Create separate Ansible-managed roles: `app_rw` (datacollector), `grafana_ro` (Grafana), `admin` (backups) |
+| Credentials in env vars              | Move to Docker secrets or `.env` file with mode 0600 mounted as volume |
+| No health check                      | Add `pg_isready` health check like grafana-pg |
+| Single superuser for everything      | Create separate Ansible-managed roles: `app_rw` (datacollector), `grafana_ro` (Grafana), `admin` (backups) |
 
 - Add `mem_limit: 1G`, `cpus: 2.0`
 
@@ -135,7 +135,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 128M`, `cpus: 0.25`
 - Add `read_only: true`
 
-### 3g. cAdvisor - TBD
+### 3g. cAdvisor
 
 | Issue | Fix |
 |---|---|
@@ -161,13 +161,13 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Already behind Authelia — good
 - Add `mem_limit: 256M`, `cpus: 0.5`
 
-### 3j. PgAdmin - TBD
+### 3j. PgAdmin
 
 - Already behind Authelia — good
 - Add `mem_limit: 512M`, `cpus: 0.5`
 - Consider: is PgAdmin needed in production? If only used occasionally, keep it stopped by default
 
-### 3k. PhotoPrism + MariaDB - TBD
+### 3k. PhotoPrism + MariaDB
 
 | Issue | Fix |
 |---|---|

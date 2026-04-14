@@ -215,7 +215,16 @@ services:
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.55.1
     container_name: web_cadvisor
-    privileged: true
+    cap_add:
+      - SYS_PTRACE
+      - DAC_READ_SEARCH
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    mem_limit: 256M
+    cpus: 0.5
     devices:
       - /dev/kmsg
     group_add:
@@ -350,6 +359,8 @@ services:
   pgadmin:
     image: dpage/pgadmin4:9.14.0
     container_name: web_pgadmin
+    mem_limit: 512M
+    cpus: 0.5
     links:
       - "grafana-pg:database-grafana"
       - "timescaledb:timescaledb"
@@ -544,6 +555,9 @@ services:
 networks:
   proxy:
     name: web_proxy
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
   socket_proxy:
     internal: true
   grafana:
