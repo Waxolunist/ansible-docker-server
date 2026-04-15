@@ -89,7 +89,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 512M` and `cpus: 1.0`
 - Add `read_only: true` with tmpfs for `/tmp`
 
-### 3b. TimescaleDB - TBD
+### 3b. TimescaleDB
 
 | Issue                                | Fix |
 |--------------------------------------|---|
@@ -144,7 +144,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 - Add `mem_limit: 256M`, `cpus: 0.5`
 - Add `read_only: true` with tmpfs for `/tmp`
 
-### 3h. Authelia - TBD
+### 3h. Authelia
 
 **File:** `roles/web/templates/authelia/authelia_yml.j2`
 

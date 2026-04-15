@@ -1,0 +1,35 @@
+-- Idempotent role setup for TimescaleDB (managed by Ansible, do not edit manually)
+-- Roles: app_rw (datacollector), grafana_ro (Grafana dashboards)
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'app_rw') THEN
+    CREATE ROLE app_rw WITH LOGIN PASSWORD '{{ vault_timescale_app_rw_password }}';
+  ELSE
+    ALTER ROLE app_rw WITH PASSWORD '{{ vault_timescale_app_rw_password }}';
+  END IF;
+END
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'grafana_ro') THEN
+    CREATE ROLE grafana_ro WITH LOGIN PASSWORD '{{ vault_timescale_grafana_ro_password }}';
+  ELSE
+    ALTER ROLE grafana_ro WITH PASSWORD '{{ vault_timescale_grafana_ro_password }}';
+  END IF;
+END
+$$;
+
+GRANT CONNECT ON DATABASE timescale_home TO app_rw, grafana_ro;
+GRANT USAGE ON SCHEMA public TO app_rw, grafana_ro;
+
+-- app_rw: full DML access for the datacollector
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_rw;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO app_rw;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE ON SEQUENCES TO app_rw;
+
+-- grafana_ro: read-only access for Grafana dashboards
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO grafana_ro;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO grafana_ro;

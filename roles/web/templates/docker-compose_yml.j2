@@ -427,17 +427,22 @@ services:
   timescaledb:
     image: timescale/timescaledb-ha:pg16
     container_name: web_timescaledb
+    mem_limit: 1G
+    cpus: 2.0
     networks:
       - grafana
     environment:
-      - POSTGRES_PASSWORD={{ vault_timescale_pg_password }}
       - POSTGRES_USER={{ vault_timescale_pg_user }}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/timescale_superuser_password
       - POSTGRES_DB=timescale_home
       - TZ=Europe/Vienna
+    secrets:
+      - timescale_superuser_password
     ports:
       - "5432:5432"
     volumes:
       - "{{ docker.paths.data }}timescale/pgdata:/home/postgres/pgdata/data"
+      - "{{ docker.paths.configs }}timescale/init_roles.sql:/docker-entrypoint-initdb.d/01_init_roles.sql:ro"
     labels:
       - autoheal=true
       - traefik.enable=false
@@ -565,3 +570,7 @@ networks:
   grafana:
   prometheus:
   photoprism:
+
+secrets:
+  timescale_superuser_password:
+    file: "{{ docker_base_path }}/secrets/timescale_superuser_password"
