@@ -213,16 +213,16 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 ---
 
-## 5. Logging & Monitoring - TBD
+## 5. Logging & Monitoring
 
-### 5a. Cron job logging - TBD
+### 5a. Cron job logging
 - Redirect `start.sh` and `backup_databases.sh` output to `/var/docker/logs/`
 - Add logrotate config for `/var/docker/logs/*.log`
 
-### 5b. Traefik access logs - TBD
+### 5b. Traefik access logs
 - Enable `accessLog` in `traefik_yml.j2` writing to a file (for fail2ban and audit)
 
-### 5c. Prometheus alerts (new file: `roles/web/templates/prometheus/alerts_yml.j2`) - TBD
+### 5c. Prometheus alerts (new file: `roles/web/templates/prometheus/alerts_yml.j2`)
 - Certificate expiry < 14 days
 - Container restart count > 3 in 15 minutes
 - Disk usage > 85%

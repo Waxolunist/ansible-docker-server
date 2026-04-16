@@ -8,6 +8,10 @@ mkdir -p /backup
 # Generate timestamp for backup files
 TIMESTAMP=$(date +%d-%m-%Y_%H_%M_%S)
 
+# Track overall backup success for Prometheus textfile collector metric
+BACKUP_OK=1
+TEXTFILE_DIR="{{ docker.paths.data }}node-exporter"
+
 echo "Starting database backups at $(date)"
 
 # Backup Grafana database
@@ -21,6 +25,7 @@ if [ -s "${GRAFANA_BACKUP}" ]; then
 else
     echo "ERROR: Grafana backup failed or is empty!"
     rm -f "${GRAFANA_BACKUP}"
+    BACKUP_OK=0
 fi
 
 # Backup TimescaleDB database
@@ -34,6 +39,7 @@ if [ -s "${TIMESCALE_BACKUP}" ]; then
 else
     echo "ERROR: TimescaleDB backup failed or is empty!"
     rm -f "${TIMESCALE_BACKUP}"
+    BACKUP_OK=0
 fi
 
 # Backup PhotoPrism MariaDB database
@@ -47,6 +53,7 @@ if [ -s "${PHOTOPRISM_BACKUP}" ]; then
 else
     echo "ERROR: PhotoPrism backup failed or is empty!"
     rm -f "${PHOTOPRISM_BACKUP}"
+    BACKUP_OK=0
 fi
 
 echo "Database backups completed at $(date)"
@@ -58,3 +65,18 @@ find /backup -name "dump_timescale_*.sql.gz" -type f -mtime +7 -delete
 find /backup -name "dump_photoprism_*.sql.gz" -type f -mtime +7 -delete
 
 echo "Backup cleanup completed"
+
+# Emit Prometheus textfile metric on full success (atomic write via rename).
+if [ "${BACKUP_OK}" = "1" ] && [ -d "${TEXTFILE_DIR}" ]; then
+    TMP_METRIC="$(mktemp "${TEXTFILE_DIR}/backup.prom.XXXXXX")"
+    {
+        echo "# HELP backup_last_success_timestamp_seconds Unix timestamp of the last fully successful database backup run."
+        echo "# TYPE backup_last_success_timestamp_seconds gauge"
+        echo "backup_last_success_timestamp_seconds $(date +%s)"
+    } > "${TMP_METRIC}"
+    chmod 0644 "${TMP_METRIC}"
+    mv -f "${TMP_METRIC}" "${TEXTFILE_DIR}/backup.prom"
+    echo "Wrote backup success metric to ${TEXTFILE_DIR}/backup.prom"
+else
+    echo "Skipping metric write (BACKUP_OK=${BACKUP_OK}, dir exists: $([ -d "${TEXTFILE_DIR}" ] && echo yes || echo no))"
+fi

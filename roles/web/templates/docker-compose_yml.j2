@@ -197,6 +197,11 @@ services:
       - TZ=Europe/Vienna
     expose:
       - 9100
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.textfile.directory=/textfile_collector'
+    volumes:
+      - "{{ docker.paths.data }}node-exporter:/textfile_collector:ro"
     labels:
       - autoheal=true
       - traefik.enable=false

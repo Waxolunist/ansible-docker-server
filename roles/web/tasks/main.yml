@@ -46,7 +46,7 @@
       minute: "*/5"
       user: "{{ ansible_user }}"
       backup: yes
-      job: "{{ docker_base_path }}/start.sh"
+      job: "{{ docker_base_path }}/start.sh >> {{ docker.paths.logs }}start.log 2>&1"
   - name: Create backup file
     template:
       src: backup_databases.j2.sh
@@ -66,7 +66,22 @@
       hour: "23"
       user: "{{ ansible_user }}"
       backup: yes
-      job: "{{ docker_base_path }}/backup_databases.sh"    
+      job: "{{ docker_base_path }}/backup_databases.sh >> {{ docker.paths.logs }}backup.log 2>&1"
+  - name: Create node_exporter textfile collector directory
+    file:
+      path: "{{ docker.paths.data }}node-exporter"
+      state: directory
+      mode: '0755'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: Install logrotate config for docker container logs
+    template:
+      src: logrotate_docker.j2
+      dest: /etc/logrotate.d/docker-containers
+      mode: 0644
+      owner: root
+      group: root
+    become: yes
   - name: Run docker-compose
     block:
       - name: Find docker compose files

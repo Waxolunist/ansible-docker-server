@@ -1,0 +1,58 @@
+{% raw %}
+groups:
+  - name: infrastructure_alerts
+    interval: 1m
+    rules:
+      # TLS certificate expires in less than 14 days.
+      # Traefik exposes traefik_tls_certs_not_after as a Unix timestamp.
+      - alert: TlsCertificateExpiringSoon
+        expr: (traefik_tls_certs_not_after - time()) / 86400 < 14
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "TLS certificate {{ $labels.cn }} expires in less than 14 days"
+          description: "Certificate CN={{ $labels.cn }} SANs={{ $labels.sans }} expires in {{ printf \"%.1f\" $value }} days."
+
+      # Container restarted more than 3 times in 15 minutes.
+      # changes() on container_start_time_seconds counts restarts (cAdvisor).
+      - alert: ContainerRestartingFrequently
+        expr: changes(container_start_time_seconds{name!="",name!="/"}[15m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting repeatedly"
+          description: "{{ $labels.name }} restarted {{ $value }} times in the last 15 minutes."
+
+      # Filesystem usage above 85%.
+      - alert: FilesystemUsageHigh
+        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs"} * 100) > 85
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Filesystem {{ $labels.mountpoint }} above 85% usage"
+          description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is at {{ printf \"%.1f\" $value }}% usage."
+
+      # No successful database backup in the last 36 hours.
+      # Metric is emitted by backup_databases.sh via the node_exporter textfile collector.
+      - alert: BackupStale
+        expr: time() - backup_last_success_timestamp_seconds > 36 * 3600
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database backup has not succeeded in over 36 hours"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago."
+
+      # Backup metric missing entirely (e.g. textfile collector broken or backup never ran).
+      - alert: BackupMetricMissing
+        expr: absent(backup_last_success_timestamp_seconds)
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backup freshness metric is missing"
+          description: "backup_last_success_timestamp_seconds is not being reported — check node_exporter textfile collector and backup cron."
+{% endraw %}
