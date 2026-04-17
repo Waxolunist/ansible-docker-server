@@ -18,24 +18,17 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
     when: timescale_pgdata_dir.stat.exists == False
-  - name: Timescale - Create secrets directory
-    file:
-      path: "{{ docker_base_path }}/secrets"
-      state: directory
-      mode: '0700'
-      owner: "{{ ansible_user }}"
-      group: "{{ ansible_user }}"
   - name: Timescale - Write superuser password secret
     copy:
       content: "{{ vault_timescale_pg_password }}"
       dest: "{{ docker_base_path }}/secrets/timescale_superuser_password"
-      mode: '0600'
+      mode: '0644'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
   - name: Timescale - Write role init SQL
     template:
       src: timescale/init_roles_sql.j2
       dest: "{{ docker.paths.configs }}timescale/init_roles.sql"
-      mode: '0600'
+      mode: '0644'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"

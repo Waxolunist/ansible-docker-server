@@ -23,6 +23,13 @@
       path: "{{ docker.paths.data }}{{ item }}"
       state: directory
     loop: "{{ web_containers }}"
+  - name: Create secrets directory
+    file:
+      path: "{{ docker_base_path }}/secrets"
+      state: directory
+      mode: '0700'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
   - name: Run web container specific tasks
     include_tasks: "{{ container_name }}.yml"
     loop: "{{ web_containers }}"
@@ -114,9 +121,19 @@
       #- debug:
       #    var: stack_output
   
-  #- name: Log into private registry and force re-authorization
-  #  docker_login:
-  #    registry: registry.v-collaborate.com
-  #    username: "{{ vault_registry_username }}"
-  #    password: "{{ vault_registry_password }}"
-  #    reauthorize: yes
+  - name: Find Ansible template backup files
+    find:
+      paths:
+        - "{{ docker_base_path }}"
+        - "{{ docker.paths.configs }}"
+      patterns: '*~'
+      recurse: yes
+    register: ansible_backups
+
+  - name: Remove old Ansible template backups (keep newest 20)
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    loop: "{{ (ansible_backups.files | sort(attribute='mtime', reverse=true))[20:] }}"
+    loop_control:
+      label: "{{ item.path }}"

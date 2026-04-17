@@ -48,11 +48,11 @@ Remove weak ciphers and MACs from the OpenSSH defaults. KexAlgorithms and HostKe
 
 Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change needed.
 
-### 1e. Firewall — IONOS Cloud Panel (manual) - TBD
+### 1e. Firewall — IONOS Cloud Panel (manual)
 - **CRITICAL:** Restrict port 5432 to the Raspberry Pi's public IP only (currently open to 0.0.0.0/0)
 - Document allowed source IPs for each exposed port in a `FIREWALL.md`
 
-### 1f. Vault password rotation - TBD
+### 1f. Vault password rotation
 - Rotate vault password, store new `.vault_pass` **outside** the repo (e.g., `~/.ansible/vault_pass`) and reference via `ansible.cfg` `vault_password_file`
 - Verify `.vault_pass` remains in `.gitignore`
 
@@ -150,7 +150,7 @@ Note: existing RSA-4096 key authenticates via `rsa-sha2-512` — no key change n
 
 | Issue | Fix |
 |---|---|
-| `christian.sterzl` uses SHA-512 | Regenerate password hash with Argon2id (`authelia crypto hash generate argon2`) |
+| User account uses SHA-512 | Regenerate password hash with Argon2id (`authelia crypto hash generate argon2`) |
 | User database in plaintext template | Move to vaulted template or generate at deploy time from vault vars |
 
 - Add `mem_limit: 256M`, `cpus: 0.5`

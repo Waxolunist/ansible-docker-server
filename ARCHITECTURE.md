@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the architecture of the Ansible-based Docker server provisioning project. The project automates the setup of a Debian server, installs Docker, and deploys 12 containerized services via docker-compose.
+This document describes the architecture of the Ansible-based Docker server provisioning project. The project automates the setup of a Debian server, installs Docker, and deploys 15 containerized services via docker-compose.
 
 ## Table of Contents
 
@@ -20,9 +20,9 @@ This document describes the architecture of the Ansible-based Docker server prov
 
 ## Overview
 
-This project provisions a dedicated Debian server hosted at HostEurope and deploys a full-stack application environment using Docker containers. The infrastructure is managed entirely through Ansible playbooks, with sensitive data protected by Ansible Vault.
+This project provisions a dedicated Debian server hosted at IONOS and deploys a full-stack application environment using Docker containers. The infrastructure is managed entirely through Ansible playbooks, with sensitive data protected by Ansible Vault.
 
-The server runs 12 Docker containers providing:
+The server runs 15 Docker containers providing:
 
 - **Reverse proxy and TLS termination** via Traefik with automatic Let's Encrypt certificates
 - **Authentication and SSO** via Authelia
@@ -74,7 +74,7 @@ Defined in [`hosts.yml`](hosts.yml), the inventory targets a single dedicated se
 | `system` | `sys1` | `root` | Initial system provisioning |
 | `web` | `web1` | `devops` | Docker and service deployment |
 
-Both groups point to the same physical server (`lvps178-77-98-179.dedicated.hosteurope.de`).
+Both groups point to the same physical server (``<server-hostname>``).
 
 ### Configuration
 
@@ -151,31 +151,37 @@ The [`system`](roles/system/tasks/main.yml) role performs initial server hardeni
 
 ## Docker Services
 
-All 12 services are defined in the [`docker-compose_yml.j2`](roles/web/templates/docker-compose_yml.j2) template and deployed to `/var/docker/docker-compose.yml`.
+All 15 services are defined in the [`docker-compose_yml.j2`](roles/web/templates/docker-compose_yml.j2) template and deployed to `/var/docker/docker-compose.yml`.
 
 | # | Service | Image | Purpose | Exposed Ports | Networks | Domain |
 |---|---|---|---|---|---|---|
-| 1 | `registry` | `registry:2` | Private Docker registry | — | `proxy` | `registry.v-collaborate.com` |
-| 2 | `reverse-proxy` | `traefik:v2.11` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy` | `proxy.v-collaborate.com` |
-| 3 | `prometheus` | `prom/prometheus:v2.50.0` | Metrics collection | — | `proxy`, `prometheus` | `metrics.v-collaborate.com` |
-| 4 | `node-exporter` | `prom/node-exporter:v1.7.0` | Host metrics exporter | — | `prometheus` | — |
-| 5 | `authelia` | `authelia/authelia:4` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
-| 6 | `grafana-pg` | `postgres:13-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
-| 7 | `grafana` | `grafana/grafana:12.2` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
-| 8 | `pgadmin` | `dpage/pgadmin4:8.3` | Database administration UI | — | `proxy`, `grafana` | `pgadmin.v-collaborate.com` |
-| 9 | `minecraft` | `itzg/minecraft-server:latest` | Minecraft game server | `25565` | — | — |
-| 10 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
-| 11 | `photoprism-mariadb` | `mariadb:10.11` | PhotoPrism MariaDB database | — | `photoprism` | — |
-| 12 | `photoprism` | `photoprism/photoprism:latest` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
+| 1 | `registry` | `registry:3.0.0` | Private Docker registry | — | `proxy` | `registry.v-collaborate.com` |
+| 2 | `autoheal` | `willfarrell/autoheal:latest` | Automatic container restart on failure | — | — | — |
+| 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
+| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy` | `proxy.v-collaborate.com` |
+| 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `proxy`, `prometheus` | `metrics.v-collaborate.com` |
+| 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
+| 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `proxy`, `prometheus` | `cadvisor.v-collaborate.com` |
+| 8 | `authelia` | `authelia/authelia:4.37.2` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
+| 9 | `grafana-pg` | `postgres:13-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
+| 10 | `grafana` | `grafana/grafana:12.2.8` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
+| 11 | `pgadmin` | `dpage/pgadmin4:9.14.0` | Database administration UI | — | `proxy`, `grafana` | `pgadmin.v-collaborate.com` |
+| 12 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
+| 13 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
+| 14 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
+| 15 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
 
 ### Service Dependencies
 
 ```mermaid
 graph TD
+    SP[socket-proxy]
     RP[reverse-proxy / Traefik]
+    AH[autoheal]
     AUTH[authelia]
     PROM[prometheus]
     NE[node-exporter]
+    CA[cadvisor]
     GPG[grafana-pg]
     GR[grafana]
     PGA[pgadmin]
@@ -185,9 +191,11 @@ graph TD
     PM[photoprism-mariadb]
     PP[photoprism]
 
+    RP -->|depends_on| SP
     AUTH -->|depends_on| RP
     PROM -->|depends_on| RP
     NE -->|depends_on| PROM
+    CA -->|depends_on| PROM
     GR -->|depends_on| GPG
     GR -->|depends_on| PROM
     PGA -->|depends_on| GPG
@@ -584,13 +592,9 @@ All other configuration (domains, container definitions, database passwords, ser
 8. Verify Let's Encrypt certificates are automatically issued by Traefik
 9. Decommission the old server
 
-### IONOS Migration Guide
+### Debian 13 Compatibility
 
-A comprehensive, step-by-step migration guide for moving from the current HostEurope dedicated server to IONOS is available in [`MIGRATION.md`](MIGRATION.md).
-
-**Migration target:** IONOS (VPS/Dedicated Server) — Debian 13 (Trixie), 6 Cores, 8 GB RAM, 240 GB Disk
-
-**Debian 13 compatibility fixes applied:**
+The following fixes were applied for Debian 13 (Trixie) compatibility:
 
 - Docker APT repository codename fallback (`trixie` → `bookworm` if Docker repo not yet available) in [`roles/docker/tasks/main.yml`](roles/docker/tasks/main.yml)
 - `pip` replaced with `apt python3-docker` for PEP 668 compliance in [`roles/docker/tasks/main.yml`](roles/docker/tasks/main.yml)
@@ -598,5 +602,3 @@ A comprehensive, step-by-step migration guide for moving from the current HostEu
 - Docker experimental flag removed from [`roles/docker/templates/daemon_json.j2`](roles/docker/templates/daemon_json.j2)
 - `aptitude` installation removed from [`roles/debian/tasks/main.yml`](roles/debian/tasks/main.yml)
 - Debian codename set to `trixie` in [`roles/debian/vars/main.yml`](roles/debian/vars/main.yml)
-
-The guide covers server preparation, Ansible configuration changes, provisioning, data migration, DNS cutover for all 10 A-records, service-by-service verification, rollback procedures, and IONOS-specific features (Cloud Panel Firewall, Snapshots, DNS, API). See [`MIGRATION.md`](MIGRATION.md) for the full guide.

@@ -11,6 +11,27 @@
       dest: "{{ docker.paths.configs }}authelia/users_database.yml"
       mode: 0600
       backup: yes
+  - name: Authelia - Write jwt_secret secret
+    copy:
+      content: "{{ vault_authelia_jwt_secret }}"
+      dest: "{{ docker_base_path }}/secrets/authelia_jwt_secret"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: Authelia - Write session_secret secret
+    copy:
+      content: "{{ vault_authelia_session_secret }}"
+      dest: "{{ docker_base_path }}/secrets/authelia_session_secret"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: Authelia - Write storage_encryption_key secret
+    copy:
+      content: "{{ vault_authelia_storage_encryption_key }}"
+      dest: "{{ docker_base_path }}/secrets/authelia_storage_encryption_key"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
   - name: Touch sqlite db
     file:
       path: "{{ docker.paths.data }}authelia/db.sqlite3"

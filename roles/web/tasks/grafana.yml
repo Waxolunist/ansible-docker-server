@@ -1,4 +1,18 @@
 ---
+  - name: Grafana - Write grafana_pg_password secret
+    copy:
+      content: "{{ vault_grafana_pg_password }}"
+      dest: "{{ docker_base_path }}/secrets/grafana_pg_password"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: Grafana - Write smtp_password secret
+    copy:
+      content: "{{ vault_smtp_server_password }}"
+      dest: "{{ docker_base_path }}/secrets/smtp_password"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
   - name: Grafana - Write configuration
     template:
       src: grafana/grafana_ini.j2

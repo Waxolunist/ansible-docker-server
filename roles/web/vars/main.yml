@@ -30,5 +30,10 @@
     domain: "cadvisor.{{ topleveldomain }}"
   photoprism:
     domain: "photos.{{ topleveldomain }}"
+  redirect:
+    domains:
+      - "me.{{ topleveldomain }}"
+      - "christian.sterzl.info"
+    target: "https://www.linkedin.com/in/christian-sterzl-59b282182/"
 
   restart_container: no

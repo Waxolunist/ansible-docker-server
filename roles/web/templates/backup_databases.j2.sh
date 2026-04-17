@@ -58,11 +58,11 @@ fi
 
 echo "Database backups completed at $(date)"
 
-# Clean up old backups (keep last 7 days)
+# Clean up old backups (keep last 20 per database)
 echo "Cleaning up old backups..."
-find /backup -name "dump_grafana_*.sql.gz" -type f -mtime +7 -delete
-find /backup -name "dump_timescale_*.sql.gz" -type f -mtime +7 -delete
-find /backup -name "dump_photoprism_*.sql.gz" -type f -mtime +7 -delete
+ls -t /backup/dump_grafana_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
+ls -t /backup/dump_timescale_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
+ls -t /backup/dump_photoprism_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 
 echo "Backup cleanup completed"
 

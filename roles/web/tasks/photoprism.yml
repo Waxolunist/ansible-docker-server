@@ -1,4 +1,18 @@
 ---
+  - name: PhotoPrism - Write db_password secret
+    copy:
+      content: "{{ vault_photoprism_db_password }}"
+      dest: "{{ docker_base_path }}/secrets/photoprism_db_password"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: PhotoPrism - Write db_root_password secret
+    copy:
+      content: "{{ vault_photoprism_db_root_password }}"
+      dest: "{{ docker_base_path }}/secrets/photoprism_db_root_password"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
   - name: PhotoPrism - Create originals directory
     file:
       path: "{{ docker.paths.work }}photoprism/originals"

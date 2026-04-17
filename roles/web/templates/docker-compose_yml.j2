@@ -122,17 +122,17 @@ services:
       - traefik.http.routers.proxy.middlewares=proxy-https-redirect
       - traefik.http.routers.proxy.rule=Host(`{{ traefik.domain }}`)
       # --- me-page redirect routes ---
-      - traefik.http.routers.mepage.rule=Host(`me.v-collaborate.com`) || Host(`christian.sterzl.info`)
+      - traefik.http.routers.mepage.rule=Host(`{{ redirect.domains | join('`) || Host(`') }}`)
       - traefik.http.routers.mepage.entrypoints=web
       - traefik.http.routers.mepage.middlewares=proxy-https-redirect
       - traefik.http.routers.mepage-secure.middlewares=me-redirectregex,security-headers@docker
       - traefik.http.routers.mepage-secure.entrypoints=websecure
-      - traefik.http.routers.mepage-secure.rule=Host(`me.v-collaborate.com`) || Host(`christian.sterzl.info`)
+      - traefik.http.routers.mepage-secure.rule=Host(`{{ redirect.domains | join('`) || Host(`') }}`)
       - traefik.http.routers.mepage-secure.tls=true
       - traefik.http.routers.mepage-secure.tls.certresolver=myresolver
       - traefik.http.routers.mepage-secure.service=noop@internal
-      - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://(me.v-collaborate.com|christian.sterzl.info)(/.*)?
-      - traefik.http.middlewares.me-redirectregex.redirectregex.replacement=https://www.linkedin.com/in/christian-sterzl-59b282182/
+      - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://({{ redirect.domains | join('|') }})(/.*)?
+      - traefik.http.middlewares.me-redirectregex.redirectregex.replacement={{ redirect.target }}
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
@@ -267,6 +267,15 @@ services:
       - "{{ docker.paths.configs }}authelia:/config:ro"
       - "{{ docker.paths.work }}authelia:/notifications"
       - "{{ docker.paths.data }}authelia/db.sqlite3:/var/db.sqlite3"
+    secrets:
+      - authelia_jwt_secret
+      - authelia_session_secret
+      - authelia_storage_encryption_key
+    environment:
+      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
+      - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - TZ=Europe/Vienna
     depends_on:
       - reverse-proxy
     networks:
@@ -288,8 +297,6 @@ services:
       - traefik.http.middlewares.auth.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Redirect
     expose:
       - {{ authelia.port }}
-    environment:
-      - TZ=Europe/Vienna
     mem_limit: 256M
     cpus: 0.5
     restart: unless-stopped
@@ -304,8 +311,10 @@ services:
       - grafana
     expose:
       - 5432
+    secrets:
+      - grafana_pg_password
     environment:
-      - POSTGRES_PASSWORD={{ vault_grafana_pg_password }}
+      - POSTGRES_PASSWORD_FILE=/run/secrets/grafana_pg_password
       - POSTGRES_USER={{ vault_grafana_pg_user }}
       - POSTGRES_DB=grafana
       - TZ=Europe/Vienna
@@ -336,10 +345,12 @@ services:
         condition: service_healthy
       prometheus:
         condition: service_started
+    secrets:
+      - grafana_pg_password
+      - smtp_password
     environment:
       - TZ=Europe/Vienna
       - GF_SMTP_USER={{ vault_smtp_server_user }}
-      - GF_SMTP_PASSWORD={{ vault_smtp_server_password }}
     labels:
       - autoheal=true
       - traefik.enable=true
@@ -377,10 +388,12 @@ services:
       - {{ pgadmin.port }}
     volumes:
       - "{{ docker.paths.data }}pgadmin:/var/lib/pgadmin"
+    secrets:
+      - pgadmin_default_password
     environment:
       - TZ=Europe/Vienna
       - PGADMIN_DEFAULT_EMAIL={{ vault_pgadmin_default_email }}
-      - PGADMIN_DEFAULT_PASSWORD={{ vault_pgadmin_default_password }}
+      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin_default_password
     labels:
       - autoheal=true
       - traefik.enable=true
@@ -470,13 +483,16 @@ services:
     command: mariadbd --innodb-buffer-pool-size=512M --transaction-isolation=READ-COMMITTED --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --max-connections=512 --innodb-rollback-on-timeout=OFF --innodb-lock-wait-timeout=120
     volumes:
       - "{{ docker.paths.data }}photoprism/database:/var/lib/mysql"
+    secrets:
+      - photoprism_db_password
+      - photoprism_db_root_password
     environment:
       - MARIADB_AUTO_UPGRADE=1
       - MARIADB_INITDB_SKIP_TZINFO=1
       - MARIADB_DATABASE=photoprism
       - MARIADB_USER=photoprism
-      - MARIADB_PASSWORD={{ vault_photoprism_db_password }}
-      - MARIADB_ROOT_PASSWORD={{ vault_photoprism_db_root_password }}
+      - MARIADB_PASSWORD_FILE=/run/secrets/photoprism_db_password
+      - MARIADB_ROOT_PASSWORD_FILE=/run/secrets/photoprism_db_root_password
       - TZ=Europe/Vienna
     networks:
       - photoprism
@@ -579,3 +595,19 @@ networks:
 secrets:
   timescale_superuser_password:
     file: "{{ docker_base_path }}/secrets/timescale_superuser_password"
+  grafana_pg_password:
+    file: "{{ docker_base_path }}/secrets/grafana_pg_password"
+  smtp_password:
+    file: "{{ docker_base_path }}/secrets/smtp_password"
+  pgadmin_default_password:
+    file: "{{ docker_base_path }}/secrets/pgadmin_default_password"
+  photoprism_db_password:
+    file: "{{ docker_base_path }}/secrets/photoprism_db_password"
+  photoprism_db_root_password:
+    file: "{{ docker_base_path }}/secrets/photoprism_db_root_password"
+  authelia_jwt_secret:
+    file: "{{ docker_base_path }}/secrets/authelia_jwt_secret"
+  authelia_session_secret:
+    file: "{{ docker_base_path }}/secrets/authelia_session_secret"
+  authelia_storage_encryption_key:
+    file: "{{ docker_base_path }}/secrets/authelia_storage_encryption_key"

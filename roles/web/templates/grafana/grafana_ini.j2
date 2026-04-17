@@ -44,7 +44,7 @@ type = postgres
 host = grafana-pg:5432
 name = grafana
 user = {{ vault_grafana_pg_user }}
-password = """{{ vault_grafana_pg_password }}"""
+password = $__file{/run/secrets/grafana_pg_password}
 log_queries = true
 
 [server]
@@ -54,7 +54,7 @@ root_url = https://{{ grafana.domain }}/
 enabled = true
 host = smtp.gmail.com:587
 user = $__env{GF_SMTP_USER}
-password = $__env{GF_SMTP_PASSWORD}
+password = $__file{/run/secrets/smtp_password}
 from_address = $__env{GF_SMTP_USER}
 from_name = Grafana
 
