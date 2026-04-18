@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the architecture of the Ansible-based Docker server provisioning project. The project automates the setup of a Debian server, installs Docker, and deploys 15 containerized services via docker-compose.
+This document describes the architecture of the Ansible-based Docker server provisioning project. The project automates the setup of a Debian server, installs Docker, and deploys 18 containerized services via docker-compose.
 
 ## Table of Contents
 
@@ -22,7 +22,7 @@ This document describes the architecture of the Ansible-based Docker server prov
 
 This project provisions a dedicated Debian server hosted at IONOS and deploys a full-stack application environment using Docker containers. The infrastructure is managed entirely through Ansible playbooks, with sensitive data protected by Ansible Vault.
 
-The server runs 15 Docker containers providing:
+The server runs 18 Docker containers providing:
 
 - **Reverse proxy and TLS termination** via Traefik with automatic Let's Encrypt certificates
 - **Authentication and SSO** via Authelia
@@ -168,8 +168,11 @@ All 15 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 11 | `pgadmin` | `dpage/pgadmin4:9.14.0` | Database administration UI | — | `proxy`, `grafana` | `pgadmin.v-collaborate.com` |
 | 12 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
 | 13 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
-| 14 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
-| 15 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
+| 14 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
+| 15 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
+| 16 | `postgres-exporter` | `prometheuscommunity/postgres_exporter:v0.17.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
+| 17 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
+| 18 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
 
 ### Service Dependencies
 
@@ -247,8 +250,9 @@ graph TB
 | Network | Name | Purpose | Connected Services |
 |---|---|---|---|
 | `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, pgadmin, photoprism |
-| `prometheus` | auto-generated | Metrics collection | prometheus, node-exporter |
-| `grafana` | auto-generated | Database access for Grafana stack | grafana-pg, grafana, pgadmin, timescaledb |
+| `prometheus` | auto-generated | Metrics collection | prometheus, node-exporter, cadvisor, postgres-exporter |
+| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, pgadmin, timescaledb, loki, promtail, postgres-exporter |
+| `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
 | `photoprism` | auto-generated | PhotoPrism database access | photoprism-mariadb, photoprism |
 
 ### Directly Exposed Ports
@@ -345,13 +349,17 @@ graph LR
     NE[Node Exporter :9100] -->|host metrics| P
     T[Traefik :8080] -->|request metrics| P
     R[Registry :5001] -->|registry metrics| P
-    P -->|data source| G[Grafana]
+    PE[postgres-exporter :9187] -->|pg_stat_activity| P
+    TS[timescaledb] -->|connection logs stdout| PT[Promtail]
+    PT -->|push logs| L[Loki]
+    P -->|metrics data source| G[Grafana]
+    L -->|log data source| G
     GPG[grafana-pg] -->|stores dashboards| G
 ```
 
 ### Prometheus
 
-[Prometheus v2.50.0](roles/web/templates/prometheus/prometheus_yml.j2) is configured with:
+[Prometheus v3.11.1](roles/web/templates/prometheus/prometheus_yml.j2) is configured with:
 
 - **Scrape interval**: 15 seconds globally, 5 seconds for self-monitoring
 - **Data retention**: 100 days
@@ -364,13 +372,37 @@ graph LR
 | `registry` | `registry:5001` | Docker registry metrics |
 | `traefik` | `reverse-proxy:8080` | Traefik request/router metrics |
 | `node-metrics` | `node-exporter:9100` | Host CPU, memory, disk, network |
-| `cryptoreport` | `cryptocurrency:6150` | External cryptocurrency metrics |
+| `cadvisor` | `cadvisor:8080` | Container resource metrics |
+| `postgres_exporter` | `postgres-exporter:9187` | TimescaleDB connection metrics via `pg_stat_activity` |
 
 The `docker.host` target resolves to the Docker bridge IP via the `extra_hosts` directive in the compose file.
 
 ### Node Exporter
 
-Node Exporter v1.7.0 runs on the `prometheus` network, exposing host-level metrics on port 9100. It has no Traefik labels and is not accessible externally.
+Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metrics on port 9100. It has no Traefik labels and is not accessible externally.
+
+### Loki & Promtail
+
+[Loki v3.5.0](roles/web/templates/loki/loki_yml.j2) provides log aggregation and storage:
+
+- **Storage**: Local filesystem under `/var/loki` with TSDB index
+- **Retention**: 90 days (compactor with deletion enabled)
+- **Network**: `grafana` — reachable by Grafana and Promtail only; not exposed externally
+- **Data source UID**: `loki` (provisioned automatically in Grafana)
+
+[Promtail v3.5.0](roles/web/templates/promtail/promtail_yml.j2) ships TimescaleDB logs to Loki:
+
+- Discovers the `web_timescaledb` container via the existing `socket-proxy` (`CONTAINERS=1` already covers `/containers/{id}/logs`)
+- Extracts `pg_level` (LOG / FATAL / ERROR) as a Loki label for efficient filtering
+- Positions file persisted in `work/promtail/` to survive container restarts without re-ingesting old logs
+
+### postgres-exporter
+
+[postgres-exporter v0.17.1](roles/web/templates/postgres_exporter/queries_yml.j2) exposes TimescaleDB connection data to Prometheus:
+
+- Connects as `grafana_ro` (read-only role) using a Docker secret for the password
+- Runs a custom query against `pg_stat_activity` grouped by `client_addr / username / datname / state`, producing the `pg_connections_by_client_count` metric
+- Requires `pg_monitor` granted to `grafana_ro` — applied by [`02_monitoring.sql`](roles/web/templates/timescale/monitoring_sql.j2) on first DB initialisation, or manually for existing databases
 
 ### Grafana
 
@@ -436,7 +468,10 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | grafana | `configs/grafana` → `/etc/grafana` | `data/grafana` → `/var/lib/grafana` | — | `logs/grafana` → `/var/log/grafana` |
 | pgadmin | — | `data/pgadmin` → `/var/lib/pgadmin` | — | — |
 | minecraft | — | `data/minecraft` → `/data` | — | — |
-| timescaledb | — | `data/timescale/pgdata` → `/home/postgres/pgdata/data` | — | — |
+| timescaledb | `configs/timescale/init_roles.sql`, `configs/timescale/monitoring.sql` → `/docker-entrypoint-initdb.d/` | `data/timescale/pgdata` → `/home/postgres/pgdata/data` | — | — |
+| loki | `configs/loki/loki.yml` → `/etc/loki/loki.yml` | `data/loki` → `/var/loki` | — | — |
+| promtail | `configs/promtail/promtail.yml` → `/etc/promtail/promtail.yml` | — | `work/promtail` → `/tmp` (positions file) | — |
+| postgres-exporter | `configs/postgres_exporter/queries.yml` → `/etc/postgres_exporter/queries.yml` | — | — | — |
 | photoprism-mariadb | — | `data/photoprism/database` → `/var/lib/mysql` | — | — |
 | photoprism | — | `data/photoprism/storage` → `/photoprism/storage` | `work/photoprism/originals` → `/photoprism/originals`, `work/photoprism/import` → `/photoprism/import` | — |
 

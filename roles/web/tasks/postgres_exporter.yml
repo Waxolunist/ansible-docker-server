@@ -1,0 +1,14 @@
+---
+  - name: Postgres Exporter - Write grafana_ro password secret
+    copy:
+      content: "{{ vault_timescale_grafana_ro_password }}"
+      dest: "{{ docker_base_path }}/secrets/timescale_grafana_ro_password"
+      mode: '0600'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+  - name: Postgres Exporter - Write custom queries
+    template:
+      src: postgres_exporter/queries_yml.j2
+      dest: "{{ docker.paths.configs }}postgres_exporter/queries.yml"
+      mode: 0644
+      backup: yes

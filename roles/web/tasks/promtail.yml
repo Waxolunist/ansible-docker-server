@@ -1,0 +1,7 @@
+---
+  - name: Promtail - Write configuration
+    template:
+      src: promtail/promtail_yml.j2
+      dest: "{{ docker.paths.configs }}promtail/promtail.yml"
+      mode: 0644
+      backup: yes

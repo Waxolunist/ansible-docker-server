@@ -1,0 +1,15 @@
+---
+  - name: Loki - Write configuration
+    template:
+      src: loki/loki_yml.j2
+      dest: "{{ docker.paths.configs }}loki/loki.yml"
+      mode: 0644
+      backup: yes
+  - name: Loki - Fix data directory ownership (Loki runs as uid 10001)
+    file:
+      path: "{{ docker.paths.data }}loki"
+      owner: "10001"
+      group: "10001"
+      mode: '0755'
+      recurse: no
+    become: yes

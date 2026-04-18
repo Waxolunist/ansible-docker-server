@@ -9,6 +9,9 @@
     - minecraft
     - timescale
     - photoprism
+    - loki
+    - promtail
+    - postgres_exporter
   registry:
     domain: "registry.{{ topleveldomain }}"
     port: 5000

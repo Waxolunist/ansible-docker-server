@@ -67,7 +67,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_timescale_pg_user` | `docker-compose_yml.j2`, `backup_databases.j2.sh`, `timescale/init_roles_sql.j2` | — | Superuser name for TimescaleDB |
 | `vault_timescale_pg_password` | `tasks/timescale.yml` | `timescale_superuser_password` | Superuser password for TimescaleDB |
 | `vault_timescale_app_rw_password` | `timescale/init_roles_sql.j2` | — | Password for the `app_rw` role (datacollector on the Raspberry Pi) |
-| `vault_timescale_grafana_ro_password` | `timescale/init_roles_sql.j2` | — | Password for the `grafana_ro` role (Grafana data source) |
+| `vault_timescale_grafana_ro_password` | `timescale/init_roles_sql.j2`, `tasks/postgres_exporter.yml` | `timescale_grafana_ro_password` | Password for the `grafana_ro` role — used by Grafana as a data source and by `postgres-exporter` to read `pg_stat_activity` |
 
 ### PhotoPrism
 

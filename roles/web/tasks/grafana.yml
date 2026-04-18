@@ -43,10 +43,26 @@
       owner: '472'
       group: '0'
     become: yes
+  - name: Grafana - Write Loki datasource provisioning
+    template:
+      src: grafana/provisioning/datasources/loki.yml.j2
+      dest: "{{ docker.paths.configs }}grafana/provisioning/datasources/loki.yml"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
   - name: Grafana - Write status page dashboard
     copy:
       src: grafana/provisioning/dashboards/status_page.json
       dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/status_page.json"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
+  - name: Grafana - Write TimescaleDB connections dashboard
+    copy:
+      src: grafana/provisioning/dashboards/timescale_connections.json
+      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/timescale_connections.json"
       mode: '0644'
       owner: '472'
       group: '0'

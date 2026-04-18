@@ -32,3 +32,14 @@
       mode: '0644'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+  - name: Timescale - Write monitoring init SQL
+    # Runs automatically for new databases (docker-entrypoint-initdb.d).
+    # For existing databases: connect as superuser and run
+    #   psql -h localhost -U <superuser> -d timescale_home \
+    #        -f /var/docker/configs/timescale/monitoring.sql
+    template:
+      src: timescale/monitoring_sql.j2
+      dest: "{{ docker.paths.configs }}timescale/monitoring.sql"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"

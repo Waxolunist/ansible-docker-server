@@ -79,4 +79,4 @@ Restoring backup
 TODO
 ====
 - [ ] Container registry
-- [ ] Logging
+- [x] Logging — Loki + Promtail ingest TimescaleDB connection logs; Grafana dashboard `timescale-connections` shows auth attempts, failures, and source IPs
