@@ -261,7 +261,7 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -282,7 +282,7 @@
       "type": "table",
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": { "type": "prometheus" },
           "expr": "pg_connections_by_client_count{datname=\"timescale_home\"}",
           "instant": true,
           "legendFormat": "{{client_addr}}",

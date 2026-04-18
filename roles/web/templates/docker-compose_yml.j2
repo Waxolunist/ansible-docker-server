@@ -514,6 +514,12 @@ services:
     labels:
       - autoheal=true
       - traefik.enable=false
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'printf \"GET / HTTP/1.1\\n\\n\" > /dev/tcp/127.0.0.1/9080; exit $?;'"]
+      interval: 20s
+      retries: 30
+      timeout: 10s
+      start_period: 10s
     restart: unless-stopped
 
   postgres-exporter:
@@ -528,6 +534,7 @@ services:
       - DATA_SOURCE_USER=grafana_ro
       - DATA_SOURCE_PASS_FILE=/run/secrets/timescale_grafana_ro_password
       - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yml
+      - PG_EXPORTER_CONFIG_FILE=/etc/postgres_exporter/queries.yml
     secrets:
       - timescale_grafana_ro_password
     volumes:

@@ -3,7 +3,7 @@
     copy:
       content: "{{ vault_timescale_grafana_ro_password }}"
       dest: "{{ docker_base_path }}/secrets/timescale_grafana_ro_password"
-      mode: '0600'
+      mode: '0644'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
   - name: Postgres Exporter - Write custom queries
