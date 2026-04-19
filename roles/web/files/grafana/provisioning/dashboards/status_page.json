@@ -18,7 +18,7 @@
       "id": 1,
       "type": "stat",
       "title": "Services Operational",
-      "description": "Number of containers currently up out of 18 monitored.",
+      "description": "Number of containers currently up out of 19 monitored.",
       "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
       "datasource": { "type": "prometheus" },
       "fieldConfig": {
@@ -27,8 +27,8 @@
             "mode": "absolute",
             "steps": [
               { "color": "red",    "value": null },
-              { "color": "orange", "value": 15   },
-              { "color": "green",  "value": 18   }
+              { "color": "orange", "value": 16   },
+              { "color": "green",  "value": 19   }
             ]
           },
           "color": { "mode": "thresholds" },
@@ -49,7 +49,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "sum(container_last_seen{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter\"} > bool (time() - 90))",
+          "expr": "sum(container_last_seen{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit\"} > bool (time() - 90))",
           "instant": true,
           "legendFormat": "Services Up",
           "refId": "A"
@@ -91,7 +91,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "avg(avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter\"}[$__range]))",
+          "expr": "avg(avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit\"}[$__range]))",
           "instant": true,
           "legendFormat": "Uptime",
           "refId": "A"
@@ -733,18 +733,56 @@
     },
 
     {
+      "id": 27,
+      "type": "stat",
+      "title": "Conduit (Matrix)",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 27 },
+      "datasource": { "type": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
+            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+          ],
+          "color": { "mode": "thresholds" },
+          "unit": "none",
+          "noValue": "Down"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "targets": [
+        {
+          "datasource": { "type": "prometheus" },
+          "expr": "container_last_seen{name=\"web_conduit\"} > bool (time() - 90)",
+          "instant": true,
+          "legendFormat": "Conduit",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
       "id": 30,
       "type": "row",
       "title": "Databases",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 }
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 }
     },
 
     {
       "id": 31,
       "type": "stat",
       "title": "TimescaleDB",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 28 },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 32 },
       "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -782,7 +820,7 @@
       "id": 32,
       "type": "stat",
       "title": "Grafana DB",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 28 },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 32 },
       "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -820,7 +858,7 @@
       "id": 33,
       "type": "stat",
       "title": "PhotoPrism DB",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 28 },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 32 },
       "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -859,7 +897,7 @@
       "type": "table",
       "title": "30-Day Uptime by Service",
       "description": "Average uptime percentage per container over the dashboard time range. Based on the container_up_bool recording rule sampled every minute.",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 32 },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 },
       "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -905,7 +943,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter\"}[$__range])",
+          "expr": "avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit\"}[$__range])",
           "instant": true,
           "legendFormat": "{{name}}",
           "refId": "A"
@@ -918,7 +956,7 @@
       "type": "row",
       "title": "History",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 42 }
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 }
     },
 
     {
@@ -926,7 +964,7 @@
       "type": "state-timeline",
       "title": "Container State History",
       "description": "Historical up/down state for all monitored containers. Green = Operational, Red = Down.",
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 43 },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 47 },
       "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
@@ -955,7 +993,7 @@
       "targets": [
         {
           "datasource": { "type": "prometheus" },
-          "expr": "max by (name) (container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter\"})",
+          "expr": "max by (name) (container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit\"})",
           "legendFormat": "{{name}}",
           "refId": "A"
         }

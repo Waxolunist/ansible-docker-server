@@ -664,6 +664,36 @@ services:
       retries: 3
       start_period: 30s
 
+  conduit:
+    image: matrixconduit/matrix-conduit:v0.10.12
+    container_name: web_conduit
+    mem_limit: 512M
+    cpus: 0.5
+    depends_on:
+      - reverse-proxy
+    expose:
+      - {{ conduit.port }}
+    volumes:
+      - "{{ docker.paths.configs }}conduit/conduit.toml:/etc/conduit/conduit.toml:ro"
+      - "{{ docker.paths.data }}conduit:/var/lib/matrix-conduit"
+    environment:
+      - CONDUIT_CONFIG=/etc/conduit/conduit.toml
+      - TZ=Europe/Vienna
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.middlewares.conduit-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.conduit-secure.entrypoints=websecure
+      - traefik.http.routers.conduit-secure.rule=Host(`{{ conduit.domain }}`)
+      - traefik.http.routers.conduit-secure.tls=true
+      - traefik.http.routers.conduit-secure.tls.certresolver=myresolver
+      - traefik.http.routers.conduit-secure.middlewares=security-headers@docker,rate-limit@docker
+      - traefik.http.routers.conduit.entrypoints=web
+      - traefik.http.routers.conduit.middlewares=conduit-https-redirect
+      - traefik.http.routers.conduit.rule=Host(`{{ conduit.domain }}`)
+    restart: unless-stopped
+
 networks:
   proxy:
     name: web_proxy

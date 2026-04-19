@@ -12,6 +12,10 @@
     - loki
     - promtail
     - postgres_exporter
+    - conduit
+  conduit:
+    domain: "matrix.{{ topleveldomain }}"
+    port: 6167
   registry:
     domain: "registry.{{ topleveldomain }}"
     port: 5000

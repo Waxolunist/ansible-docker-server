@@ -1,0 +1,14 @@
+---
+  - name: Conduit - Set data directory ownership
+    file:
+      path: "{{ docker.paths.data }}conduit"
+      state: directory
+      owner: "10000"
+      group: "10000"
+    become: yes
+  - name: Conduit - Write configuration
+    template:
+      src: conduit/conduit_toml.j2
+      dest: "{{ docker.paths.configs }}conduit/conduit.toml"
+      mode: 0644
+      backup: yes

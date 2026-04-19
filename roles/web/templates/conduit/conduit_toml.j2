@@ -1,0 +1,16 @@
+[global]
+server_name = "{{ conduit.domain }}"
+database_path = "/var/lib/matrix-conduit/"
+database_backend = "rocksdb"
+
+port = {{ conduit.port }}
+address = "0.0.0.0"
+
+max_request_size = 20_000_000
+allow_registration = true
+registration_token = "{{ vault_conduit_registration_token }}"
+allow_federation = false
+
+trusted_servers = ["matrix.org"]
+
+log = "warn,rocket=off,_=off,sled=off"
