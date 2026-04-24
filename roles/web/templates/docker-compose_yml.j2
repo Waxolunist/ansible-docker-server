@@ -67,6 +67,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    labels:
+      - autoheal=true
     restart: unless-stopped
 
   reverse-proxy:
@@ -379,6 +381,8 @@ services:
     container_name: web_pgadmin
     mem_limit: 512M
     cpus: 0.5
+    security_opt:
+      - no-new-privileges:false
     links:
       - "grafana-pg:database-grafana"
       - "timescaledb:timescaledb"
@@ -692,6 +696,51 @@ services:
       - traefik.http.routers.conduit.entrypoints=web
       - traefik.http.routers.conduit.middlewares=conduit-https-redirect
       - traefik.http.routers.conduit.rule=Host(`{{ conduit.domain }}`)
+    restart: unless-stopped
+
+  picoclaw:
+    image: docker.io/sipeed/picoclaw:launcher
+    container_name: web_picoclaw
+    mem_limit: 512M
+    cpus: 1.0
+    depends_on:
+      - reverse-proxy
+    expose:
+      - {{ picoclaw.port }}
+      - {{ picoclaw_gw.port }}
+    volumes:
+      - "{{ docker.paths.data }}picoclaw:/root/.picoclaw"
+    environment:
+      - TZ=Europe/Vienna
+      - PICOCLAW_LAUNCHER_TOKEN={{ vault_picoclaw_launcher_token }}
+      - PICOCLAW_GATEWAY_HOST=0.0.0.0
+    networks:
+      - proxy
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.http.middlewares.picoclaw-https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.picoclaw-gw-https-redirect.redirectscheme.scheme=https
+      - traefik.http.services.picoclaw-launcher.loadbalancer.server.port={{ picoclaw.port }}
+      - traefik.http.services.picoclaw-gateway.loadbalancer.server.port={{ picoclaw_gw.port }}
+      - traefik.http.routers.picoclaw-secure.entrypoints=websecure
+      - traefik.http.routers.picoclaw-secure.rule=Host(`{{ picoclaw.domain }}`)
+      - traefik.http.routers.picoclaw-secure.service=picoclaw-launcher
+      - traefik.http.routers.picoclaw-secure.tls=true
+      - traefik.http.routers.picoclaw-secure.tls.certresolver=myresolver
+      - traefik.http.routers.picoclaw-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.picoclaw.entrypoints=web
+      - traefik.http.routers.picoclaw.middlewares=picoclaw-https-redirect
+      - traefik.http.routers.picoclaw.rule=Host(`{{ picoclaw.domain }}`)
+      - traefik.http.routers.picoclaw-gw-secure.entrypoints=websecure
+      - traefik.http.routers.picoclaw-gw-secure.rule=Host(`{{ picoclaw_gw.domain }}`)
+      - traefik.http.routers.picoclaw-gw-secure.service=picoclaw-gateway
+      - traefik.http.routers.picoclaw-gw-secure.tls=true
+      - traefik.http.routers.picoclaw-gw-secure.tls.certresolver=myresolver
+      - traefik.http.routers.picoclaw-gw-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.picoclaw-gw.entrypoints=web
+      - traefik.http.routers.picoclaw-gw.middlewares=picoclaw-gw-https-redirect
+      - traefik.http.routers.picoclaw-gw.rule=Host(`{{ picoclaw_gw.domain }}`)
     restart: unless-stopped
 
 networks:

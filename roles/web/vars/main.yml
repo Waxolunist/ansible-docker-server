@@ -13,6 +13,7 @@
     - promtail
     - postgres_exporter
     - conduit
+    - picoclaw
   conduit:
     domain: "matrix.{{ topleveldomain }}"
     port: 6167
@@ -42,5 +43,13 @@
       - "me.{{ topleveldomain }}"
       - "christian.sterzl.info"
     target: "https://www.linkedin.com/in/christian-sterzl-59b282182/"
+
+  picoclaw:
+    domain: "picoclaw.{{ topleveldomain }}"
+    port: 18800
+
+  picoclaw_gw:
+    domain: "picoclaw-gw.{{ topleveldomain }}"
+    port: 18790
 
   restart_container: no

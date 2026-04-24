@@ -1,0 +1,19 @@
+---
+  - name: PicoClaw - Write configuration
+    template:
+      src: picoclaw/config_json.j2
+      dest: "{{ docker.paths.data }}picoclaw/config.json"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: 0600
+      backup: yes
+    become: yes
+
+  - name: PicoClaw - Set data directory ownership
+    file:
+      path: "{{ docker.paths.data }}picoclaw"
+      state: directory
+      owner: root
+      group: root
+      mode: '0755'
+    become: yes

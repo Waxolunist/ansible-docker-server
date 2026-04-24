@@ -89,4 +89,5 @@
       mode: '0700'
       owner: '70'
       group: '70'
+      recurse: yes
     become: yes

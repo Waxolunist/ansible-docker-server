@@ -76,3 +76,10 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_photoprism_admin_password` | `docker-compose_yml.j2` | — | PhotoPrism web UI admin password (no `_FILE` support in PhotoPrism) |
 | `vault_photoprism_db_password` | `tasks/photoprism.yml`, `docker-compose_yml.j2` | `photoprism_db_password` | MariaDB user password — secret used by MariaDB; PhotoPrism side still uses env var |
 | `vault_photoprism_db_root_password` | `tasks/photoprism.yml`, `backup_databases.j2.sh` | `photoprism_db_root_password` | MariaDB root password (used for backups) |
+
+### PicoClaw (AI assistant)
+
+| Variable | Used in | Docker secret | Description |
+|---|---|---|---|
+| `vault_picoclaw_crypto_passphrase` | `picoclaw/config_json.j2` | — | Passphrase for Matrix E2E encryption key storage |
+

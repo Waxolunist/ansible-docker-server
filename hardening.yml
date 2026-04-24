@@ -117,7 +117,7 @@
         notify: restart fail2ban
 
       - name: Enable and start fail2ban
-        service:
+        ansible.builtin.systemd:
           name: fail2ban
           state: started
           enabled: true
@@ -166,6 +166,6 @@
           state: restarted
 
       - name: restart fail2ban
-        service:
+        ansible.builtin.systemd:
           name: fail2ban
           state: restarted

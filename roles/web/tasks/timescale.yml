@@ -18,6 +18,14 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
     when: timescale_pgdata_dir.stat.exists == False
+  - name: Timescale - Ensure pgdata ownership is correct
+    file:
+      path: "{{ docker.paths.data }}timescale/pgdata"
+      state: directory
+      owner: "1000"
+      group: "1000"
+      recurse: yes
+    become: yes
   - name: Timescale - Write superuser password secret
     copy:
       content: "{{ vault_timescale_pg_password }}"

@@ -81,6 +81,7 @@
       mode: '0755'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+    become: yes
   - name: Install logrotate config for docker container logs
     template:
       src: logrotate_docker.j2

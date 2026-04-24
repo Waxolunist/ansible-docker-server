@@ -11,5 +11,5 @@
       owner: "10001"
       group: "10001"
       mode: '0755'
-      recurse: no
+      recurse: yes
     become: yes
