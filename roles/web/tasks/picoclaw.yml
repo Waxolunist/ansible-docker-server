@@ -9,6 +9,16 @@
       backup: yes
     become: yes
 
+  - name: PicoClaw - Write security configuration
+    template:
+      src: picoclaw/security_yml.j2
+      dest: "{{ docker.paths.data }}picoclaw/.security.yml"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      mode: 0600
+      backup: yes
+    become: yes
+
   - name: PicoClaw - Set data directory ownership
     file:
       path: "{{ docker.paths.data }}picoclaw"
