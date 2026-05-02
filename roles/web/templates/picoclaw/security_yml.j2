@@ -1,4 +1,27 @@
+channel_list:
+  matrix:
+    settings:
+      access_token: {{ vault_picoclaw_matrix_access_token }}
+  pico:
+    settings:
+      token: {{ vault_picoclaw_pico_token }}
 web:
   brave:
     api_keys:
       - "{{ vault_picoclaw_brave_api_key }}"
+model_list:
+  nemotron-3-nano-30b-a3b:
+    api_keys:
+      - "{{ vault_picoclaw_fyra_api_key }}"
+  kimi-k2-thinking:
+    api_keys:
+      - "{{ vault_picoclaw_fyra_api_key }}"
+  deepseek-reasoner:
+    api_keys:
+      - "{{ vault_picoclaw_fyra_api_key }}"
+  mistral-large-3-675b-instruct:
+    api_keys:
+      - "{{ vault_picoclaw_fyra_api_key }}"
+  openrouter:
+    api_keys:
+      - "{{ vault_picoclaw_openrouter_api_key }}"
