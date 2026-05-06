@@ -103,7 +103,7 @@ services:
       - traefik.http.middlewares.security-headers.headers.stsIncludeSubdomains=true
       - traefik.http.middlewares.security-headers.headers.stsPreload=true
       - traefik.http.middlewares.security-headers.headers.forceSTSHeader=true
-      - traefik.http.middlewares.security-headers.headers.customFrameOptionsValue=DENY
+      - traefik.http.middlewares.security-headers.headers.customFrameOptionsValue=SAMEORIGIN
       - traefik.http.middlewares.security-headers.headers.contentTypeNosniff=true
       - traefik.http.middlewares.security-headers.headers.referrerPolicy=strict-origin-when-cross-origin
       - traefik.http.middlewares.security-headers.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=()
@@ -741,6 +741,46 @@ services:
       - traefik.http.routers.picoclaw-gw.entrypoints=web
       - traefik.http.routers.picoclaw-gw.middlewares=picoclaw-gw-https-redirect
       - traefik.http.routers.picoclaw-gw.rule=Host(`{{ picoclaw_gw.domain }}`)
+    restart: unless-stopped
+
+  code-server:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: web_code-server
+    mem_limit: 2G
+    cpus: 2.0
+    depends_on:
+      - reverse-proxy
+    expose:
+      - {{ code_server.port }}
+    volumes:
+      - "{{ docker.paths.data }}code-server:/config"
+      - "{{ docker.paths.configs }}code-server:/config/.config/code-server:ro"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Vienna
+    networks:
+      - proxy
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.http.services.code-server.loadbalancer.server.port={{ code_server.port }}
+      - traefik.http.middlewares.code-server-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.code-server-secure.entrypoints=websecure
+      - traefik.http.routers.code-server-secure.rule=Host(`{{ code_server.domain }}`)
+      - traefik.http.routers.code-server-secure.tls=true
+      - traefik.http.routers.code-server-secure.tls.certresolver=myresolver
+      - traefik.http.routers.code-server-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.code-server-secure.service=code-server
+      - traefik.http.routers.code-server.entrypoints=web
+      - traefik.http.routers.code-server.middlewares=code-server-https-redirect
+      - traefik.http.routers.code-server.rule=Host(`{{ code_server.domain }}`)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:{{ code_server.port }}/healthz | grep -q '\"status\":\"alive\"'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     restart: unless-stopped
 
 networks:

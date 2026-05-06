@@ -22,7 +22,7 @@ This document describes the architecture of the Ansible-based Docker server prov
 
 This project provisions a dedicated Debian server hosted at IONOS and deploys a full-stack application environment using Docker containers. The infrastructure is managed entirely through Ansible playbooks, with sensitive data protected by Ansible Vault.
 
-The server runs 18 Docker containers providing:
+The server runs 21 Docker containers providing:
 
 - **Reverse proxy and TLS termination** via Traefik with automatic Let's Encrypt certificates
 - **Authentication and SSO** via Authelia
@@ -151,7 +151,7 @@ The [`system`](roles/system/tasks/main.yml) role performs initial server hardeni
 
 ## Docker Services
 
-All 15 services are defined in the [`docker-compose_yml.j2`](roles/web/templates/docker-compose_yml.j2) template and deployed to `/var/docker/docker-compose.yml`.
+All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates/docker-compose_yml.j2) template and deployed to `/var/docker/docker-compose.yml`.
 
 | # | Service | Image | Purpose | Exposed Ports | Networks | Domain |
 |---|---|---|---|---|---|---|
@@ -170,9 +170,12 @@ All 15 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 13 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
 | 14 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
 | 15 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
-| 16 | `postgres-exporter` | `prometheuscommunity/postgres_exporter:v0.17.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
+| 16 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
 | 17 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
 | 18 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
+| 19 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
+| 20 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `proxy` | `picoclaw.v-collaborate.com` |
+| 21 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
 
 ### Service Dependencies
 
@@ -193,6 +196,9 @@ graph TD
     TS[timescaledb]
     PM[photoprism-mariadb]
     PP[photoprism]
+    CO[conduit]
+    PC[picoclaw]
+    CS[code-server]
 
     RP -->|depends_on| SP
     AUTH -->|depends_on| RP
@@ -205,6 +211,9 @@ graph TD
     PGA -->|links| TS
     PP -->|depends_on| PM
     PP -->|depends_on| RP
+    CO -->|depends_on| RP
+    PC -->|depends_on| RP
+    CS -->|depends_on| RP
 ```
 
 ---
@@ -223,6 +232,9 @@ graph TB
         GR[grafana]
         PGA[pgadmin]
         PP[photoprism]
+        CO[conduit]
+        PC[picoclaw]
+        CS[code-server]
     end
 
     subgraph prom_net[prometheus network]
@@ -249,7 +261,7 @@ graph TB
 
 | Network | Name | Purpose | Connected Services |
 |---|---|---|---|
-| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, pgadmin, photoprism |
+| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, pgadmin, photoprism, conduit, picoclaw, code-server |
 | `prometheus` | auto-generated | Metrics collection | prometheus, node-exporter, cadvisor, postgres-exporter |
 | `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, pgadmin, timescaledb, loki, promtail, postgres-exporter |
 | `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
@@ -336,6 +348,11 @@ Services protected by Authelia include:
 - **Traefik dashboard** (`proxy.v-collaborate.com`)
 - **Prometheus** (`metrics.v-collaborate.com`)
 - **Grafana** (`graph.v-collaborate.com`) — also uses proxy authentication to auto-login users
+- **cAdvisor** (`cadvisor.v-collaborate.com`)
+- **pgAdmin** (`pgadmin.v-collaborate.com`)
+- **Registry** (`registry.v-collaborate.com`)
+- **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
+- **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
 
 ---
 
@@ -474,6 +491,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | postgres-exporter | `configs/postgres_exporter/queries.yml` → `/etc/postgres_exporter/queries.yml` | — | — | — |
 | photoprism-mariadb | — | `data/photoprism/database` → `/var/lib/mysql` | — | — |
 | photoprism | — | `data/photoprism/storage` → `/photoprism/storage` | `work/photoprism/originals` → `/photoprism/originals`, `work/photoprism/import` → `/photoprism/import` | — |
+| code-server | `configs/code-server/config.yaml` → `/config/.config/code-server/config.yaml` | `data/code-server` → `/config` (workspace, extensions, settings) | — | — |
 
 ---
 
@@ -570,10 +588,11 @@ Vault-encrypted variables used across the project include:
 
 ### Authentication Layers
 
-1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, and Grafana
+1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, Grafana, pgAdmin, Registry, cAdvisor, PicoClaw, and Code-Server
 2. **Grafana proxy auth** — Trusts Authelia's `Remote-User` header for seamless SSO
 3. **PhotoPrism native auth** — Uses its own password-based authentication
 4. **Registry** — Accessible via Traefik with TLS; secrets stored in a dedicated directory
+5. **Code-Server** — `auth: none` in code-server config; Authelia is the sole authentication layer
 
 ### Container Security
 

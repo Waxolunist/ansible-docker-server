@@ -83,3 +83,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 |---|---|---|---|
 | `vault_picoclaw_crypto_passphrase` | `picoclaw/config_json.j2` | — | Passphrase for Matrix E2E encryption key storage |
 
+### Code-Server
+
+No vault variables required. code-server's own authentication is disabled (`auth: none` in `configs/code-server/config.yaml`); authentication is handled entirely by Authelia forward auth at the Traefik layer.
+

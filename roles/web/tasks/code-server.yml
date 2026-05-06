@@ -1,0 +1,7 @@
+---
+  - name: Code-Server - Write configuration
+    template:
+      src: code-server/config_yaml.j2
+      dest: "{{ docker.paths.configs }}code-server/config.yaml"
+      mode: 0644
+      backup: yes
