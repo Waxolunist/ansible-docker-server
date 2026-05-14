@@ -1,0 +1,68 @@
+#!/usr/bin/with-contenv bash
+# Managed by Ansible — do not edit by hand.
+# Installs Android SDK on first run; idempotent across container restarts.
+set -euo pipefail
+
+ANDROID_HOME="${ANDROID_HOME:-/config/android-sdk}"
+CMDLINE_TOOLS_DIR="${ANDROID_HOME}/cmdline-tools/latest"
+CMDLINE_TOOLS_VERSION="{{ android_sdk.cmdline_tools_version }}"
+CMDLINE_TOOLS_URL="https://dl.google.com/android/repository/commandlinetools-linux-${CMDLINE_TOOLS_VERSION}_latest.zip"
+
+export JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-21-openjdk-amd64}"
+export PATH="${JAVA_HOME}/bin:${PATH}"
+
+if [ ! -x "${CMDLINE_TOOLS_DIR}/bin/sdkmanager" ]; then
+  echo "[android-sdk] Installing cmdline-tools ${CMDLINE_TOOLS_VERSION} into ${ANDROID_HOME}"
+  mkdir -p "${ANDROID_HOME}/cmdline-tools"
+  tmp_zip="$(mktemp -t cmdline-tools.XXXXXX.zip)"
+  trap 'rm -f "${tmp_zip}"' EXIT
+  wget -q -O "${tmp_zip}" "${CMDLINE_TOOLS_URL}"
+  rm -rf "${CMDLINE_TOOLS_DIR}"
+  mkdir -p "${CMDLINE_TOOLS_DIR}"
+  unzip -q "${tmp_zip}" -d "${ANDROID_HOME}/cmdline-tools/_extract"
+  mv "${ANDROID_HOME}/cmdline-tools/_extract/cmdline-tools/"* "${CMDLINE_TOOLS_DIR}/"
+  rm -rf "${ANDROID_HOME}/cmdline-tools/_extract"
+fi
+
+SDKMANAGER="${CMDLINE_TOOLS_DIR}/bin/sdkmanager"
+
+PACKAGES=(
+{% for pkg in android_sdk.packages %}
+  "{{ pkg }}"
+{% endfor %}
+)
+
+needs_install=0
+for pkg in "${PACKAGES[@]}"; do
+  pkg_path="${ANDROID_HOME}/$(echo "${pkg}" | tr ';' '/')"
+  if [ ! -d "${pkg_path}" ]; then
+    needs_install=1
+    break
+  fi
+done
+
+if [ "${needs_install}" -eq 1 ]; then
+  echo "[android-sdk] Accepting licenses"
+  yes | "${SDKMANAGER}" --licenses >/dev/null || true
+  echo "[android-sdk] Installing packages: ${PACKAGES[*]}"
+  "${SDKMANAGER}" --install "${PACKAGES[@]}"
+fi
+
+chown -R abc:abc "${ANDROID_HOME}"
+
+profile="/config/.bashrc"
+marker="# >>> android-sdk env (managed) >>>"
+if [ -f "${profile}" ] && ! grep -qF "${marker}" "${profile}"; then
+  {
+    echo ""
+    echo "${marker}"
+    echo "export ANDROID_HOME=${ANDROID_HOME}"
+    echo "export ANDROID_SDK_ROOT=${ANDROID_HOME}"
+    echo "export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64"
+    echo 'export PATH="${JAVA_HOME}/bin:${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${PATH}"'
+    echo "# <<< android-sdk env (managed) <<<"
+  } >> "${profile}"
+  chown abc:abc "${profile}"
+fi
+
+echo "[android-sdk] Ready at ${ANDROID_HOME}"

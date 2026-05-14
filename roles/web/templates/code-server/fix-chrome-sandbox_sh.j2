@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bash
+# Managed by Ansible — do not edit by hand.
+# Chromium/Electron apps (e.g. React Native DevTools) ship a SUID sandbox helper
+# that must be root:root mode 4755, but the binary is downloaded into /config
+# at runtime by the abc user, who cannot set the SUID bit. Fix any instance we
+# find under /config at container start.
+set -euo pipefail
+
+while IFS= read -r -d '' bin; do
+  echo "[chrome-sandbox] fixing ${bin}"
+  chown root:root "${bin}"
+  chmod 4755 "${bin}"
+done < <(find /config -type f -name chrome-sandbox -print0 2>/dev/null)

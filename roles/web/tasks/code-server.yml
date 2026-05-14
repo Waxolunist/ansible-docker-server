@@ -5,3 +5,81 @@
       dest: "{{ docker.paths.configs }}code-server/config.yaml"
       mode: 0644
       backup: yes
+
+  - name: Code-Server - Ensure custom-cont-init.d directory exists (root-owned, required by s6)
+    file:
+      path: "{{ docker.paths.configs }}code-server/custom-cont-init.d"
+      state: directory
+      owner: root
+      group: root
+      mode: 0755
+    become: yes
+
+  - name: Code-Server - Install Android SDK init script
+    template:
+      src: code-server/install-android-sdk_sh.j2
+      dest: "{{ docker.paths.configs }}code-server/custom-cont-init.d/install-android-sdk.sh"
+      owner: root
+      group: root
+      mode: 0755
+      backup: yes
+    become: yes
+
+  - name: Code-Server - Install chrome-sandbox SUID fixer init script
+    template:
+      src: code-server/fix-chrome-sandbox_sh.j2
+      dest: "{{ docker.paths.configs }}code-server/custom-cont-init.d/fix-chrome-sandbox.sh"
+      owner: root
+      group: root
+      mode: 0755
+      backup: yes
+    become: yes
+
+  - name: Code-Server - Ensure .ssh directory exists
+    file:
+      path: "{{ docker.paths.data }}code-server/.ssh"
+      state: directory
+      mode: 0700
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    become: yes
+
+  - name: Code-Server - Write SSH private key from vault
+    copy:
+      content: "{{ vault_ssh_private_key | b64decode }}"
+      dest: "{{ docker.paths.data }}code-server/.ssh/id_rsa"
+      mode: 0600
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      backup: yes
+    become: yes
+
+  - name: Code-Server - Write SSH public key from vault
+    copy:
+      content: "{{ vault_ssh_public_key | b64decode }}"
+      dest: "{{ docker.paths.data }}code-server/.ssh/id_rsa.pub"
+      mode: 0644
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      backup: yes
+    become: yes
+
+  - name: Code-Server - Copy known_hosts
+    copy:
+      src: "{{ lookup('env', 'HOME') }}/.ssh/known_hosts"
+      dest: "{{ docker.paths.data }}code-server/.ssh/known_hosts"
+      mode: 0644
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      backup: yes
+    become: yes
+
+  - name: Code-Server - Write SSH config
+    template:
+      src: code-server/ssh_config.j2
+      dest: "{{ docker.paths.data }}code-server/.ssh/config"
+      mode: 0600
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      backup: yes
+    become: yes
