@@ -138,6 +138,13 @@
     become: yes
     when: coturn_config is defined and coturn_config.changed
 
+  # server.js is read once at startup and compose runs with recreate: never,
+  # so a new version would otherwise sit on disk unused.
+  - name: Rendezvous - Restart when the server source changed
+    command: docker restart web_rendezvous
+    become: yes
+    when: rendezvous_source is defined and rendezvous_source.changed
+
   # First run only: Traefik has just been told about turn-cert and needs a
   # moment to complete the ACME challenge, so the pre-compose dump found
   # nothing. Retry here and restart coturn once the certificate lands.

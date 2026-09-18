@@ -481,6 +481,57 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  # Pairs two phones for Hulls & Hellfire: the host leaves a WebRTC offer under
+  # a six-character code, the joiner takes it and leaves the answer. Two blobs,
+  # once each, then the session is dropped -- no game traffic passes here.
+  rendezvous:
+    image: node:22-alpine
+    container_name: web_rendezvous
+    mem_limit: 128M
+    cpus: 0.5
+    depends_on:
+      - reverse-proxy
+    user: node
+    read_only: true
+    tmpfs:
+      - /tmp
+    expose:
+      - {{ rendezvous.port }}
+    volumes:
+      - "{{ docker.paths.configs }}rendezvous/server.js:/app/server.js:ro"
+    working_dir: /app
+    command: ["node", "server.js"]
+    environment:
+      - TZ=Europe/Vienna
+      - PORT={{ rendezvous.port }}
+      - SESSION_TTL_MS={{ rendezvous.session_ttl_ms }}
+    networks:
+      - proxy
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.http.middlewares.rendezvous-https-redirect.redirectscheme.scheme=https
+      - traefik.http.services.rendezvous.loadbalancer.server.port={{ rendezvous.port }}
+      - traefik.http.routers.rendezvous-secure.entrypoints=websecure
+      - traefik.http.routers.rendezvous-secure.rule=Host(`{{ rendezvous.domain }}`)
+      - traefik.http.routers.rendezvous-secure.service=rendezvous
+      - traefik.http.routers.rendezvous-secure.tls=true
+      - traefik.http.routers.rendezvous-secure.tls.certresolver=myresolver
+      # No auth middleware: the phones pairing have no credentials to present.
+      # The six-character code over a ten-minute window is the only secret, and
+      # server.js rate-limits per IP against anyone enumerating it.
+      - traefik.http.routers.rendezvous-secure.middlewares=security-headers@docker,rate-limit@docker
+      - traefik.http.routers.rendezvous.entrypoints=web
+      - traefik.http.routers.rendezvous.middlewares=rendezvous-https-redirect
+      - traefik.http.routers.rendezvous.rule=Host(`{{ rendezvous.domain }}`)
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:{{ rendezvous.port }}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   timescaledb:
     image: timescale/timescaledb-ha:pg16
     container_name: web_timescaledb

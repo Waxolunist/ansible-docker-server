@@ -16,6 +16,7 @@
     - picoclaw
     - code-server
     - coturn
+    - rendezvous
   conduit:
     domain: "matrix.{{ topleveldomain }}"
     port: 6167
@@ -93,5 +94,12 @@
     quota:
       user: 12
       total: 1200
+
+  rendezvous:
+    domain: "hhfh.{{ topleveldomain }}"
+    port: 8787
+    # A session is two SDP blobs waiting for the second phone; ten minutes is
+    # far longer than the pairing actually takes.
+    session_ttl_ms: 600000
 
   restart_container: no
