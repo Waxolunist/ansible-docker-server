@@ -122,6 +122,36 @@
       #- debug:
       #    var: stack_output
   
+  # traefik.yml is static configuration -- Traefik reads it once at startup, so
+  # a change there (adding the file provider, entrypoints, resolvers) needs a
+  # restart. Files under configs/traefik/dynamic are watched and hot-reloaded,
+  # and never reach this task.
+  - name: Restart Traefik when its static configuration changed
+    command: docker restart web_reverse-proxy
+    become: yes
+    when: traefik_static_config is defined and traefik_static_config.changed
+
+  # turnserver.conf is read once at startup. compose runs with recreate: never,
+  # so a config-only change would otherwise sit on disk unapplied.
+  - name: Coturn - Restart when its configuration changed
+    command: docker restart web_coturn
+    become: yes
+    when: coturn_config is defined and coturn_config.changed
+
+  # First run only: Traefik has just been told about turn-cert and needs a
+  # moment to complete the ACME challenge, so the pre-compose dump found
+  # nothing. Retry here and restart coturn once the certificate lands.
+  - name: Coturn - Dump the TLS certificate after Traefik has issued it
+    command: "{{ docker_base_path }}/dump_coturn_certs.sh"
+    become: yes
+    register: coturn_cert_dump_post
+    changed_when: "'updated' in coturn_cert_dump_post.stdout"
+    failed_when: false
+    until: coturn_cert_dump_post.rc == 0
+    retries: 10
+    delay: 15
+    when: coturn.tls
+
   - name: Find Ansible template backup files
     find:
       paths:

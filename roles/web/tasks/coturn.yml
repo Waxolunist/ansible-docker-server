@@ -1,0 +1,67 @@
+---
+  - name: Coturn - Write configuration
+    template:
+      src: coturn/turnserver_conf.j2
+      dest: "{{ docker.paths.configs }}coturn/turnserver.conf"
+      mode: 0644
+      backup: yes
+    register: coturn_config
+  - name: Coturn - Create certificate directory
+    file:
+      path: "{{ docker.paths.configs }}coturn/certs"
+      state: directory
+      mode: 0755
+      owner: root
+      group: root
+    become: yes
+    when: coturn.tls
+  - name: Coturn - Create certificate dump script
+    template:
+      src: coturn/dump_certs.j2.sh
+      dest: "{{ docker_base_path }}/dump_coturn_certs.sh"
+      mode: 0755
+      owner: root
+      group: root
+      backup: yes
+    become: yes
+    when: coturn.tls
+  # Traefik issues and renews the cert; this pulls it out of acme.json for
+  # coturn, which speaks no ACME. Runs nightly, and is a no-op between renewals.
+  - name: Coturn - Add cronjob to dump the TLS certificate
+    cron:
+      name: "dump coturn certificate"
+      minute: "30"
+      hour: "3"
+      user: root
+      backup: yes
+      job: "{{ docker_base_path }}/dump_coturn_certs.sh >> {{ docker.paths.logs }}coturn/dump_certs.log 2>&1"
+    become: yes
+    when: coturn.tls
+  # Placeholders so the bind mount does not create directories where coturn
+  # expects files on the very first run, before Traefik has issued the cert.
+  # force: no leaves a real certificate -- and the ownership dump_certs.sh
+  # gave it -- untouched on every later run.
+  - name: Coturn - Create certificate placeholders
+    copy:
+      content: ""
+      dest: "{{ docker.paths.configs }}coturn/certs/{{ item }}"
+      force: no
+      mode: 0640
+      owner: root
+      group: root
+    loop:
+      - fullchain.pem
+      - privkey.pem
+    become: yes
+    when: coturn.tls
+  - name: Coturn - Dump the TLS certificate now
+    command: "{{ docker_base_path }}/dump_coturn_certs.sh"
+    become: yes
+    register: coturn_cert_dump
+    changed_when: "'updated' in coturn_cert_dump.stdout"
+    failed_when: false
+    when: coturn.tls
+  - name: Coturn - Report certificate dump result
+    debug:
+      var: coturn_cert_dump.stdout_lines
+    when: coturn.tls

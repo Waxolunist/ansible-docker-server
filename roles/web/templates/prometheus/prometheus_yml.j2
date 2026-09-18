@@ -57,3 +57,9 @@ scrape_configs:
   - job_name: 'postgres_exporter'
     static_configs:
       - targets: ['postgres-exporter:9187']
+
+  # coturn is host-networked, so it is reached through the host address
+  # rather than by container name.
+  - job_name: 'coturn'
+    static_configs:
+      - targets: ['docker.host:9641']

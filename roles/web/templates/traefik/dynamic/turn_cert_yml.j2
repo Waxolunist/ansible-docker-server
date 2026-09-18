@@ -1,0 +1,19 @@
+# Certificate-only router for the TURN domain.
+#
+# coturn is host-networked and speaks no HTTP, so it is invisible to Traefik's
+# docker provider and cannot run an ACME challenge itself. This router exists
+# purely so Traefik issues and renews a certificate for {{ coturn.domain }};
+# dump_coturn_certs.sh then hands the result to coturn. It serves nothing --
+# noop@internal answers anything that actually reaches it.
+#
+# Managed by Ansible -- edit roles/web/templates/traefik/dynamic/turn_cert_yml.j2.
+
+http:
+  routers:
+    turn-cert:
+      entryPoints:
+        - websecure
+      rule: "Host(`{{ coturn.domain }}`)"
+      service: noop@internal
+      tls:
+        certResolver: myresolver

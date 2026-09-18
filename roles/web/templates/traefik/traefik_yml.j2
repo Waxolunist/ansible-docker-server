@@ -52,3 +52,10 @@ providers:
     exposedByDefault: true
     endpoint: "tcp://socket-proxy:2375"
     network: web_proxy
+  # Routers that cannot live on a container's labels -- currently the
+  # certificate-only router for coturn, which is host-networked and so is
+  # invisible to the docker provider. Files here are watched and hot-reloaded;
+  # only this static block needs a Traefik restart to take effect.
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
