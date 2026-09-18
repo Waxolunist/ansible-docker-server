@@ -1,0 +1,12 @@
+---
+  # The whole service is one file, so it runs on the stock node image with the
+  # source bind-mounted rather than a built image: nothing to build on the
+  # server, nothing to push to the registry, and an edit here reaches the box
+  # as a plain file copy.
+  - name: Rendezvous - Install the server
+    copy:
+      src: rendezvous/server.js
+      dest: "{{ docker.paths.configs }}rendezvous/server.js"
+      mode: 0644
+      backup: yes
+    register: rendezvous_source

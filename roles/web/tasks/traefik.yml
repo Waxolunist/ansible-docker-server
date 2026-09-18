@@ -5,3 +5,23 @@
       dest: "{{ docker.paths.configs }}traefik/traefik.yml"
       mode: 0644
       backup: yes
+    register: traefik_static_config
+  - name: Create traefik dynamic configuration directory
+    file:
+      path: "{{ docker.paths.configs }}traefik/dynamic"
+      state: directory
+      mode: 0755
+  # Hot-reloaded by the file provider -- no Traefik restart needed for this,
+  # unlike the static traefik.yml above.
+  - name: Write dynamic configuration for the coturn certificate router
+    template:
+      src: traefik/dynamic/turn_cert_yml.j2
+      dest: "{{ docker.paths.configs }}traefik/dynamic/turn-cert.yml"
+      mode: 0644
+      backup: yes
+    when: coturn.tls
+  - name: Remove the coturn certificate router when TLS is disabled
+    file:
+      path: "{{ docker.paths.configs }}traefik/dynamic/turn-cert.yml"
+      state: absent
+    when: not coturn.tls

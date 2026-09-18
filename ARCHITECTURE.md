@@ -176,6 +176,7 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 19 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
 | 20 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `proxy` | `picoclaw.v-collaborate.com` |
 | 21 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
+| 22 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
 
 ### Service Dependencies
 
@@ -256,6 +257,7 @@ graph TB
 
     INTERNET((Internet)) -->|80, 443| RP
     INTERNET -->|25565| MC[minecraft]
+    INTERNET -->|3478, 5349, 49152-49200| CT[coturn]
     INTERNET -->|5432| TS
 ```
 
@@ -269,7 +271,7 @@ graph TB
 
 ### Directly Exposed Ports
 
-Only three services bind ports to the host:
+Traefik, Minecraft, TimescaleDB and coturn bind ports to the host:
 
 | Port | Service | Protocol |
 |---|---|---|
@@ -277,6 +279,14 @@ Only three services bind ports to the host:
 | `443` | reverse-proxy | HTTPS — all web traffic |
 | `25565` | minecraft | Minecraft server protocol |
 | `5432` | timescaledb | PostgreSQL wire protocol |
+| `3478` | coturn | STUN/TURN (UDP + TCP) |
+| `5349` | coturn | TURN over TLS/DTLS |
+| `49152-49200` | coturn | TURN relay range (UDP) |
+| `9641` | coturn | Prometheus metrics |
+
+coturn runs with `network_mode: host` rather than published ports: the relay
+range would otherwise need publishing port-by-port, and coturn has to see the
+real client address to hand out usable candidates.
 
 All other services communicate internally via Docker networks and are exposed only through Traefik.
 
@@ -293,14 +303,45 @@ All other services communicate internally via Docker networks and are exposed on
 - **ACME storage**: `/var/run/traefik/acme.json`
 - **Dashboard**: Enabled at `proxy.v-collaborate.com`, protected by Authelia
 - **Docker provider**: Auto-discovers services via the Docker socket
+- **File provider**: Watches `/etc/traefik/dynamic` for routers that cannot
+  live on container labels (currently `turn-cert`); changes there hot-reload
 - **Metrics**: Exposes Prometheus metrics endpoint
 - **Logging**: JSON format to `/var/log/traefik/traefik.log` and `/var/log/traefik/access.log`
+
+Static configuration (`traefik.yml`) is read once at startup, so changes to it
+require restarting the `reverse-proxy` container — `tasks/main.yml` does this
+automatically when the template changes. Dynamic configuration under
+`configs/traefik/dynamic/` is watched and applied without a restart.
 
 Each service registers with Traefik via Docker labels in the compose file, following a consistent pattern:
 
 1. HTTP router on `web` entrypoint with HTTPS redirect middleware
 2. HTTPS router on `websecure` entrypoint with TLS via `myresolver`
 3. Optional Authelia middleware (`auth@docker`) for protected services
+
+#### Certificate hand-off to coturn
+
+coturn is not behind Traefik — STUN/TURN is not HTTP, and the relay range plus
+the need to see the real client address rule out proxying it. It still needs a
+Let's Encrypt certificate for `turn.v-collaborate.com` on port 5349, and Traefik
+owns port 80, so the two are wired together like this:
+
+1. A certificate-only router (`turn-cert`) is declared through Traefik's
+   **file provider**, in `configs/traefik/dynamic/turn-cert.yml`. Its rule
+   matches `turn.v-collaborate.com` and its service is `noop@internal`; it
+   serves nothing, and exists only to make Traefik run the ACME HTTP challenge
+   for that name. It lives in a file rather than on container labels because
+   labels are fixed at container creation — putting it on `reverse-proxy`
+   would mean recreating Traefik to change it, and this repo runs
+   `recreate: never` by default.
+2. `/var/docker/dump_coturn_certs.sh` extracts the resulting certificate and
+   key from `acme.json` into `configs/coturn/certs/`, and restarts `web_coturn`
+   only when the material actually changed.
+3. A root cron job runs that script nightly at 03:30, so renewals propagate
+   without manual intervention.
+
+Set `coturn.tls: no` in [roles/web/vars/main.yml](roles/web/vars/main.yml) to
+drop all of this and run plaintext STUN/TURN on 3478 only.
 
 ### URL Redirects
 
@@ -582,7 +623,7 @@ Vault-encrypted variables used across the project include:
 ### Network Isolation
 
 - Services are segmented into four Docker networks, limiting inter-service communication
-- Only Traefik, Minecraft, and TimescaleDB expose ports to the host
+- Only Traefik, Minecraft, TimescaleDB, and coturn expose ports to the host
 - Backend databases (`grafana-pg`, `photoprism-mariadb`) are not accessible from the `proxy` network
 - Node Exporter has Traefik disabled (`traefik.enable=false`) and is only reachable within the `prometheus` network
 

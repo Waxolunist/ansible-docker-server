@@ -1,0 +1,65 @@
+# coturn -- STUN + TURN for Hulls & Hellfire off-LAN multiplayer.
+# Serves STUN (candidate discovery) and TURN (relay when peer-to-peer fails,
+# which on carrier-grade NAT is often).
+#
+# Managed by Ansible -- edit roles/web/templates/coturn/turnserver_conf.j2.
+
+listening-port={{ coturn.port }}
+{% if coturn.tls %}
+tls-listening-port={{ coturn.tls_port }}
+{% endif %}
+
+{% if coturn.external_ip %}
+# Behind NAT: advertise the public address rather than the interface address.
+external-ip={{ coturn.external_ip }}
+{% endif %}
+{% if coturn.listening_ip %}
+# Bind only the public address. Under host networking coturn otherwise binds
+# every interface, including the Docker bridges, and advertises relay
+# candidates on 172.x addresses that no external client can reach.
+listening-ip={{ coturn.listening_ip }}
+relay-ip={{ coturn.listening_ip }}
+{% endif %}
+realm={{ coturn.domain }}
+server-name={{ coturn.domain }}
+
+# Long-term credentials. See the README on moving to time-limited HMAC
+# credentials once the rendezvous service exists.
+lt-cred-mech
+user={{ coturn.user }}:{{ vault_coturn_password }}
+
+# Relay port range -- host networking, so these are reachable directly.
+# 48 ports is ample for a turn-based game; each session takes one.
+min-port={{ coturn.min_port }}
+max-port={{ coturn.max_port }}
+
+fingerprint
+no-multicast-peers
+no-cli
+no-tlsv1
+no-tlsv1_1
+
+# Metrics on :9641, scraped by Prometheus via docker.host.
+prometheus
+
+# Refuse to relay into private space. Without this the server is an open proxy
+# into whatever network it sits on -- the main way a public TURN box gets abused.
+denied-peer-ip=0.0.0.0-0.255.255.255
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=169.254.0.0-169.254.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=::1
+denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+
+{% if coturn.tls %}
+# TLS on {{ coturn.tls_port }}. These are dumped out of Traefik's acme.json by
+# dump_certs.sh -- coturn cannot speak ACME itself and Traefik owns port 80.
+cert=/etc/coturn/certs/fullchain.pem
+pkey=/etc/coturn/certs/privkey.pem
+{% endif %}
+
+# Quotas -- a single abusive client should not be able to saturate the box.
+user-quota={{ coturn.quota.user }}
+total-quota={{ coturn.quota.total }}

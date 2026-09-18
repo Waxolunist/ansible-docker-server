@@ -87,3 +87,9 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 
 No vault variables required. code-server's own authentication is disabled (`auth: none` in `configs/code-server/config.yaml`); authentication is handled entirely by Authelia forward auth at the Traefik layer.
 
+
+### coturn (STUN/TURN)
+
+| Variable | Used in | Docker secret | Description |
+|---|---|---|---|
+| `vault_coturn_password` | `coturn/turnserver_conf.j2` | — | Long-term TURN credential for the `hhfh` user, handed to game clients alongside `turn:turn.v-collaborate.com`. Generate with `openssl rand -base64 32` |
