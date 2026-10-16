@@ -21,9 +21,22 @@ authentication_backend:
 
 access_control:
   default_policy: deny
+  # First match wins. The wiki rules must come before the wildcard, which
+  # would otherwise let every full-access user in regardless of wiki group.
   rules:
+    - domain: "{{ otterwiki.domain }}"
+      policy: one_factor
+      subject:
+        - "group:{{ otterwiki.user_group }}"
+        - "group:{{ otterwiki.admin_group }}"
+    - domain: "{{ otterwiki.domain }}"
+      policy: deny
     - domain: "*.{{ topleveldomain }}"
       policy: one_factor
+      subject:
+{% for group in authelia_full_access_groups %}
+        - "group:{{ group }}"
+{% endfor %}
 
 session:
   name: authelia_session

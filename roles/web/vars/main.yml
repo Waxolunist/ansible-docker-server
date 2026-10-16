@@ -17,6 +17,7 @@
     - code-server
     - coturn
     - rendezvous
+    - otterwiki
   conduit:
     domain: "matrix.{{ topleveldomain }}"
     port: 6167
@@ -101,5 +102,22 @@
     # A session is two SDP blobs waiting for the second phone; ten minutes is
     # far longer than the pairing actually takes.
     session_ttl_ms: 600000
+
+  otterwiki:
+    domain: "wiki.{{ topleveldomain }}"
+    site_name: "Wiki"
+    # Authelia groups, used both by the Authelia access rules and by
+    # Otterwiki's role mapping. Admins get every permission; users may read,
+    # edit and upload attachments.
+    admin_group: WIKI_ADMIN
+    user_group: WIKI_USER
+    # nginx client_max_body_size inside the container, caps attachment uploads.
+    max_upload: 50M
+
+  # Groups allowed onto every other Authelia-protected service. Anyone in none
+  # of these (e.g. a wiki-only user) gets nothing but the wiki.
+  authelia_full_access_groups:
+    - admins
+    - Viewer
 
   restart_container: no

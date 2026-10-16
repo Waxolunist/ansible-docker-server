@@ -5,12 +5,14 @@
       dest: "{{ docker.paths.configs }}authelia/configuration.yml"
       mode: 0644
       backup: yes
+    register: authelia_config
   - name: Authelia - Write users database
     template:
       src: authelia/users_database_yml.j2
       dest: "{{ docker.paths.configs }}authelia/users_database.yml"
       mode: 0600
       backup: yes
+    register: authelia_users
   - name: Authelia - Write jwt_secret secret
     copy:
       content: "{{ vault_authelia_jwt_secret }}"

@@ -145,6 +145,31 @@
     become: yes
     when: rendezvous_source is defined and rendezvous_source.changed
 
+  # Authelia reads its configuration and users database once at startup.
+  # compose runs with recreate: never, so access rule or user changes would
+  # otherwise sit on disk unapplied.
+  - name: Authelia - Restart when its configuration or users changed
+    command: docker restart authelia
+    become: yes
+    when: (authelia_config is defined and authelia_config.changed) or
+          (authelia_users is defined and authelia_users.changed)
+
+  # settings.cfg is read once at startup.
+  - name: Otterwiki - Restart when its settings changed
+    command: docker restart web_otterwiki
+    become: yes
+    when: otterwiki_config is defined and otterwiki_config.changed
+
+  # recreate: never means compose will not attach the already running Traefik
+  # to the newly declared wiki network. Connecting it directly gives the same
+  # end state without restarting the proxy for every other service.
+  - name: Otterwiki - Attach Traefik to the wiki network
+    command: docker network connect web_wiki web_reverse-proxy
+    become: yes
+    register: traefik_wiki_network
+    changed_when: traefik_wiki_network.rc == 0
+    failed_when: traefik_wiki_network.rc != 0 and 'already exists' not in traefik_wiki_network.stderr
+
   # First run only: Traefik has just been told about turn-cert and needs a
   # moment to complete the ACME challenge, so the pre-compose dump found
   # nothing. Retry here and restart coturn once the certificate lands.

@@ -177,6 +177,7 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 20 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `proxy` | `picoclaw.v-collaborate.com` |
 | 21 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
 | 22 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
+| 23 | `otterwiki` | `redimp/otterwiki:2.25.2` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
 
 ### Service Dependencies
 
@@ -255,6 +256,11 @@ graph TB
         PP2[photoprism]
     end
 
+    subgraph wiki_net[web_wiki network]
+        RP2[reverse-proxy]
+        OW[otterwiki]
+    end
+
     INTERNET((Internet)) -->|80, 443| RP
     INTERNET -->|25565| MC[minecraft]
     INTERNET -->|3478, 5349, 49152-49200| CT[coturn]
@@ -268,6 +274,7 @@ graph TB
 | `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, pgadmin, timescaledb, loki, promtail, postgres-exporter |
 | `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
 | `photoprism` | auto-generated | PhotoPrism database access | photoprism-mariadb, photoprism |
+| `wiki` | `web_wiki` | Isolates Otterwiki, which trusts auth headers blindly, so only Traefik can reach it | reverse-proxy, otterwiki |
 
 ### Directly Exposed Ports
 
@@ -354,7 +361,10 @@ Traefik also handles personal domain redirects:
 
 - **Authentication backend**: File-based user database at [`/config/users_database.yml`](roles/web/templates/authelia/users_database_yml.j2)
 - **Password hashing**: SHA-512 and Argon2id
-- **Access control**: Default deny policy; one-factor authentication required for `*.v-collaborate.com`
+- **Access control**: Default deny policy, first matching rule wins:
+  1. `wiki.v-collaborate.com` — one factor, groups `WIKI_USER` or `WIKI_ADMIN` only; everyone else is denied
+  2. `*.v-collaborate.com` — one factor, groups listed in `authelia_full_access_groups` ([vars](roles/web/vars/main.yml), currently `admins` and `Viewer`). A user in none of them, such as a wiki-only user, reaches nothing but the wiki
+- **Restart on change**: Authelia reads its configuration and users database at startup only; `tasks/main.yml` restarts it when either file changed
 - **Session management**: 1-hour expiration, 5-minute inactivity timeout, scoped to `v-collaborate.com`
 - **Brute-force protection**: Max 3 retries within 120 seconds, 300-second ban
 - **Storage**: SQLite database at `/var/db.sqlite3`
@@ -394,6 +404,37 @@ Services protected by Authelia include:
 - **Registry** (`registry.v-collaborate.com`)
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
+- **Otterwiki** (`wiki.v-collaborate.com`) — see below
+
+### Otterwiki
+
+Otterwiki runs with `AUTH_METHOD = 'PROXY_HEADER'` and has no login of its
+own. It uses its own `wiki-auth` forwardAuth middleware, declared on the
+otterwiki container, because the shared `auth@docker` middleware does not pass
+`Remote-Email`, which Otterwiki requires. Traefik overwrites the `Remote-*`
+headers on every request, so clients cannot forge them.
+
+| Header | Otterwiki setting | Used for |
+|---|---|---|
+| `Remote-User` | `AUTH_HEADERS_USERNAME` | Git commit author name. Not `Remote-Name`: Otterwiki decodes headers as latin-1, which mangles umlauts in display names |
+| `Remote-Email` | `AUTH_HEADERS_EMAIL` | Git commit author email |
+| `Remote-Groups` | `AUTH_HEADERS_PERMISSIONS` | Mapped to permissions via `AUTH_ROLES_*` |
+
+| Authelia group | Read | Write | Upload | Admin |
+|---|---|---|---|---|
+| `WIKI_USER` | ✓ | ✓ | ✓ | |
+| `WIKI_ADMIN` | ✓ | ✓ | ✓ | ✓ |
+
+Configuration is templated to `configs/otterwiki/settings.cfg` and mounted
+read-only at `/config/settings.cfg` (`OTTERWIKI_SETTINGS`), outside
+`/app-data`, because the image's entrypoint runs `chown -R` over `/app-data`.
+Pages and attachments live in the git repository under
+`data/otterwiki/repository`; drafts and admin UI preferences in
+`data/otterwiki/db.sqlite`.
+
+To give someone wiki access, add `WIKI_USER` to their groups in the
+vault-encrypted [users database](roles/web/templates/authelia/users_database_yml.j2)
+and run the playbook. A wiki-only user gets `WIKI_USER` and nothing else.
 
 ---
 
@@ -547,6 +588,7 @@ The [`backup_databases.sh`](roles/web/templates/backup_databases.j2.sh) script r
 | Grafana PostgreSQL | `grafana-pg` | `pg_dump` | `dump_grafana_DD-MM-YYYY_HH_MM_SS.sql.gz` |
 | TimescaleDB | `timescaledb` | `pg_dump` | `dump_timescale_DD-MM-YYYY_HH_MM_SS.sql.gz` |
 | PhotoPrism MariaDB | `photoprism-mariadb` | `mariadb-dump` | `dump_photoprism_DD-MM-YYYY_HH_MM_SS.sql.gz` |
+| Otterwiki git repository and SQLite database | `otterwiki` | `tar` of `/app-data` | `dump_otterwiki_DD-MM-YYYY_HH_MM_SS.tar.gz` |
 
 - Backups are stored in `/backup/` as gzip-compressed SQL dumps
 - Each backup is validated — empty files are removed
@@ -626,6 +668,7 @@ Vault-encrypted variables used across the project include:
 - Only Traefik, Minecraft, TimescaleDB, and coturn expose ports to the host
 - Backend databases (`grafana-pg`, `photoprism-mariadb`) are not accessible from the `proxy` network
 - Node Exporter has Traefik disabled (`traefik.enable=false`) and is only reachable within the `prometheus` network
+- Otterwiki is only on the `wiki` network, shared with Traefik alone, so no other container can send it forged `Remote-*` headers. Because compose runs with `recreate: never`, `tasks/main.yml` attaches the running Traefik to `web_wiki` with `docker network connect`
 
 ### Authentication Layers
 
@@ -634,6 +677,7 @@ Vault-encrypted variables used across the project include:
 3. **PhotoPrism native auth** — Uses its own password-based authentication
 4. **Registry** — Accessible via Traefik with TLS; secrets stored in a dedicated directory
 5. **Code-Server** — `auth: none` in code-server config; Authelia is the sole authentication layer
+6. **Otterwiki proxy header auth** — Trusts Authelia's `Remote-User`, `Remote-Email` and `Remote-Groups` headers; permissions come from the `WIKI_USER` / `WIKI_ADMIN` groups
 
 ### Container Security
 

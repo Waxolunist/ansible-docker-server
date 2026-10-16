@@ -93,3 +93,9 @@ No vault variables required. code-server's own authentication is disabled (`auth
 | Variable | Used in | Docker secret | Description |
 |---|---|---|---|
 | `vault_coturn_password` | `coturn/turnserver_conf.j2` | — | Long-term TURN credential for the `hhfh` user, handed to game clients alongside `turn:turn.v-collaborate.com`. Generate with `openssl rand -base64 32` |
+
+### Otterwiki
+
+| Variable | Used in | Docker secret | Description |
+|---|---|---|---|
+| `vault_otterwiki_secret_key` | `otterwiki/settings_cfg.j2` | — | Flask session and CSRF signing key (Otterwiki reads no `_FILE` variant). Generate with `openssl rand -hex 32` |

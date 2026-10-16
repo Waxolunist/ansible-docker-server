@@ -1,0 +1,36 @@
+###############################################################
+#                   Otterwiki configuration                   #
+###############################################################
+
+DEBUG = False
+SECRET_KEY = '{{ vault_otterwiki_secret_key }}'
+REPOSITORY = '/app-data/repository'
+SQLALCHEMY_DATABASE_URI = 'sqlite:////app-data/db.sqlite'
+
+SITE_NAME = '{{ otterwiki.site_name }}'
+ROBOTS_TXT = 'disallow'
+
+# Authentication is delegated to Authelia through Traefik's forwardAuth
+# middleware, which overwrites these headers on every request. Otterwiki has
+# no login of its own in this mode.
+AUTH_METHOD = 'PROXY_HEADER'
+# Remote-User rather than Remote-Name for the git author: Otterwiki decodes
+# headers as latin-1, so display names with umlauts end up mangled in the
+# commit history.
+AUTH_HEADERS_USERNAME = 'Remote-User'
+AUTH_HEADERS_EMAIL = 'Remote-Email'
+AUTH_HEADERS_PERMISSIONS = 'Remote-Groups'
+
+# Authelia groups mapped onto Otterwiki permissions. Admins need READ, WRITE
+# and UPLOAD as well, the flags are independent.
+AUTH_ROLES_READ = '{{ otterwiki.user_group }} {{ otterwiki.admin_group }}'
+AUTH_ROLES_WRITE = '{{ otterwiki.user_group }} {{ otterwiki.admin_group }}'
+AUTH_ROLES_UPLOAD = '{{ otterwiki.user_group }} {{ otterwiki.admin_group }}'
+AUTH_ROLES_ADMIN = '{{ otterwiki.admin_group }}'
+
+# Ignored by PROXY_HEADER, set anyway so that a fallback to the built-in auth
+# never exposes the wiki to anonymous visitors.
+READ_ACCESS = 'APPROVED'
+WRITE_ACCESS = 'APPROVED'
+ATTACHMENT_ACCESS = 'APPROVED'
+DISABLE_REGISTRATION = True

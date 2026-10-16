@@ -1,0 +1,16 @@
+---
+  # The settings file lives outside /app-data: the image's entrypoint runs
+  # chown -R over /app-data, which fails on a read-only bind mount. It is only
+  # written by the image when missing, so pointing OTTERWIKI_SETTINGS here
+  # keeps the SECRET_KEY in the vault instead of a generated one on disk.
+  # Group 33 is www-data inside the container, which uwsgi runs as.
+  - name: Otterwiki - Write settings
+    template:
+      src: otterwiki/settings_cfg.j2
+      dest: "{{ docker.paths.configs }}otterwiki/settings.cfg"
+      owner: "{{ ansible_user }}"
+      group: "33"
+      mode: 0640
+      backup: yes
+    become: yes
+    register: otterwiki_config

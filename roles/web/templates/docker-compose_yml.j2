@@ -95,6 +95,7 @@ services:
     networks:
       - proxy
       - socket_proxy
+      - wiki
     labels:
       - autoheal=true
       - traefik.enable=true
@@ -893,6 +894,57 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  otterwiki:
+    image: redimp/otterwiki:2.25.2
+    container_name: web_otterwiki
+    mem_limit: 256M
+    cpus: 0.5
+    depends_on:
+      - reverse-proxy
+      - authelia
+    expose:
+      - 80
+    volumes:
+      - "{{ docker.paths.data }}otterwiki:/app-data"
+      - "{{ docker.paths.configs }}otterwiki/settings.cfg:/config/settings.cfg:ro"
+    environment:
+      - TZ=Europe/Vienna
+      - OTTERWIKI_SETTINGS=/config/settings.cfg
+      - NGINX_MAX_UPLOAD={{ otterwiki.max_upload }}
+    # Otterwiki trusts the Remote-* headers blindly, so it must only be
+    # reachable through Traefik. Its own network keeps every other container
+    # on web_proxy from talking to it with forged headers.
+    networks:
+      - wiki
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.docker.network=web_wiki
+      # Wiki-specific forwardAuth: the shared auth@docker middleware does not
+      # pass Remote-Email, which Otterwiki requires. Declared here rather than
+      # on the authelia container so it does not need recreating.
+      - traefik.http.middlewares.wiki-auth.forwardauth.address=http://authelia:{{ authelia.port }}/api/verify?rd=https://{{ authelia.domain }}
+      - traefik.http.middlewares.wiki-auth.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.wiki-auth.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email
+      - traefik.http.middlewares.otterwiki-https-redirect.redirectscheme.scheme=https
+      - traefik.http.services.otterwiki.loadbalancer.server.port=80
+      - traefik.http.routers.otterwiki-secure.entrypoints=websecure
+      - traefik.http.routers.otterwiki-secure.rule=Host(`{{ otterwiki.domain }}`)
+      - traefik.http.routers.otterwiki-secure.service=otterwiki
+      - traefik.http.routers.otterwiki-secure.tls=true
+      - traefik.http.routers.otterwiki-secure.tls.certresolver=myresolver
+      - traefik.http.routers.otterwiki-secure.middlewares=wiki-auth@docker,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.otterwiki.entrypoints=web
+      - traefik.http.routers.otterwiki.middlewares=otterwiki-https-redirect
+      - traefik.http.routers.otterwiki.rule=Host(`{{ otterwiki.domain }}`)
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost/-/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
 networks:
   proxy:
     name: web_proxy
@@ -904,6 +956,8 @@ networks:
   grafana:
   prometheus:
   photoprism:
+  wiki:
+    name: web_wiki
 
 secrets:
   timescale_superuser_password:

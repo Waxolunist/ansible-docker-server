@@ -56,6 +56,22 @@ else
     BACKUP_OK=0
 fi
 
+# Backup Otterwiki (git repository with pages and attachments, plus the
+# SQLite database holding drafts and admin preferences). Archived from
+# inside the container, where the files are readable regardless of owner.
+echo "Backing up Otterwiki..."
+OTTERWIKI_BACKUP="/backup/dump_otterwiki_${TIMESTAMP}.tar.gz"
+docker compose exec -T otterwiki tar -C /app-data -czf - repository db.sqlite > "${OTTERWIKI_BACKUP}"
+
+# Check if Otterwiki backup was successful
+if [ -s "${OTTERWIKI_BACKUP}" ]; then
+    echo "Otterwiki backup successful: $(ls -lh "${OTTERWIKI_BACKUP}")"
+else
+    echo "ERROR: Otterwiki backup failed or is empty!"
+    rm -f "${OTTERWIKI_BACKUP}"
+    BACKUP_OK=0
+fi
+
 echo "Database backups completed at $(date)"
 
 # Clean up old backups (keep last 20 per database)
@@ -63,6 +79,7 @@ echo "Cleaning up old backups..."
 ls -t /backup/dump_grafana_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 ls -t /backup/dump_timescale_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 ls -t /backup/dump_photoprism_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
+ls -t /backup/dump_otterwiki_*.tar.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 
 echo "Backup cleanup completed"
 
