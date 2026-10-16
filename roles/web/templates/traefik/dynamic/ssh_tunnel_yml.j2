@@ -1,0 +1,26 @@
+# SSH over TLS on port 443, for networks that only let HTTPS through.
+#
+# The client wraps SSH in TLS with SNI {{ ssh_tunnel.domain }}, e.g.
+#   ProxyCommand openssl s_client -quiet -connect %h:443 -servername {{ ssh_tunnel.domain }}
+# Traefik matches the SNI, terminates the TLS with a Let's Encrypt
+# certificate and forwards the plain SSH stream to the host's sshd. sshd then
+# authenticates as usual, so this adds a way to reach sshd, not a way past it.
+# It lives here because a TCP router to the host has no container to carry
+# its labels.
+#
+# Managed by Ansible -- edit roles/web/templates/traefik/dynamic/ssh_tunnel_yml.j2.
+
+tcp:
+  routers:
+    ssh-tunnel:
+      entryPoints:
+        - websecure
+      rule: "HostSNI(`{{ ssh_tunnel.domain }}`)"
+      service: ssh-tunnel
+      tls:
+        certResolver: myresolver
+  services:
+    ssh-tunnel:
+      loadBalancer:
+        servers:
+          - address: "{{ ssh_tunnel.target }}"

@@ -98,6 +98,11 @@
             port = ssh
             filter = sshd
             backend = systemd
+            # SSH over TLS on 443 reaches sshd from Traefik's address on
+            # web_proxy (roles/web/vars/main.yml, ssh_tunnel). Banning it would
+            # block that route for everyone, and with password login off
+            # there is nothing to guess.
+            ignoreip = 127.0.0.1/8 ::1 172.20.0.0/24
             maxretry = 3
             findtime = 600
             bantime = 3600

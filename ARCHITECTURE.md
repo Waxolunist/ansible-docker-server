@@ -283,7 +283,7 @@ Traefik, Minecraft, TimescaleDB and coturn bind ports to the host:
 | Port | Service | Protocol |
 |---|---|---|
 | `80` | reverse-proxy | HTTP — redirects to HTTPS |
-| `443` | reverse-proxy | HTTPS — all web traffic |
+| `443` | reverse-proxy | HTTPS — all web traffic, plus SSH wrapped in TLS for `ssh.v-collaborate.com` |
 | `25565` | minecraft | Minecraft server protocol |
 | `5432` | timescaledb | PostgreSQL wire protocol |
 | `3478` | coturn | STUN/TURN (UDP + TCP) |
@@ -311,7 +311,7 @@ All other services communicate internally via Docker networks and are exposed on
 - **Dashboard**: Enabled at `proxy.v-collaborate.com`, protected by Authelia
 - **Docker provider**: Auto-discovers services via the Docker socket
 - **File provider**: Watches `/etc/traefik/dynamic` for routers that cannot
-  live on container labels (currently `turn-cert`); changes there hot-reload
+  live on container labels (`turn-cert`, `ssh-tunnel`); changes there hot-reload
 - **Metrics**: Exposes Prometheus metrics endpoint
 - **Logging**: JSON format to `/var/log/traefik/traefik.log` and `/var/log/traefik/access.log`
 
@@ -349,6 +349,24 @@ owns port 80, so the two are wired together like this:
 
 Set `coturn.tls: no` in [roles/web/vars/main.yml](roles/web/vars/main.yml) to
 drop all of this and run plaintext STUN/TURN on 3478 only.
+
+#### SSH over port 443
+
+Some networks (airport and hotel WLANs) block port 22. Traefik offers a
+second way to reach the same sshd:
+
+1. A TCP router (`ssh-tunnel`) in `configs/traefik/dynamic/ssh-tunnel.yml`
+   matches TLS connections on `websecure` whose SNI is `ssh.v-collaborate.com`,
+   terminates TLS with a Let's Encrypt certificate and forwards the plain SSH
+   stream to `172.20.0.1:22`, the host as seen from the `web_proxy` network.
+2. The client wraps SSH in TLS:
+   `ProxyCommand openssl s_client -quiet -connect %h:443 -servername ssh.v-collaborate.com`.
+   Ansible takes the same option through
+   `-e ansible_ssh_common_args='-o ProxyCommand="..."'`.
+
+sshd authenticates as usual, so key-only login and `AllowUsers devops` apply
+unchanged. sshd sees Traefik's container address instead of the client's, so
+the fail2ban `sshd` jail ignores `172.20.0.0/24`.
 
 ### URL Redirects
 

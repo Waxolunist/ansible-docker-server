@@ -25,3 +25,9 @@
       path: "{{ docker.paths.configs }}traefik/dynamic/turn-cert.yml"
       state: absent
     when: not coturn.tls
+  - name: Write dynamic configuration for SSH over TLS on port 443
+    template:
+      src: traefik/dynamic/ssh_tunnel_yml.j2
+      dest: "{{ docker.paths.configs }}traefik/dynamic/ssh-tunnel.yml"
+      mode: 0644
+      backup: yes

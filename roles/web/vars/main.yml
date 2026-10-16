@@ -104,6 +104,14 @@
     # far longer than the pairing actually takes.
     session_ttl_ms: 600000
 
+  # SSH wrapped in TLS on port 443, for networks that block port 22. Traefik
+  # terminates the TLS and hands the plain SSH stream to the host's sshd.
+  ssh_tunnel:
+    domain: "ssh.{{ topleveldomain }}"
+    # The host as seen from Traefik: the gateway of web_proxy (subnet
+    # 172.20.0.0/24 in docker-compose_yml.j2). sshd listens on all addresses.
+    target: "172.20.0.1:22"
+
   otterwiki:
     domain: "wiki.{{ topleveldomain }}"
     site_name: "Wiki"
