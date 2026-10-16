@@ -264,7 +264,7 @@ services:
     restart: unless-stopped
 
   authelia:
-    image: authelia/authelia:4.37.2
+    image: {{ authelia.image }}
     container_name: authelia
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"
@@ -275,7 +275,7 @@ services:
       - authelia_session_secret
       - authelia_storage_encryption_key
     environment:
-      - AUTHELIA_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
+      - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
       - TZ=Europe/Vienna
@@ -295,9 +295,11 @@ services:
       - traefik.http.routers.auth.entrypoints=web
       - traefik.http.routers.auth.middlewares=auth-https-redirect
       - traefik.http.routers.auth.rule=Host(`{{ authelia.domain }}`)
-      - traefik.http.middlewares.auth.forwardauth.address=http://authelia:{{ authelia.port }}/api/verify?rd=https://{{ authelia.domain }}
+      # The login portal URL comes from session.cookies[].authelia_url.
+      - traefik.http.middlewares.auth.forwardauth.address=http://authelia:{{ authelia.port }}/api/authz/forward-auth
       - traefik.http.middlewares.auth.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.auth.forwardauth.authResponseHeaders=Remote-User, Remote-Groups, Redirect
+      - traefik.http.middlewares.auth.forwardauth.maxResponseBodySize=8192
+      - traefik.http.middlewares.auth.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name
     expose:
       - {{ authelia.port }}
     mem_limit: 256M
@@ -920,12 +922,6 @@ services:
       - autoheal=true
       - traefik.enable=true
       - traefik.docker.network=web_wiki
-      # Wiki-specific forwardAuth: the shared auth@docker middleware does not
-      # pass Remote-Email, which Otterwiki requires. Declared here rather than
-      # on the authelia container so it does not need recreating.
-      - traefik.http.middlewares.wiki-auth.forwardauth.address=http://authelia:{{ authelia.port }}/api/verify?rd=https://{{ authelia.domain }}
-      - traefik.http.middlewares.wiki-auth.forwardauth.trustForwardHeader=true
-      - traefik.http.middlewares.wiki-auth.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Name,Remote-Email
       - traefik.http.middlewares.otterwiki-https-redirect.redirectscheme.scheme=https
       - traefik.http.services.otterwiki.loadbalancer.server.port=80
       - traefik.http.routers.otterwiki-secure.entrypoints=websecure
@@ -933,7 +929,7 @@ services:
       - traefik.http.routers.otterwiki-secure.service=otterwiki
       - traefik.http.routers.otterwiki-secure.tls=true
       - traefik.http.routers.otterwiki-secure.tls.certresolver=myresolver
-      - traefik.http.routers.otterwiki-secure.middlewares=wiki-auth@docker,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.otterwiki-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
       - traefik.http.routers.otterwiki.entrypoints=web
       - traefik.http.routers.otterwiki.middlewares=otterwiki-https-redirect
       - traefik.http.routers.otterwiki.rule=Host(`{{ otterwiki.domain }}`)

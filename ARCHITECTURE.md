@@ -162,7 +162,7 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `proxy`, `prometheus` | `metrics.v-collaborate.com` |
 | 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
 | 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `proxy`, `prometheus` | `cadvisor.v-collaborate.com` |
-| 8 | `authelia` | `authelia/authelia:4.37.2` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
+| 8 | `authelia` | `authelia/authelia:4.39.28` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
 | 9 | `grafana-pg` | `postgres:13-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
 | 10 | `grafana` | `grafana/grafana:12.2.8` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
 | 11 | `pgadmin` | `dpage/pgadmin4:9.14.0` | Database administration UI | — | `proxy`, `grafana` | `pgadmin.v-collaborate.com` |
@@ -364,8 +364,10 @@ Traefik also handles personal domain redirects:
 - **Access control**: Default deny policy, first matching rule wins:
   1. `wiki.v-collaborate.com` — one factor, groups `WIKI_USER` or `WIKI_ADMIN` only; everyone else is denied
   2. `*.v-collaborate.com` — one factor, groups listed in `authelia_full_access_groups` ([vars](roles/web/vars/main.yml), currently `admins` and `Viewer`). A user in none of them, such as a wiki-only user, reaches nothing but the wiki
+- **Forward auth endpoint**: `/api/authz/forward-auth` (the pre-4.38 `/api/verify` is deprecated). The shared `auth@docker` middleware passes `Remote-User`, `Remote-Groups`, `Remote-Email` and `Remote-Name`; the login portal URL comes from `session.cookies[].authelia_url`
 - **Restart on change**: Authelia reads its configuration and users database at startup only; `tasks/main.yml` restarts it when either file changed
-- **Session management**: 1-hour expiration, 5-minute inactivity timeout, scoped to `v-collaborate.com`
+- **Upgrades**: Authelia is in `recreate_when_changed` ([vars](roles/web/vars/main.yml)), so bumping `authelia.image` recreates it on the next playbook run. Before that, `tasks/authelia.yml` copies the database to `/backup/authelia_db_<old version>_<timestamp>.sqlite3`: the new version migrates the schema on start, and an older version cannot open the migrated database. To roll back, restore that file to `data/authelia/db.sqlite3` and revert the image
+- **Session management**: 1-hour expiration, 5-minute inactivity timeout, one cookie scoped to `v-collaborate.com`
 - **Brute-force protection**: Max 3 retries within 120 seconds, 300-second ban
 - **Storage**: SQLite database at `/var/db.sqlite3`
 - **Notifications**: Filesystem-based at `/notifications/notification.txt`
@@ -409,10 +411,8 @@ Services protected by Authelia include:
 ### Otterwiki
 
 Otterwiki runs with `AUTH_METHOD = 'PROXY_HEADER'` and has no login of its
-own. It uses its own `wiki-auth` forwardAuth middleware, declared on the
-otterwiki container, because the shared `auth@docker` middleware does not pass
-`Remote-Email`, which Otterwiki requires. Traefik overwrites the `Remote-*`
-headers on every request, so clients cannot forge them.
+own. It sits behind the shared `auth@docker` middleware, which overwrites the
+`Remote-*` headers on every request, so clients cannot forge them.
 
 | Header | Otterwiki setting | Used for |
 |---|---|---|
