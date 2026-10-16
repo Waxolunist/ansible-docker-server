@@ -637,8 +637,9 @@ The [`start.sh`](roles/web/templates/start_sh.j2.sh) script runs every 5 minutes
 
 The [`system`](roles/system/tasks/main.yml) role applies the following SSH security measures:
 
-- **Password authentication disabled** — Only SSH key-based login is permitted
+- **Password authentication disabled** — Only SSH key-based login is permitted. [`hardening.yml`](hardening.yml) also writes `/etc/ssh/sshd_config.d/00-hardening.conf`, because the provider's `50-cloud-init.conf` turns password login back on and sshd keeps the first value it reads
 - **Root login disabled** — The `root` user cannot log in via SSH
+- **fail2ban** — [`hardening.yml`](hardening.yml) bans an address for an hour after 3 failed SSH logins within 10 minutes (`sshd` jail). The `traefik-auth` jail is disabled: it matched every 401/403 from a backend, including the ones Matrix clients get in normal use
 - **Dedicated service account** — All operations run as the `devops` user with passwordless sudo
 
 ### Ansible Vault

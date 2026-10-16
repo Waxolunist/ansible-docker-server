@@ -67,6 +67,19 @@
           state: present
         notify: restart sshd
 
+      # sshd keeps the first value it reads, and sshd_config includes
+      # sshd_config.d/*.conf before its own lines. The provider's
+      # 50-cloud-init.conf sets PasswordAuthentication yes, which overrode the
+      # "no" the system role writes to sshd_config. 00- sorts before it.
+      - name: Harden SSH - Disable password authentication ahead of cloud-init
+        copy:
+          dest: /etc/ssh/sshd_config.d/00-hardening.conf
+          content: |
+            # Managed by Ansible (hardening.yml)
+            PasswordAuthentication no
+          mode: "0644"
+        notify: restart sshd
+
       # --- fail2ban ---
 
       - name: Install fail2ban
@@ -91,15 +104,21 @@
           mode: "0644"
         notify: restart fail2ban
 
+      # Disabled: the filter matches any 401/403 from a backend, and Matrix
+      # clients get 403s in bursts during normal use, so it would ban the
+      # owner from every web service. Its bans would also not apply as is --
+      # with userland-proxy off, traffic to Traefik passes FORWARD, not
+      # INPUT, so it would need chain = DOCKER-USER. A replacement should
+      # watch Authelia's failed logins instead.
       - name: Configure fail2ban Traefik jail
         copy:
           dest: /etc/fail2ban/jail.d/traefik.conf
           content: |
             [traefik-auth]
-            enabled = true
+            enabled = false
             port = http,https
             filter = traefik-auth
-            logpath = /var/docker/logs/reverse-proxy/access.log
+            logpath = /var/docker/logs/traefik/access.log
             maxretry = 5
             findtime = 300
             bantime = 3600
