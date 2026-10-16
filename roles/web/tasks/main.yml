@@ -204,19 +204,27 @@
     delay: 15
     when: coturn.tls
 
+  # Only Ansible's own backup names (<file>.<pid>.<YYYY-MM-DD@HH:MM:SS>~):
+  # data/ holds application files too, such as editor backups in the
+  # code-server workspace, which a plain '*~' would delete. become is needed
+  # for backups of files written as root (e.g. picoclaw's config).
   - name: Find Ansible template backup files
     find:
       paths:
         - "{{ docker_base_path }}"
-        - "{{ docker.paths.configs }}"
-      patterns: '*~'
+      patterns: '^.+\.\d+\.\d{4}-\d{2}-\d{2}@\d{2}:\d{2}:\d{2}~$'
+      use_regex: yes
       recurse: yes
+      # Backups of dotfiles such as picoclaw's .security.yml are hidden too.
+      hidden: yes
+    become: yes
     register: ansible_backups
 
   - name: Remove old Ansible template backups (keep newest 20)
     file:
       path: "{{ item.path }}"
       state: absent
+    become: yes
     loop: "{{ (ansible_backups.files | sort(attribute='mtime', reverse=true))[20:] }}"
     loop_control:
       label: "{{ item.path }}"
