@@ -370,7 +370,8 @@ Traefik also handles personal domain redirects:
 - **Session management**: 1-hour expiration, 5-minute inactivity timeout, one cookie scoped to `v-collaborate.com`
 - **Brute-force protection**: Max 3 retries within 120 seconds, 300-second ban
 - **Storage**: SQLite database at `/var/db.sqlite3`
-- **Notifications**: Filesystem-based at `/notifications/notification.txt`
+- **Notifications**: SMTP through the same Gmail account and app password as Grafana (`smtp_password` secret). Sends the one-time codes for identity verification (2FA enrollment, elevated sessions). The startup check is disabled so a revoked app password cannot stop Authelia, and with it every protected service
+- **Password reset and change**: Disabled. Passwords live in the vault-encrypted users database, which is mounted read-only and rewritten on every playbook run, so Authelia could not persist a new password
 
 ### Authentication Flow
 
@@ -542,7 +543,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 ├── work/             # Working directories
 │   ├── traefik/      # acme.json (Let's Encrypt certs)
 │   ├── registry/     # Registry blob storage
-│   ├── authelia/     # Notification files
+│   ├── authelia/     # unused since notifications moved to SMTP
 │   └── photoprism/   # originals/, import/
 ├── logs/             # Application logs
 │   ├── traefik/      # traefik.log, access.log
@@ -562,7 +563,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | registry | `configs/registry` → `/etc/docker/registry` | — | `work/registry` → `/var/lib/registry` | `logs/registry` → `/var/log/docker-registry` |
 | reverse-proxy | `configs/traefik` → `/etc/traefik` | — | `work/traefik` → `/var/run/traefik` | `logs/traefik` → `/var/log/traefik` |
 | prometheus | `configs/prometheus` → `/etc/prometheus` | `data/prometheus` → `/prometheus` | — | — |
-| authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3` | `work/authelia` → `/notifications` | — |
+| authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3` | — | — |
 | grafana-pg | — | `data/grafana/pgdata` → `/var/lib/postgresql/data` | — | — |
 | grafana | `configs/grafana` → `/etc/grafana` | `data/grafana` → `/var/lib/grafana` | — | `logs/grafana` → `/var/log/grafana` |
 | pgadmin | — | `data/pgadmin` → `/var/lib/pgadmin` | — | — |
@@ -660,7 +661,7 @@ Vault-encrypted variables used across the project include:
 | `vault_registry_http_secret` | Docker registry HTTP secret |
 | `vault_photoprism_admin_password` | PhotoPrism admin password |
 | `vault_photoprism_db_password` / `vault_photoprism_db_root_password` | PhotoPrism MariaDB credentials |
-| `vault_smtp_server_user` / `vault_smtp_server_password` | Gmail SMTP credentials for Grafana alerts |
+| `vault_smtp_server_user` / `vault_smtp_server_password` | Gmail SMTP credentials for Grafana alerts and Authelia notifications |
 
 ### Network Isolation
 

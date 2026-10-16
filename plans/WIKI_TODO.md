@@ -5,26 +5,24 @@ itself is described in [ARCHITECTURE.md](../ARCHITECTURE.md#otterwiki).
 
 ---
 
-## 1. SMTP for Authelia
+## 1. SMTP for Authelia — done
 
-**Why:** Authelia's notifier writes to `work/authelia/notification.txt` on
-the server. Users cannot reset a forgotten password themselves, and every new
-wiki user has to be handed a password by the admin. 2FA enrollment also
-sends a verification mail, so this is a prerequisite for requiring 2FA later.
+- [x] `notifier.smtp` through the Gmail account Grafana already uses
+      (`submission://smtp.gmail.com:587`, `vault_smtp_server_user`), password
+      from the shared `smtp_password` Docker secret.
+- [x] Sender set to the Gmail address itself; Gmail rewrites anything else.
+- [x] Credentials verified against Gmail before deploying. The startup check
+      is disabled afterwards so a revoked app password cannot keep Authelia,
+      and every service behind it, from starting.
+- [ ] After deploying, check that a verification mail arrives, e.g. by
+      starting a one-time password registration as `christian.test` in the
+      Authelia settings (the code goes to `christian.sterzl+wikitest@gmail.com`).
 
-**How:**
-
-- [ ] Replace the `notifier.filesystem` block in
-      [`authelia_yml.j2`](../roles/web/templates/authelia/authelia_yml.j2)
-      with `notifier.smtp`. The Gmail account Grafana already uses can be
-      reused: `address: submission://smtp.gmail.com:587`, user
-      `vault_smtp_server_user`.
-- [ ] Pass the password as a Docker secret: add the existing `smtp_password`
-      secret to the `authelia` service and set
-      `AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/smtp_password`.
-- [ ] Set `notifier.smtp.sender`. Gmail rewrites the From address to the
-      authenticated account unless the sender is a verified alias.
-- [ ] Test a password reset from `auth.v-collaborate.com`.
+**Decision:** self-service password reset and change stay disabled. The
+users database is vault-encrypted, mounted read-only and rewritten on every
+playbook run, so Authelia could not persist a new password. Passwords are
+changed in the vault. If users should manage their own passwords later, the
+users have to move out of the vault (e.g. into lldap).
 
 ## 2. Push the wiki to a private GitHub repository
 

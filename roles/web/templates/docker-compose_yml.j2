@@ -268,16 +268,17 @@ services:
     container_name: authelia
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"
-      - "{{ docker.paths.work }}authelia:/notifications"
       - "{{ docker.paths.data }}authelia/db.sqlite3:/var/db.sqlite3"
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret
       - authelia_storage_encryption_key
+      - smtp_password
     environment:
       - AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE=/run/secrets/authelia_jwt_secret
       - AUTHELIA_SESSION_SECRET_FILE=/run/secrets/authelia_session_secret
       - AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE=/run/secrets/authelia_storage_encryption_key
+      - AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/smtp_password
       - TZ=Europe/Vienna
     depends_on:
       - reverse-proxy

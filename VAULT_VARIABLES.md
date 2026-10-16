@@ -50,8 +50,8 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 |---|---|---|---|
 | `vault_grafana_pg_user` | `docker-compose_yml.j2`, `grafana_ini.j2`, `backup_databases.j2.sh` | — | PostgreSQL username for Grafana's own database (`grafana-pg` container) |
 | `vault_grafana_pg_password` | `tasks/grafana.yml` | `grafana_pg_password` | Password for the Grafana PostgreSQL user |
-| `vault_smtp_server_user` | `docker-compose_yml.j2` | — | Gmail address used by Grafana for SMTP (`GF_SMTP_USER`) |
-| `vault_smtp_server_password` | `tasks/grafana.yml` | `smtp_password` | Gmail app password for SMTP |
+| `vault_smtp_server_user` | `docker-compose_yml.j2`, `authelia/authelia_yml.j2` | — | Gmail address used for SMTP by Grafana (`GF_SMTP_USER`) and Authelia (`notifier.smtp.username`, also the sender) |
+| `vault_smtp_server_password` | `tasks/grafana.yml` | `smtp_password` | Gmail app password for SMTP, shared by Grafana and Authelia (`AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE`) |
 
 ### PgAdmin
 

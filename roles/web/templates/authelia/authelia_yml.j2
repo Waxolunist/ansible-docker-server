@@ -12,6 +12,13 @@ totp:
   issuer: {{ topleveldomain }}
 
 authentication_backend:
+  # Passwords live in the vault-encrypted users database, which is mounted
+  # read-only and rewritten on every playbook run, so Authelia could not
+  # persist a new password anyway. Passwords are changed in the vault.
+  password_reset:
+    disable: true
+  password_change:
+    disable: true
   file:
     path: /config/users_database.yml
     password:
@@ -56,6 +63,17 @@ storage:
   local:
     path: /var/db.sqlite3
 
+# Sends the one-time codes for identity verification (2FA enrollment,
+# elevated sessions). Same Gmail account and app password as Grafana; the
+# password comes from AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE.
 notifier:
-  filesystem:
-    filename: /notifications/notification.txt
+  # The startup check logs in to Gmail and makes Authelia refuse to start if
+  # that fails. Authelia guards every service, so a revoked app password
+  # would lock out all of them; without the check only sending mail fails.
+  disable_startup_check: true
+  smtp:
+    address: submission://smtp.gmail.com:587
+    username: {{ vault_smtp_server_user }}
+    # Gmail rewrites any other From address to the authenticated account.
+    sender: "Authelia <{{ vault_smtp_server_user }}>"
+    subject: "[{{ topleveldomain }}] {title}"
