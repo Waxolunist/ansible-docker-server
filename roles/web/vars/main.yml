@@ -27,6 +27,7 @@
   prometheus:
     domain: "metrics.{{ topleveldomain }}"
   authelia:
+    image: authelia/authelia:4.39.28
     domain: "auth.{{ topleveldomain }}"
     port: 9091
   traefik:
@@ -119,5 +120,13 @@
   authelia_full_access_groups:
     - admins
     - Viewer
+
+  # compose runs with recreate: never, so a changed image, label or
+  # environment would otherwise never reach a running container. These
+  # services are recreated whenever their compose definition changed;
+  # unchanged ones are left alone.
+  recreate_when_changed:
+    - authelia
+    - otterwiki
 
   restart_container: no

@@ -34,6 +34,26 @@
       mode: '0644'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+  # A new Authelia version migrates the SQLite schema on first start, and an
+  # older version refuses to open a migrated database. Keep a copy taken
+  # under the old version so a rollback is possible.
+  - name: Authelia - Read the image of the running container
+    command: docker inspect authelia
+    become: yes
+    register: authelia_inspect
+    changed_when: false
+    failed_when: false
+  - name: Authelia - Snapshot the database before an image change
+    copy:
+      src: "{{ docker.paths.data }}authelia/db.sqlite3"
+      # Named after the version that can still open it.
+      dest: "/backup/authelia_db_{{ (authelia_inspect.stdout | from_json)[0].Config.Image | regex_replace('^.*:', '') }}_{{ ansible_date_time.iso8601_basic_short }}.sqlite3"
+      remote_src: yes
+      mode: 0600
+    become: yes
+    when:
+      - authelia_inspect.rc == 0
+      - (authelia_inspect.stdout | from_json)[0].Config.Image != authelia.image
   - name: Touch sqlite db
     file:
       path: "{{ docker.paths.data }}authelia/db.sqlite3"

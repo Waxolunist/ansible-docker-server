@@ -17,7 +17,8 @@ sends a verification mail, so this is a prerequisite for requiring 2FA later.
 - [ ] Replace the `notifier.filesystem` block in
       [`authelia_yml.j2`](../roles/web/templates/authelia/authelia_yml.j2)
       with `notifier.smtp`. The Gmail account Grafana already uses can be
-      reused: `smtp.gmail.com:587`, user `vault_smtp_server_user`.
+      reused: `address: submission://smtp.gmail.com:587`, user
+      `vault_smtp_server_user`.
 - [ ] Pass the password as a Docker secret: add the existing `smtp_password`
       secret to the `authelia` service and set
       `AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE=/run/secrets/smtp_password`.
@@ -51,11 +52,10 @@ normal git repo.
 
 ## Noticed during setup
 
-- [ ] **5-minute inactivity timeout.** Authelia's `session.inactivity: 300`
+- [ ] **5-minute inactivity timeout.** Authelia's `session.inactivity: 5m`
       applies to the wiki too. Someone writing a long page for more than five
       minutes without saving may find their session gone on save. Ticking
       "Remember me" at login avoids it; raising the timeout is the
-      alternative, but Authelia 4.37 has one session config for all services.
-- [ ] **Authelia 4.37.2 is old.** 4.38 renamed several config keys
-      (`server.address`, `session.cookies`, `identity_validation`) and should
-      be upgraded deliberately rather than with a version bump.
+      alternative. Timeouts can be set per entry in `session.cookies`, but
+      every service shares the one `v-collaborate.com` cookie, so it would
+      apply to all of them.

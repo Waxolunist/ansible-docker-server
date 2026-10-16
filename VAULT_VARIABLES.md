@@ -40,7 +40,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 
 | Variable | Used in | Docker secret | Description |
 |---|---|---|---|
-| `vault_authelia_jwt_secret` | `tasks/authelia.yml` | `authelia_jwt_secret` | JWT signing key for identity tokens |
+| `vault_authelia_jwt_secret` | `tasks/authelia.yml` | `authelia_jwt_secret` | JWT signing key for password reset identity verification (`identity_validation.reset_password.jwt_secret`) |
 | `vault_authelia_session_secret` | `tasks/authelia.yml` | `authelia_session_secret` | Session cookie encryption key |
 | `vault_authelia_storage_encryption_key` | `tasks/authelia.yml` | `authelia_storage_encryption_key` | Encryption key for the Authelia SQLite database |
 

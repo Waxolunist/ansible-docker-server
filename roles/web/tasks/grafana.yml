@@ -19,6 +19,7 @@
       dest: "{{ docker.paths.configs }}grafana/grafana.ini"
       mode: 0644
       backup: yes
+    register: grafana_config
   - name: Grafana - Create provisioning directories
     file:
       path: "{{ docker.paths.configs }}grafana/provisioning/{{ item }}"

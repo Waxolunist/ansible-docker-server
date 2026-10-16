@@ -3,13 +3,11 @@
 ###############################################################
 
 server:
-  host: 0.0.0.0
-  port: {{ authelia.port }}
+  address: tcp://0.0.0.0:{{ authelia.port }}/
 
 log:
   level: debug
 
-default_redirection_url: https://{{ topleveldomain }}
 totp:
   issuer: {{ topleveldomain }}
 
@@ -17,7 +15,9 @@ authentication_backend:
   file:
     path: /config/users_database.yml
     password:
-      algorithm: argon2id
+      algorithm: argon2
+      argon2:
+        variant: argon2id
 
 access_control:
   default_policy: deny
@@ -40,14 +40,17 @@ access_control:
 
 session:
   name: authelia_session
-  expiration: 3600 # 1 hour
-  inactivity: 300 # 5 minutes
-  domain: {{ topleveldomain }}
+  expiration: 1h
+  inactivity: 5m
+  cookies:
+    - domain: {{ topleveldomain }}
+      authelia_url: https://{{ authelia.domain }}
+      default_redirection_url: https://{{ topleveldomain }}
 
 regulation:
   max_retries: 3
-  find_time: 120
-  ban_time: 300
+  find_time: 2m
+  ban_time: 5m
 
 storage:
   local:

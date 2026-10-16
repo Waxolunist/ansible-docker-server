@@ -5,7 +5,7 @@ auto_assign_org_role = Viewer
 
 [auth]
 disable_login_form = true
-signout_redirect_url = https://{{ authelia.domain }}/api/logout?rd=https://{{ grafana.domain }}
+signout_redirect_url = https://{{ authelia.domain }}/logout?rd=https://{{ grafana.domain }}
 # Login cookie name
 login_cookie_name = grafana_session
 # The lifetime (days) an authenticated user can be inactive before being required to login at next visit. Default is 7 days.

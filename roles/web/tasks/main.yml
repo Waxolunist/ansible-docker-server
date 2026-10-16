@@ -145,6 +145,26 @@
     become: yes
     when: rendezvous_source is defined and rendezvous_source.changed
 
+  # Without --force-recreate, compose only recreates a service whose config
+  # hash differs from the running container's, so this is a no-op unless
+  # something actually changed.
+  - name: Recreate services whose compose definition changed
+    command: >-
+      docker compose
+      {% for file in compose_files.files | map(attribute='path') %}-f {{ file }} {% endfor %}
+      up -d --no-deps {{ recreate_when_changed | join(' ') }}
+    args:
+      chdir: "{{ docker_base_path }}"
+    become: yes
+    register: recreated_services
+    changed_when: "'Recreated' in recreated_services.stderr"
+    when: not restart_container
+
+  - name: Grafana - Restart when its configuration changed
+    command: docker restart web_grafana
+    become: yes
+    when: grafana_config is defined and grafana_config.changed
+
   # Authelia reads its configuration and users database once at startup.
   # compose runs with recreate: never, so access rule or user changes would
   # otherwise sit on disk unapplied.
