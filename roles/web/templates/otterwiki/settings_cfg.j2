@@ -21,6 +21,12 @@ AUTH_HEADERS_USERNAME = 'Remote-User'
 AUTH_HEADERS_EMAIL = 'Remote-Email'
 AUTH_HEADERS_PERMISSIONS = 'Remote-Groups'
 
+# PROXY_HEADER hides Otterwiki's own logout, so the sidebar links to
+# Authelia's instead. That ends the session for every service, as they all
+# share one cookie, and rd leads back to the wiki's login page. A menu saved
+# in the admin UI goes to the database and replaces this one.
+SIDEBAR_CUSTOM_MENU = '[{"title": "Logout", "link": "https://{{ authelia.domain }}/logout?rd=https://{{ otterwiki.domain }}/"}]'
+
 # Authelia groups mapped onto Otterwiki permissions. Admins need READ, WRITE
 # and UPLOAD as well, the flags are independent.
 AUTH_ROLES_READ = '{{ otterwiki.user_group }} {{ otterwiki.admin_group }}'

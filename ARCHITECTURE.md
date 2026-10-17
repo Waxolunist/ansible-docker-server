@@ -448,6 +448,11 @@ own. It sits behind the shared `auth@docker` middleware, which overwrites the
 | `WIKI_USER` | ✓ | ✓ | ✓ | |
 | `WIKI_ADMIN` | ✓ | ✓ | ✓ | ✓ |
 
+Otterwiki hides its own logout in this mode, so a **Logout** entry in the
+sidebar (`SIDEBAR_CUSTOM_MENU`) links to Authelia's `/logout`, with `rd`
+pointing back to the wiki. It ends the session for every service, since
+they share one cookie.
+
 Configuration is templated to `configs/otterwiki/settings.cfg` and mounted
 read-only at `/config/settings.cfg` (`OTTERWIKI_SETTINGS`), outside
 `/app-data`, because the image's entrypoint runs `chown -R` over `/app-data`.
