@@ -43,6 +43,14 @@ access_control:
   # First match wins. The wiki rules must come before the wildcard, which
   # would otherwise let every full-access user in regardless of wiki group.
   rules:
+    # Otterwiki's pull webhook, called by GitHub on every push to the wiki
+    # repository. The 64 hex characters are an HMAC keyed with Otterwiki's
+    # SECRET_KEY; any other value gets a 404, and the call can only trigger a
+    # pull. Traefik still strips Remote-* headers sent by the caller.
+    - domain: "{{ otterwiki.domain }}"
+      resources:
+        - "^/-/api/v1/pull/[0-9a-f]{64}$"
+      policy: bypass
     - domain: "{{ otterwiki.domain }}"
       policy: one_factor
       subject:

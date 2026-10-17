@@ -918,6 +918,12 @@ services:
       - TZ=Europe/Vienna
       - OTTERWIKI_SETTINGS=/config/settings.cfg
       - NGINX_MAX_UPLOAD={{ otterwiki.max_upload }}
+      # Git config for every git call in the container: pulls from GitHub
+      # only fast-forward. A merge could stop on a conflict and leave
+      # conflict markers in the wiki's working tree.
+      - GIT_CONFIG_COUNT=1
+      - GIT_CONFIG_KEY_0=pull.ff
+      - GIT_CONFIG_VALUE_0=only
     # Otterwiki trusts the Remote-* headers blindly, so it must only be
     # reachable through Traefik. Its own network keeps every other container
     # on web_proxy from talking to it with forged headers.

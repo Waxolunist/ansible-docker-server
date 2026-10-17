@@ -35,13 +35,24 @@ AUTH_ROLES_UPLOAD = '{{ otterwiki.user_group }} {{ otterwiki.admin_group }}'
 AUTH_ROLES_ADMIN = '{{ otterwiki.admin_group }}'
 
 # Pushes the repository after every change, so a copy survives losing the
-# server. A plain push, not a force push: if anything else ever pushes to the
-# remote, the wiki's pushes are rejected until that is sorted out. Otterwiki
+# server, and pulls changes made there back in. Otterwiki only pulls when
+# its webhook is called: by GitHub on every push, and hourly from cron by
+# /var/docker/otterwiki_pull.sh as a fallback.
+# Pulls are fast-forward only (GIT_CONFIG_* in the compose file): if both
+# sides changed in between, push and pull stop until an admin picks a side
+# with Force Push or Reset to remote in Repository Management. Otterwiki
 # runs ssh with host key checking off. Settings saved in the admin UI's
 # repository management go to the database and replace these.
 GIT_REMOTE_PUSH_ENABLED = True
-GIT_REMOTE_PUSH_URL = '{{ otterwiki.push_url }}'
+GIT_REMOTE_PUSH_URL = '{{ otterwiki.remote_url }}'
 GIT_REMOTE_PUSH_PRIVATE_KEY = '''{{ vault_otterwiki_push_private_key }}'''
+GIT_REMOTE_PULL_ENABLED = True
+GIT_REMOTE_PULL_URL = '{{ otterwiki.remote_url }}'
+GIT_REMOTE_PULL_PRIVATE_KEY = '''{{ vault_otterwiki_push_private_key }}'''
+# The webhook path is an HMAC of the URL keyed with SECRET_KEY. Without
+# this it is a plain hash of the public repository URL, which anyone could
+# compute.
+GIT_REMOTE_PULL_URL_SECURE = True
 
 # Ignored by PROXY_HEADER, set anyway so that a fallback to the built-in auth
 # never exposes the wiki to anonymous visitors.

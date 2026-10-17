@@ -35,12 +35,17 @@ normal git repo.
       the key goes in directly (`GIT_REMOTE_PUSH_PRIVATE_KEY`), like the
       `SECRET_KEY`, so no extra file or mount.
 - [x] Documented in [VAULT_VARIABLES.md](../VAULT_VARIABLES.md).
-- [ ] After deploying, push the existing history once with the **Push**
-      button under Admin → Repository Management, then check that a page
-      edit shows up on GitHub.
+- [x] Existing history pushed once with the **Push** button under Admin →
+      Repository Management; page edits show up on GitHub.
+- [x] Pull back changes made on GitHub, fast-forward only: a GitHub push
+      webhook calls Otterwiki's pull webhook (Authelia bypass for that
+      path), and cron pulls hourly as a fallback.
+- [ ] After deploying, edit a page on GitHub and check it appears in the
+      wiki within seconds.
 - [ ] Later, for read-only access by other people: move the repository into
       a free GitHub organization. On a personal account every collaborator
-      can push, and any push from outside makes the wiki's pushes fail.
+      can push; edits there are pulled in, but one that crosses a wiki edit
+      within seconds stops syncing until an admin picks a side.
 
 ---
 

@@ -14,3 +14,17 @@
       backup: yes
     become: yes
     register: otterwiki_config
+  - name: Otterwiki - Write the pull script
+    copy:
+      src: otterwiki_pull.sh
+      dest: "{{ docker_base_path }}/otterwiki_pull.sh"
+      mode: 0755
+  # GitHub's push webhook triggers the pull right away. This hourly pull
+  # catches deliveries that failed, e.g. while the server was down; GitHub
+  # does not retry them.
+  - name: Otterwiki - Pull from GitHub hourly as a fallback
+    cron:
+      name: "otterwiki pull"
+      minute: "17"
+      user: "{{ ansible_user }}"
+      job: "{{ docker_base_path }}/otterwiki_pull.sh >> {{ docker.paths.logs }}otterwiki_pull.log 2>&1"

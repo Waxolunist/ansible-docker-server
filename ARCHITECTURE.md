@@ -450,9 +450,28 @@ own. It sits behind the shared `auth@docker` middleware, which overwrites the
 
 Every change is pushed to the private repository
 `github.com/Waxolunist/wiki` (`GIT_REMOTE_PUSH_*`), with a read-write deploy
-key from the vault, so a copy survives losing the server. Otterwiki pushes
-without force: nothing else may push to that repository, or the wiki's pushes
-are rejected. Admin → Repository Management has a manual Push button.
+key from the vault, so a copy survives losing the server. Changes made there
+are pulled back (`GIT_REMOTE_PULL_*`). Otterwiki only pulls when its webhook
+`/-/api/v1/pull/<hash>` is called, where the hash is an HMAC of the repository
+URL keyed with `SECRET_KEY` (`GIT_REMOTE_PULL_URL_SECURE`):
+
+- **On every push**, by a webhook on the GitHub repository (Settings →
+  Webhooks). An Authelia `bypass` rule lets exactly that path through without
+  login; any other hash gets a 404, and the call can only trigger a pull.
+- **Hourly as a fallback**, by [`otterwiki_pull.sh`](roles/web/files/otterwiki_pull.sh)
+  from cron, inside the container. GitHub does not retry failed deliveries.
+
+The webhook URL on GitHub is not managed by Ansible. If `SECRET_KEY` or
+`otterwiki.remote_url` changes, the hash changes, and the webhook has to be
+updated (`otterwiki_pull.sh` shows how the hash is computed).
+
+Pushes are not forced and pulls are fast-forward only (`pull.ff=only` via
+`GIT_CONFIG_*` in the compose file), so a merge can never leave conflict
+markers in pages. If both sides changed within the same few seconds, pushes and pulls
+fail (`Push to remote failed` / `Pull from remote failed` in the container
+log) until an admin picks a side under Admin → Repository Management:
+**Force Push** keeps the wiki's version, **Reset to remote** keeps GitHub's.
+The same page has manual Push and Pull buttons.
 
 Otterwiki hides its own logout in this mode, so a **Logout** entry in the
 sidebar (`SIDEBAR_CUSTOM_MENU`) links to Authelia's `/logout`, with `rd`
@@ -586,6 +605,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 ├── docker-compose.yml
 ├── start.sh
 ├── backup_databases.sh
+├── otterwiki_pull.sh
 └── restore_grafana.sh
 ```
 
@@ -660,6 +680,7 @@ The [`start.sh`](roles/web/templates/start_sh.j2.sh) script runs every 5 minutes
 | Schedule | Script | Purpose |
 |---|---|---|
 | Every 5 minutes | `start.sh` | Ensure containers are running |
+| Hourly at :17 | `otterwiki_pull.sh` | Pull wiki changes from GitHub, fallback for the push webhook |
 | Daily at 23:00 | `backup_databases.sh` | Database backups with 7-day retention |
 
 ---
