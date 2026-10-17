@@ -14,9 +14,8 @@ itself is described in [ARCHITECTURE.md](../ARCHITECTURE.md#otterwiki).
 - [x] Credentials verified against Gmail before deploying. The startup check
       is disabled afterwards so a revoked app password cannot keep Authelia,
       and every service behind it, from starting.
-- [ ] After deploying, check that a verification mail arrives, e.g. by
-      starting a one-time password registration as `christian.test` in the
-      Authelia settings (the code goes to `christian.sterzl+wikitest@gmail.com`).
+- [x] Verification mail arrives: tested with a password reset and a
+      password change for a test account.
 
 **Decision (revised):** self-service password reset and change are enabled.
 The users moved out of the vault into `data/authelia/users/`, owned by
@@ -48,10 +47,7 @@ normal git repo.
 
 ## Noticed during setup
 
-- [ ] **5-minute inactivity timeout.** Authelia's `session.inactivity: 5m`
-      applies to the wiki too. Someone writing a long page for more than five
-      minutes without saving may find their session gone on save. Ticking
-      "Remember me" at login avoids it; raising the timeout is the
-      alternative. Timeouts can be set per entry in `session.cookies`, but
-      every service shares the one `v-collaborate.com` cookie, so it would
-      apply to all of them.
+- [x] **Inactivity timeout raised from 5 to 30 minutes.** With 5 minutes,
+      someone writing a long page without saving could find their session
+      gone on save. Every service shares the one `v-collaborate.com` cookie,
+      so the longer timeout applies to all of them.

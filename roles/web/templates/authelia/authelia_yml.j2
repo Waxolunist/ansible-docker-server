@@ -60,7 +60,9 @@ access_control:
 session:
   name: authelia_session
   expiration: 1h
-  inactivity: 5m
+  # Long enough to write a wiki page without saving in between. Applies to
+  # every service, since they all share this one cookie.
+  inactivity: 30m
   cookies:
     - domain: {{ topleveldomain }}
       authelia_url: https://{{ authelia.domain }}
