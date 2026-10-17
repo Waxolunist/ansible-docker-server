@@ -361,8 +361,12 @@ second way to reach the same sshd:
    stream to `172.20.0.1:22`, the host as seen from the `web_proxy` network.
 2. The client wraps SSH in TLS:
    `ProxyCommand openssl s_client -quiet -connect %h:443 -servername ssh.v-collaborate.com`.
-   Ansible takes the same option through
-   `-e ansible_ssh_common_args='-o ProxyCommand="..."'`.
+   Ansible takes the same option as JSON extra vars (the `key=value` form
+   splits the value at its spaces):
+
+   ```bash
+   ansible-playbook site.yml -e '{"ansible_ssh_common_args": "-o ProxyCommand=\"openssl s_client -quiet -connect %h:443 -servername ssh.v-collaborate.com 2>/dev/null\""}'
+   ```
 
 sshd authenticates as usual, so key-only login and `AllowUsers devops` apply
 unchanged. sshd sees Traefik's container address instead of the client's, so
