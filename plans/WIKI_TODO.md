@@ -27,21 +27,20 @@ Authelia and managed with `scripts/authelia_user.sh`.
 copy survives losing the server, and the wiki history becomes browsable as a
 normal git repo.
 
-**How:**
-
-- [ ] Create a private repository on GitHub, e.g. `Waxolunist/wiki`.
-- [ ] Generate an SSH key pair for the wiki and add the public key as a
-      **deploy key with write access** to that repository only.
-- [ ] Store the private key in the vault (`vault_otterwiki_push_private_key`)
-      and write it to a file mounted read-only into the container.
-- [ ] Add to [`settings_cfg.j2`](../roles/web/templates/otterwiki/settings_cfg.j2):
-      `GIT_REMOTE_PUSH_ENABLED = True`,
-      `GIT_REMOTE_PUSH_URL = 'git@github.com:Waxolunist/wiki.git'`,
-      `GIT_REMOTE_PUSH_PRIVATE_KEY_FILE = '<mounted path>'`.
-      Otterwiki then pushes after every change. The `web_wiki` network is
-      not internal, so outbound SSH works.
-- [ ] Document the new vault variable in
-      [VAULT_VARIABLES.md](../VAULT_VARIABLES.md).
+- [x] Private repository `Waxolunist/wiki` on the personal account.
+- [x] Read-write deploy key for that repository only. The private half is
+      `vault_otterwiki_push_private_key` in the vault.
+- [x] `GIT_REMOTE_PUSH_*` in
+      [`settings_cfg.j2`](../roles/web/templates/otterwiki/settings_cfg.j2);
+      the key goes in directly (`GIT_REMOTE_PUSH_PRIVATE_KEY`), like the
+      `SECRET_KEY`, so no extra file or mount.
+- [x] Documented in [VAULT_VARIABLES.md](../VAULT_VARIABLES.md).
+- [ ] After deploying, push the existing history once with the **Push**
+      button under Admin → Repository Management, then check that a page
+      edit shows up on GitHub.
+- [ ] Later, for read-only access by other people: move the repository into
+      a free GitHub organization. On a personal account every collaborator
+      can push, and any push from outside makes the wiki's pushes fail.
 
 ---
 

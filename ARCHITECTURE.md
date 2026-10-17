@@ -448,6 +448,12 @@ own. It sits behind the shared `auth@docker` middleware, which overwrites the
 | `WIKI_USER` | ✓ | ✓ | ✓ | |
 | `WIKI_ADMIN` | ✓ | ✓ | ✓ | ✓ |
 
+Every change is pushed to the private repository
+`github.com/Waxolunist/wiki` (`GIT_REMOTE_PUSH_*`), with a read-write deploy
+key from the vault, so a copy survives losing the server. Otterwiki pushes
+without force: nothing else may push to that repository, or the wiki's pushes
+are rejected. Admin → Repository Management has a manual Push button.
+
 Otterwiki hides its own logout in this mode, so a **Logout** entry in the
 sidebar (`SIDEBAR_CUSTOM_MENU`) links to Authelia's `/logout`, with `rd`
 pointing back to the wiki. It ends the session for every service, since

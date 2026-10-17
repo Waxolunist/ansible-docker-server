@@ -99,3 +99,4 @@ No vault variables required. code-server's own authentication is disabled (`auth
 | Variable | Used in | Docker secret | Description |
 |---|---|---|---|
 | `vault_otterwiki_secret_key` | `otterwiki/settings_cfg.j2` | — | Flask session and CSRF signing key (Otterwiki reads no `_FILE` variant). Generate with `openssl rand -hex 32` |
+| `vault_otterwiki_push_private_key` | `otterwiki/settings_cfg.j2` | — | Private half of the read-write deploy key on `github.com/Waxolunist/wiki`, used to push the wiki repository. To replace it: `ssh-keygen -t ed25519 -N "" -f key`, add `key.pub` as a deploy key with write access, and put `key` into the vault as a block scalar (`\|`) |

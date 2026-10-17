@@ -122,6 +122,9 @@
     user_group: WIKI_USER
     # nginx client_max_body_size inside the container, caps attachment uploads.
     max_upload: 50M
+    # Private repository that receives every wiki change, as an off-server
+    # copy. Pushed with a read-write deploy key (vault_otterwiki_push_private_key).
+    push_url: "git@github.com:Waxolunist/wiki.git"
 
   # Groups allowed onto every other Authelia-protected service. Anyone in none
   # of these (e.g. a wiki-only user) gets nothing but the wiki.
