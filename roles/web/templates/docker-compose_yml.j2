@@ -269,6 +269,10 @@ services:
     volumes:
       - "{{ docker.paths.configs }}authelia:/config:ro"
       - "{{ docker.paths.data }}authelia/db.sqlite3:/var/db.sqlite3"
+      # Writable: password resets and scripts/authelia_user.sh change the
+      # users database. A directory, not the file, so the watcher keeps
+      # working when the file is replaced.
+      - "{{ docker.paths.data }}authelia/users:/users"
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret

@@ -6,13 +6,52 @@
       mode: 0644
       backup: yes
     register: authelia_config
-  - name: Authelia - Write users database
-    template:
-      src: authelia/users_database_yml.j2
-      dest: "{{ docker.paths.configs }}authelia/users_database.yml"
+  # The users database belongs to Authelia (password resets) and to
+  # scripts/authelia_user.sh. Ansible only creates its directory and never
+  # writes the file. data/authelia is owned by nobody, hence become.
+  - name: Authelia - Create users database directory
+    file:
+      path: "{{ docker.paths.data }}authelia/users"
+      state: directory
+      mode: 0700
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    become: yes
+  # One-time move of the database Ansible used to render from the vault into
+  # the config directory. Skipped once moved, and never overwrites.
+  - name: Authelia - Find the users database rendered by older playbook runs
+    find:
+      paths: "{{ docker.paths.configs }}authelia"
+      patterns: "users_database.yml*"
+    register: authelia_old_users
+  - name: Authelia - Move the users database into the data directory
+    copy:
+      src: "{{ docker.paths.configs }}authelia/users_database.yml"
+      dest: "{{ docker.paths.data }}authelia/users/users_database.yml"
+      remote_src: yes
+      force: no
       mode: 0600
-      backup: yes
-    register: authelia_users
+    when: "docker.paths.configs + 'authelia/users_database.yml' in authelia_old_users.files | map(attribute='path') | list"
+  # Including the Ansible backup copies, which hold old password hashes.
+  - name: Authelia - Remove the old users database and its backups
+    file:
+      path: "{{ item.path }}"
+      state: absent
+    loop: "{{ authelia_old_users.files }}"
+    loop_control:
+      label: "{{ item.path }}"
+  - name: Authelia - Check that a users database exists
+    stat:
+      path: "{{ docker.paths.data }}authelia/users/users_database.yml"
+    register: authelia_users_db
+  - name: Authelia - Warn about a missing users database
+    debug:
+      msg: >-
+        {{ docker.paths.data }}authelia/users/users_database.yml does not exist,
+        so Authelia will not start. Restore the latest
+        /backup/authelia_users_*.yml there, or create the first user with
+        scripts/authelia_user.sh add.
+    when: not authelia_users_db.stat.exists
   - name: Authelia - Write jwt_secret secret
     copy:
       content: "{{ vault_authelia_jwt_secret }}"

@@ -165,14 +165,13 @@
     become: yes
     when: grafana_config is defined and grafana_config.changed
 
-  # Authelia reads its configuration and users database once at startup.
-  # compose runs with recreate: never, so access rule or user changes would
-  # otherwise sit on disk unapplied.
-  - name: Authelia - Restart when its configuration or users changed
+  # Authelia reads its configuration once at startup. compose runs with
+  # recreate: never, so access rule changes would otherwise sit on disk
+  # unapplied. The users database is watched and needs no restart.
+  - name: Authelia - Restart when its configuration changed
     command: docker restart authelia
     become: yes
-    when: (authelia_config is defined and authelia_config.changed) or
-          (authelia_users is defined and authelia_users.changed)
+    when: authelia_config is defined and authelia_config.changed
 
   # settings.cfg is read once at startup.
   - name: Otterwiki - Restart when its settings changed

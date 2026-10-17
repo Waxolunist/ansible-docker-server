@@ -18,11 +18,9 @@ itself is described in [ARCHITECTURE.md](../ARCHITECTURE.md#otterwiki).
       starting a one-time password registration as `christian.test` in the
       Authelia settings (the code goes to `christian.sterzl+wikitest@gmail.com`).
 
-**Decision:** self-service password reset and change stay disabled. The
-users database is vault-encrypted, mounted read-only and rewritten on every
-playbook run, so Authelia could not persist a new password. Passwords are
-changed in the vault. If users should manage their own passwords later, the
-users have to move out of the vault (e.g. into lldap).
+**Decision (revised):** self-service password reset and change are enabled.
+The users moved out of the vault into `data/authelia/users/`, owned by
+Authelia and managed with `scripts/authelia_user.sh`.
 
 ## 2. Push the wiki to a private GitHub repository
 

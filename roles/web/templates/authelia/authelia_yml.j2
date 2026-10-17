@@ -12,19 +12,31 @@ totp:
   issuer: {{ topleveldomain }}
 
 authentication_backend:
-  # Passwords live in the vault-encrypted users database, which is mounted
-  # read-only and rewritten on every playbook run, so Authelia could not
-  # persist a new password anyway. Passwords are changed in the vault.
+  # Authelia owns the users database: users reset and change their own
+  # passwords, and scripts/authelia_user.sh adds and disables users.
   password_reset:
-    disable: true
+    disable: false
   password_change:
-    disable: true
+    disable: false
+  # How often a logged-in user's details are re-read, so a disabled user or a
+  # removed group takes effect within a minute instead of at session end.
+  refresh_interval: 1m
   file:
-    path: /config/users_database.yml
+    path: /users/users_database.yml
+    # Picks up edits made by scripts/authelia_user.sh without a restart,
+    # which would end every session (they are held in memory).
+    watch: true
     password:
       algorithm: argon2
       argon2:
         variant: argon2id
+
+# Users now choose their own passwords, and one password opens every service.
+# Score 3 of 4 rejects dictionary words and common patterns.
+password_policy:
+  zxcvbn:
+    enabled: true
+    min_score: 3
 
 access_control:
   default_policy: deny

@@ -72,6 +72,21 @@ else
     BACKUP_OK=0
 fi
 
+# Backup the Authelia users database. Users set their own passwords, so it
+# exists nowhere else. Read from inside the container, like Otterwiki.
+echo "Backing up Authelia users..."
+AUTHELIA_USERS_BACKUP="/backup/authelia_users_${TIMESTAMP}.yml"
+(umask 077 && docker compose exec -T authelia cat /users/users_database.yml > "${AUTHELIA_USERS_BACKUP}")
+
+# Check if Authelia users backup was successful
+if [ -s "${AUTHELIA_USERS_BACKUP}" ]; then
+    echo "Authelia users backup successful: $(ls -lh "${AUTHELIA_USERS_BACKUP}")"
+else
+    echo "ERROR: Authelia users backup failed or is empty!"
+    rm -f "${AUTHELIA_USERS_BACKUP}"
+    BACKUP_OK=0
+fi
+
 echo "Database backups completed at $(date)"
 
 # Clean up old backups (keep last 20 per database)
@@ -80,6 +95,7 @@ ls -t /backup/dump_grafana_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 ls -t /backup/dump_timescale_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 ls -t /backup/dump_photoprism_*.sql.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
 ls -t /backup/dump_otterwiki_*.tar.gz 2>/dev/null | tail -n +21 | xargs -r rm -f
+ls -t /backup/authelia_users_*.yml 2>/dev/null | tail -n +21 | xargs -r rm -f
 
 echo "Backup cleanup completed"
 

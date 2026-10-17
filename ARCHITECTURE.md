@@ -381,19 +381,19 @@ Traefik also handles personal domain redirects:
 
 [Authelia](roles/web/templates/authelia/authelia_yml.j2) provides single sign-on authentication:
 
-- **Authentication backend**: File-based user database at [`/config/users_database.yml`](roles/web/templates/authelia/users_database_yml.j2)
+- **Authentication backend**: File-based user database at `/users/users_database.yml` (`data/authelia/users/` on the host, mounted writable). Authelia owns it: users reset and change their own passwords, and [`scripts/authelia_user.sh`](scripts/authelia_user.sh) adds, regroups, disables, enables and deletes users (deleting also removes their TOTP and WebAuthn entries from the Authelia database). Ansible never writes it; the nightly backup copies it to `/backup/authelia_users_<timestamp>.yml`
 - **Password hashing**: SHA-512 and Argon2id
 - **Access control**: Default deny policy, first matching rule wins:
   1. `wiki.v-collaborate.com` — one factor, groups `WIKI_USER` or `WIKI_ADMIN` only; everyone else is denied
   2. `*.v-collaborate.com` — one factor, groups listed in `authelia_full_access_groups` ([vars](roles/web/vars/main.yml), currently `admins` and `Viewer`). A user in none of them, such as a wiki-only user, reaches nothing but the wiki
 - **Forward auth endpoint**: `/api/authz/forward-auth` (the pre-4.38 `/api/verify` is deprecated). The shared `auth@docker` middleware passes `Remote-User`, `Remote-Groups`, `Remote-Email` and `Remote-Name`; the login portal URL comes from `session.cookies[].authelia_url`
-- **Restart on change**: Authelia reads its configuration and users database at startup only; `tasks/main.yml` restarts it when either file changed
+- **Restart on change**: Authelia reads its configuration at startup only; `tasks/main.yml` restarts it when the file changed. The users database is watched (`file.watch`), so user changes apply without a restart, and `refresh_interval: 1m` ends a disabled user's sessions within a minute
 - **Upgrades**: Authelia is in `recreate_when_changed` ([vars](roles/web/vars/main.yml)), so bumping `authelia.image` recreates it on the next playbook run. Before that, `tasks/authelia.yml` copies the database to `/backup/authelia_db_<old version>_<timestamp>.sqlite3`: the new version migrates the schema on start, and an older version cannot open the migrated database. To roll back, restore that file to `data/authelia/db.sqlite3` and revert the image
 - **Session management**: 1-hour expiration, 5-minute inactivity timeout, one cookie scoped to `v-collaborate.com`
 - **Brute-force protection**: Max 3 retries within 120 seconds, 300-second ban
 - **Storage**: SQLite database at `/var/db.sqlite3`
 - **Notifications**: SMTP through the same Gmail account and app password as Grafana (`smtp_password` secret). Sends the one-time codes for identity verification (2FA enrollment, elevated sessions). The startup check is disabled so a revoked app password cannot stop Authelia, and with it every protected service
-- **Password reset and change**: Disabled. Passwords live in the vault-encrypted users database, which is mounted read-only and rewritten on every playbook run, so Authelia could not persist a new password
+- **Password reset and change**: Enabled. The reset link goes out by email through the notifier above. New passwords must reach zxcvbn score 3
 
 ### Authentication Flow
 
@@ -455,9 +455,9 @@ Pages and attachments live in the git repository under
 `data/otterwiki/repository`; drafts and admin UI preferences in
 `data/otterwiki/db.sqlite`.
 
-To give someone wiki access, add `WIKI_USER` to their groups in the
-vault-encrypted [users database](roles/web/templates/authelia/users_database_yml.j2)
-and run the playbook. A wiki-only user gets `WIKI_USER` and nothing else.
+To give someone wiki access, add `WIKI_USER` to their groups with
+[`scripts/authelia_user.sh`](scripts/authelia_user.sh) (`add` or `groups`).
+A wiki-only user gets `WIKI_USER` and nothing else.
 
 ---
 
@@ -551,7 +551,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 ├── configs/          # Configuration files (read-only mounted)
 │   ├── traefik/      # traefik.yml
 │   ├── prometheus/   # prometheus.yml
-│   ├── authelia/     # configuration.yml, users_database.yml
+│   ├── authelia/     # configuration.yml
 │   ├── grafana/      # grafana.ini
 │   └── registry/     # config.yml, secrets/
 ├── data/             # Persistent application data
@@ -560,7 +560,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 │   ├── pgadmin/      # pgAdmin session data
 │   ├── minecraft/    # Minecraft world data
 │   ├── timescale/    # TimescaleDB pgdata/
-│   ├── authelia/     # db.sqlite3
+│   ├── authelia/     # db.sqlite3, users/users_database.yml
 │   └── photoprism/   # database/, storage/
 ├── work/             # Working directories
 │   ├── traefik/      # acme.json (Let's Encrypt certs)
@@ -585,7 +585,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | registry | `configs/registry` → `/etc/docker/registry` | — | `work/registry` → `/var/lib/registry` | `logs/registry` → `/var/log/docker-registry` |
 | reverse-proxy | `configs/traefik` → `/etc/traefik` | — | `work/traefik` → `/var/run/traefik` | `logs/traefik` → `/var/log/traefik` |
 | prometheus | `configs/prometheus` → `/etc/prometheus` | `data/prometheus` → `/prometheus` | — | — |
-| authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3` | — | — |
+| authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3`, `data/authelia/users` → `/users` | — | — |
 | grafana-pg | — | `data/grafana/pgdata` → `/var/lib/postgresql/data` | — | — |
 | grafana | `configs/grafana` → `/etc/grafana` | `data/grafana` → `/var/lib/grafana` | — | `logs/grafana` → `/var/log/grafana` |
 | pgadmin | — | `data/pgadmin` → `/var/lib/pgadmin` | — | — |
