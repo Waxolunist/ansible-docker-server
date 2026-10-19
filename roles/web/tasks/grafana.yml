@@ -31,18 +31,13 @@
     loop:
       - datasources
       - dashboards
+      # Unused, but Grafana logs an error on every start when they are missing.
+      - plugins
+      - alerting
   - name: Grafana - Remove datasource provisioning file (conflicts with existing DB datasource)
     file:
       path: "{{ docker.paths.configs }}grafana/provisioning/datasources/prometheus.yml"
       state: absent
-    become: yes
-  - name: Grafana - Write dashboard provider provisioning
-    template:
-      src: grafana/provisioning/dashboards/provider.yml.j2
-      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/provider.yml"
-      mode: '0644'
-      owner: '472'
-      group: '0'
     become: yes
   - name: Grafana - Write Loki datasource provisioning
     template:
@@ -52,22 +47,8 @@
       owner: '472'
       group: '0'
     become: yes
-  - name: Grafana - Write status page dashboard
-    copy:
-      src: grafana/provisioning/dashboards/status_page.json
-      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/status_page.json"
-      mode: '0644'
-      owner: '472'
-      group: '0'
-    become: yes
-  - name: Grafana - Write TimescaleDB connections dashboard
-    copy:
-      src: grafana/provisioning/dashboards/timescale_connections.json
-      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/timescale_connections.json"
-      mode: '0644'
-      owner: '472'
-      group: '0'
-    become: yes
+  # The dashboard provider and files are written by grafana_dashboards.yml,
+  # imported from main.yml so they can be deployed on their own.
   - name: Grafana - Change permissions for data dir (top level only)
     file:
       path: "{{ docker.paths.data }}grafana"
@@ -76,6 +57,24 @@
       group: '0'
       recurse: no
     become: yes
+  # Older images ran as nobody, which still owned these. Grafana 13 fails to
+  # start when it cannot write its search index (unified-search), and it
+  # cannot update its bundled app plugins without owning them.
+  - name: Grafana - Own the data subdirectories
+    file:
+      path: "{{ docker.paths.data }}grafana/{{ item }}"
+      state: directory
+      owner: '472'
+      group: '0'
+      recurse: yes
+    become: yes
+    loop:
+      - alerting
+      - csv
+      - pdf
+      - plugins
+      - png
+      - unified-search
   - name: Grafana - Change permissions for logs dir
     file:
       path: "{{ docker.paths.logs }}grafana"
@@ -83,9 +82,9 @@
       owner: '472'
       group: '0'
     become: yes
-  - name: Grafana - Ensure pgdata dir exists with correct postgres ownership
+  - name: Grafana - Ensure postgres data dir exists with correct postgres ownership
     file:
-      path: "{{ docker.paths.data }}grafana/pgdata"
+      path: "{{ docker.paths.data }}grafana/postgres"
       state: directory
       mode: '0700'
       owner: '70'

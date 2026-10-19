@@ -142,5 +142,7 @@
   recreate_when_changed:
     - authelia
     - otterwiki
+    - grafana-pg
+    - grafana
 
   restart_container: no

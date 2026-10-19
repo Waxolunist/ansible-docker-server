@@ -1,0 +1,1081 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "eel1njcu6jocgd"
+  },
+  "spec": {
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "query": {
+            "kind": "DataQuery",
+            "group": "grafana",
+            "version": "v0",
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "spec": {}
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "builtIn": true
+        }
+      }
+    ],
+    "cursorSync": "Tooltip",
+    "editable": true,
+    "elements": {
+      "panel-13": {
+        "kind": "Panel",
+        "spec": {
+          "id": 13,
+          "title": "Prices",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "grafana-postgresql-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "SELECT start_timestamp, marketprice / 1000.0 as marketprice_kwh FROM data_spotdata where $__timeFilter(start_timestamp) ",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [
+                                {
+                                  "name": "start_timestamp",
+                                  "type": "functionParameter"
+                                }
+                              ],
+                              "type": "function"
+                            },
+                            {
+                              "parameters": [
+                                {
+                                  "name": "marketprice_kwh",
+                                  "type": "functionParameter"
+                                }
+                              ],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "orderBy": {
+                            "property": {
+                              "name": "start_timestamp",
+                              "type": "string"
+                            },
+                            "type": "property"
+                          },
+                          "orderByDirection": "DESC",
+                          "whereJsonTree": {
+                            "children1": [
+                              {
+                                "id": "ab8a8b9b-89ab-4cde-b012-31962e21eed2",
+                                "properties": {
+                                  "fieldSrc": "field",
+                                  "value": [],
+                                  "valueSrc": []
+                                },
+                                "type": "rule"
+                              }
+                            ],
+                            "id": "ab8a88bb-0123-4456-b89a-b1962d95f58c",
+                            "type": "group"
+                          }
+                        },
+                        "table": "spotdata_kwhtzadjusted"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {
+                "timeFrom": "now/d",
+                "timeShift": "1d/d",
+                "hideTimeOverride": true
+              }
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "12.0.0",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "min",
+                    "max",
+                    "mean"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "hoverProximity": 500,
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "currencyEUR",
+                  "decimals": 2,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "red"
+                      },
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 0.1,
+                        "color": "#EAB839"
+                      },
+                      {
+                        "value": 0.15,
+                        "color": "#6ED0E0"
+                      },
+                      {
+                        "value": 0.2,
+                        "color": "purple"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds",
+                    "seriesBy": "last"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisGridShow": true,
+                    "axisLabel": "",
+                    "axisPlacement": "left",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 69,
+                    "gradientMode": "scheme",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineStyle": {
+                      "fill": "solid"
+                    },
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "line+area"
+                    }
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "marketprice_kwh"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Spotprice"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-14": {
+        "kind": "Panel",
+        "spec": {
+          "id": 14,
+          "title": "Measured Data",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "grafana-postgresql-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select hour_bucket as time, energy_consumed, energy_feeded, energy_produced, price_consumed, price_feeded, (price_feeded + price_self_consumption) as price_production  from agg_1h_energy_values_with_pricing\nwhere $__timeFilter(hour_bucket) ",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {
+                "timeFrom": "now/d",
+                "timeShift": "1d/d",
+                "hideTimeOverride": true
+              }
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "12.0.0",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "max",
+                    "sum"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "kwatth",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
+                    "drawStyle": "line",
+                    "fillOpacity": 61,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "energy_produced"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 19
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Production"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "energy_consumed"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Consumption"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "energy_feeded"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Feeding"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byRegexp",
+                      "options": "/price_.*/"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "currencyEUR"
+                      },
+                      {
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": false,
+                          "tooltip": false,
+                          "viz": false
+                        }
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "price_consumed"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Consumption"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "price_feeded"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Feeding"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "price_production"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Production"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "panel-15": {
+        "kind": "Panel",
+        "spec": {
+          "id": 15,
+          "title": "Yesterday",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "marcusolsson-static-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "ea53bc9a-7449-42cb-aea5-d67715856cc0"
+                      },
+                      "spec": {
+                        "frame": {
+                          "fields": [
+                            {
+                              "config": {},
+                              "name": "logo",
+                              "type": "string",
+                              "values": [
+                                "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAACAASURBVHic7N13mCVVufb/b+3OPTMMTGASSUEwUGAAitBDMCA2YUQkGMBEBgXDwSOgGNDjMWCEkeABgRcQQXKLqIgwiiX8VChUQEAYppkEQ5zYYf/+WN3MMEznqvXUrro/1zUX1/uemf08du9d696rVq0VVKtVRKTgkqgC7AbMAXYCZgIzWXDPBOoau6jUv0hdwxPUNV1MpX4ubQu6TfsVkcwFCgAiBZZEzcDJwOeAaa/6vz/5l1f/m0pDL80T7qC+5VDaFizLukURsVGxbkBEMpJEBwMPAd9mQ4P/QHq7KqxY9naWL1nCnZt+P6v2RMSWZgBEiiaJAuAs4EtAMOjf3dAMwPpaNolpaN2dtgW9abQnIvmgGQCRInGD/89wAWDwwX+4Vj4bsfrFx5m3WX0qryciuaAAIFIsZwFHpv6qq1/YnK4V81J/XRExowAgUhTunv+XMnv9lc9GWhMgUhxaAyBSBG61/0PAFiP6d8NZA7CuSkMv46dOo63z6ZH9QxHJG80AiBTDyYx08B+N3q4K3auvyLyOiGROMwAitc5t8vMUI3nUr99IZwAAKvVVxk9rpW3BqpH/YxHJC80AiNS+3RjN4D9avd0Bvd0neKsnIplQABCpfXO8V+xZ82HvNUUkVQoAIrVvJ+8Ve1Zv472miKRKAUCk9s30XrG3p8V7TRFJlQKASO3zHwB6urQroEiNUwAQqX0TvFes9qazzbCImFEAEBERKSEFABERkRJSABARESkhBQAREZESUgAQEREpIQUAERGRElIAEBERKSEFABERkRJSABARESkhBQAREZESUgAQEREpIQUAERGRElIAEBERKSEFABERkRJSABARESkhBQAREZESUgAQEREpIQUAERGRElIAEBERKSEFABERkRJSABARESkhBQAREZESUgAQEREpIQUAERGRElIAEBERKSEFABERkRJSABARESkhBQAREZESUgAQEREpIQUAERGRElIAEBERKSEFABERkRJSABARESkhBQAREZESUgAQEREpIQUAERGRElIAEBERKSEFABER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"
+                              ]
+                            }
+                          ],
+                          "meta": {},
+                          "name": "Logo"
+                        }
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "marcusolsson-dynamictext-panel",
+            "version": "5.7.0",
+            "spec": {
+              "options": {
+                "afterRender": "",
+                "content": "<div class=\"logo\" style=\"background-image: url('{{logo}}');\"></div>\n<p class=\"description\">Huawei SUN2000</p>",
+                "contentPartials": [],
+                "defaultContent": "<p class=\"description\">Huawei SUN2000</p>",
+                "editor": {
+                  "format": "auto",
+                  "height": 200,
+                  "language": "html"
+                },
+                "editors": [
+                  "styles"
+                ],
+                "externalScripts": [],
+                "externalStyles": [],
+                "helpers": "",
+                "renderMode": "everyRow",
+                "styles": "& {\n  display: block;\n  container-type: inline-size;\n  container-name: logocontainer;\n}\n\n& .dt-row {\n  height: 100%;\n  display: flex;\n  padding: 0;\n  align-items: center;\n}\n\n& .dt-row .logo {\n  width: 100%;\n  height: 100%;\n  background-repeat: no-repeat;\n  background-size: contain;\n  background-position: center;\n}\n\n& .dt-row .description {\n  font-size: larger;\n  align-self: flex-start;\n  margin-top: 2rem;\n  width: 30%;\n}\n\n@container logocontainer (max-width: 500px) {\n  & .dt-row {\n    flex-direction: column;\n  }\n\n  & .dt-row .description {\n    align-self: center;\n    margin: 0;\n    width: auto;\n  }\n}",
+                "wrap": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "id": 7,
+          "title": "Grid consumption",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "grafana-postgresql-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select date_trunc('hour', hour_bucket) as time, energy from agg_1h_stats_data_smartmeter_energy_with_pricing\nwhere \n  $__timeFilter(hour_bucket) and \n  metering_point_id = 1",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {
+                "timeFrom": "now/d",
+                "timeShift": "1d/d",
+                "hideTimeOverride": true
+              }
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "12.0.0",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "kwatth",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "thresholds"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "id": 8,
+          "title": "Feeding",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "grafana-postgresql-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select date_trunc('hour', hour_bucket) as time, energy from agg_1h_stats_data_smartmeter_energy_with_pricing\nwhere \n  $__timeFilter(hour_bucket) and \n  metering_point_id = 2",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {},
+                      "includeByName": {},
+                      "indexByName": {},
+                      "renameByName": {
+                        "energy": "Energy"
+                      }
+                    }
+                  }
+                }
+              ],
+              "queryOptions": {
+                "timeFrom": "now/d",
+                "timeShift": "1d/d",
+                "hideTimeOverride": true
+              }
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "12.0.0",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "kwatth",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "yellow"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-9": {
+        "kind": "Panel",
+        "spec": {
+          "id": 9,
+          "title": "Production",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "grafana-postgresql-datasource",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select \n  hour_bucket as time, energy\nfrom agg_1h_counter_data_solar_energy_with_pricing\nwhere $__timeFilter(hour_bucket)\norder by hour_bucket desc;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {
+                "timeFrom": "now/d",
+                "timeShift": "1d/d",
+                "hideTimeOverride": true
+              }
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "stat",
+            "version": "12.0.0",
+            "spec": {
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "kwatth",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": 0,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "RowsLayout",
+      "spec": {
+        "rows": [
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "title": "New tab",
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "maxColumnCount": 4,
+                  "columnWidthMode": "narrow",
+                  "rowHeightMode": "standard",
+                  "fillScreen": true,
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-15"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-7"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-8"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-9"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "title": "New row",
+              "hideHeader": true,
+              "fillScreen": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "maxColumnCount": 3,
+                  "columnWidthMode": "standard",
+                  "rowHeightMode": "standard",
+                  "fillScreen": true,
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-13"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-14"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "links": [
+      {
+        "title": "Homeassistant",
+        "type": "dashboards",
+        "icon": "external link",
+        "tooltip": "",
+        "url": "",
+        "tags": [
+          "homeassistant"
+        ],
+        "asDropdown": true,
+        "targetBlank": false,
+        "includeVars": false,
+        "keepTime": false
+      }
+    ],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "homeassistant"
+    ],
+    "timeSettings": {
+      "timezone": "browser",
+      "from": "now-6h",
+      "to": "now",
+      "autoRefresh": "auto",
+      "autoRefreshIntervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "hideTimepicker": true,
+      "fiscalYearStartMonth": 0
+    },
+    "title": "Solar - Yesterday",
+    "variables": []
+  }
+}

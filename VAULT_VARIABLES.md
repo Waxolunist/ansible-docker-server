@@ -52,6 +52,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_grafana_pg_password` | `tasks/grafana.yml` | `grafana_pg_password` | Password for the Grafana PostgreSQL user |
 | `vault_smtp_server_user` | `docker-compose_yml.j2`, `authelia/authelia_yml.j2` | — | Gmail address used for SMTP by Grafana (`GF_SMTP_USER`) and Authelia (`notifier.smtp.username`, also the sender) |
 | `vault_smtp_server_password` | `tasks/grafana.yml` | `smtp_password` | Gmail app password for SMTP, shared by Grafana and Authelia (`AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE`) |
+| `vault_psa_url` | `tasks/grafana_dashboards.yml` | — | Base URL of the PSA car controller, without a trailing slash. Fills `@@PSA_URL@@` in the Homeassistant `vehicle_control.json` dashboard (preconditioning buttons). Kept out of the public repository. |
 
 ### PgAdmin
 

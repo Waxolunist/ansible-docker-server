@@ -1,0 +1,49 @@
+---
+  # Imported from main.yml with the grafana_dashboards tag, so it also runs on
+  # its own: ansible-playbook web.yml --tags grafana_dashboards
+  # Grafana rescans this directory every 30s (provider.yml), so a new or
+  # changed dashboard needs no restart. A subdirectory becomes the Grafana
+  # folder of the same title; files at the top level go to General.
+  - name: Grafana - Create dashboards provisioning directory
+    file:
+      path: "{{ docker.paths.configs }}grafana/provisioning/dashboards"
+      state: directory
+      mode: '0755'
+      owner: '472'
+      group: '0'
+    become: yes
+  # Grafana reads providers only at startup; main.yml restarts it on a change.
+  - name: Grafana - Write dashboard provider provisioning
+    template:
+      src: grafana/provisioning/dashboards/provider.yml.j2
+      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/provider.yml"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
+    register: grafana_dashboard_provider
+  - name: Grafana - Create dashboard folders
+    file:
+      path: "{{ docker.paths.configs }}grafana/provisioning/dashboards/{{ item.path }}"
+      state: directory
+      mode: '0755'
+      owner: '472'
+      group: '0'
+    become: yes
+    loop: "{{ query('community.general.filetree', 'grafana/provisioning/dashboards/') | selectattr('state', 'eq', 'directory') }}"
+    loop_control:
+      label: "{{ item.path }}"
+  # Not template: dashboard JSON is full of {{ }} (legend formats), which
+  # Jinja would try to render. Values that must stay out of this public
+  # repository are written as @@NAME@@ placeholders and filled in here.
+  - name: Grafana - Write dashboards
+    copy:
+      content: "{{ lookup('file', item.src, rstrip=False) | replace('@@PSA_URL@@', vault_psa_url) }}"
+      dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/{{ item.path }}"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
+    loop: "{{ query('community.general.filetree', 'grafana/provisioning/dashboards/') | selectattr('state', 'eq', 'file') }}"
+    loop_control:
+      label: "{{ item.path }}"

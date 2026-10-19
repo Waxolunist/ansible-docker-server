@@ -65,6 +65,20 @@ graph LR
 
 The [`web`](roles/web/meta/main.yml) role declares a dependency on [`docker`](roles/docker/meta/main.yml), which in turn depends on [`debian`](roles/debian/tasks/main.yml). Running `web.yml` automatically executes all three roles in order.
 
+### Partial Deploys
+
+A run without `--tags` deploys everything. Tagged task files can also be deployed on their own:
+
+| Tag | Task file | Deploys |
+|---|---|---|
+| `grafana_dashboards` | [`grafana_dashboards.yml`](roles/web/tasks/grafana_dashboards.yml) | Everything in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), including subdirectories, and the dashboard provider. Restarts Grafana only when the provider changed. |
+
+```bash
+ansible-playbook web.yml --tags grafana_dashboards
+```
+
+A tagged file has to be pulled in with `import_tasks` from [`main.yml`](roles/web/tasks/main.yml). The per-container loop there uses a dynamic `include_tasks`, which does not pass a tag to the tasks it includes. Tasks without the tag are skipped, including those of the `debian`, `docker` and hardening plays.
+
 ### Inventory
 
 Defined in [`hosts.yml`](hosts.yml), the inventory targets a single dedicated server with two logical host groups:
@@ -163,8 +177,8 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
 | 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `proxy`, `prometheus` | `cadvisor.v-collaborate.com` |
 | 8 | `authelia` | `authelia/authelia:4.39.28` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
-| 9 | `grafana-pg` | `postgres:13-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
-| 10 | `grafana` | `grafana/grafana:12.2.8` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
+| 9 | `grafana-pg` | `postgres:18-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
+| 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
 | 11 | `pgadmin` | `dpage/pgadmin4:9.14.0` | Database administration UI | — | `proxy`, `grafana` | `pgadmin.v-collaborate.com` |
 | 12 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
 | 13 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
@@ -558,15 +572,22 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 
 ### Grafana
 
-[Grafana 12.2](roles/web/templates/grafana/grafana_ini.j2) is configured with:
+[Grafana 13.2](roles/web/templates/grafana/grafana_ini.j2) is configured with:
 
-- **Database**: PostgreSQL backend via the `grafana-pg` container (linked as `database`)
+- **Database**: PostgreSQL 18 backend via the `grafana-pg` container (linked as `database`). Dashboards and folders are in unified storage since the 13 upgrade; the legacy `dashboard` and `folder` tables are deprecated
+- **Dynamic dashboards**: Feature toggle `dashboardNewLayouts`, so dashboards are saved in the v2 schema
 - **Authentication**: Login form disabled; uses Authelia proxy authentication via the `Remote-User` header
 - **Auto sign-up**: Enabled — new users authenticated by Authelia are automatically created
 - **Default role**: `Editor` for auto-assigned users
 - **Sign-out**: Redirects to Authelia logout endpoint
 - **SMTP**: Gmail SMTP for alert notifications
 - **Root URL**: `https://graph.v-collaborate.com/`
+- **Provisioned dashboards**: The JSON files in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), rescanned every 30 seconds. Deploy them alone with `--tags grafana_dashboards` (see [Partial Deploys](#partial-deploys)). Details:
+  - **Folders**: `foldersFromFilesStructure` is on. A subdirectory becomes the Grafana folder with the same title. Grafana matches it by title, so `Homeassistant/` reuses the existing folder (uid `cekag6n00voxsd`). Files at the top level go to General.
+  - **Format**: v2 dashboards (`Homeassistant/`) are stored as Kubernetes resources with `apiVersion: dashboard.grafana.app/v2`, `kind`, `metadata.name` (the dashboard uid) and `spec`. v1 dashboards (`status_page.json`, `timescale_connections.json`) are plain dashboard JSON. Classic file provisioning loads both.
+  - **Placeholders**: Private values are written as `@@NAME@@` placeholders and filled in from the vault when the files are copied, for example `@@PSA_URL@@` → `vault_psa_url` in `Homeassistant/vehicle_control.json`.
+  - **UI edits**: `allowUiUpdates` is on, so provisioned dashboards can be edited in the UI. An edit lives only in the database until it is exported back to the file, and the next change to the file overwrites it.
+  - **Expected log line**: Grafana logs `[SHOULD NOT HAPPEN] failed to update managedFields ... field not declared in schema` when it saves a v2 dashboard. It is Kubernetes API bookkeeping, and the dashboard is saved in full.
 
 ---
 
@@ -586,7 +607,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 │   └── registry/     # config.yml, secrets/
 ├── data/             # Persistent application data
 │   ├── prometheus/   # Prometheus TSDB
-│   ├── grafana/      # Grafana data + pgdata/
+│   ├── grafana/      # Grafana data + postgres/ (PostgreSQL 18) + pgdata/ (PostgreSQL 13, pre-upgrade copy)
 │   ├── pgadmin/      # pgAdmin session data
 │   ├── minecraft/    # Minecraft world data
 │   ├── timescale/    # TimescaleDB pgdata/
@@ -617,7 +638,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | reverse-proxy | `configs/traefik` → `/etc/traefik` | — | `work/traefik` → `/var/run/traefik` | `logs/traefik` → `/var/log/traefik` |
 | prometheus | `configs/prometheus` → `/etc/prometheus` | `data/prometheus` → `/prometheus` | — | — |
 | authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3`, `data/authelia/users` → `/users` | — | — |
-| grafana-pg | — | `data/grafana/pgdata` → `/var/lib/postgresql/data` | — | — |
+| grafana-pg | — | `data/grafana/postgres` → `/var/lib/postgresql` (cluster in `18/docker`, the layout of the 18+ images) | — | — |
 | grafana | `configs/grafana` → `/etc/grafana` | `data/grafana` → `/var/lib/grafana` | — | `logs/grafana` → `/var/log/grafana` |
 | pgadmin | — | `data/pgadmin` → `/var/lib/pgadmin` | — | — |
 | minecraft | — | `data/minecraft` → `/data` | — | — |
@@ -666,6 +687,21 @@ Usage:
 # Restore from specific backup
 /var/docker/restore_grafana.sh /backup/dump_grafana_02-11-2025_14_30_45.sql.gz
 ```
+
+#### Pre-upgrade backup (Grafana 12.2 / PostgreSQL 13)
+
+The upgrade to Grafana 13 and PostgreSQL 18 on 2026-10-19 left a one-off backup in `/backup/grafana_pre13_2026-10-19_163557/`. The nightly cleanup does not touch it. The steps are in [`plans/GRAFANA_13_UPGRADE.md`](plans/GRAFANA_13_UPGRADE.md).
+
+| File | Content |
+|---|---|
+| `dump_grafana.sql.gz` | `pg_dump -c` from PostgreSQL 13, Grafana 12.2 schema |
+| `grafana.dump` | The same in custom format, used for the restore into PostgreSQL 18 |
+| `dump_grafana_pg18_pre13.sql.gz` | `pg_dump -c` from PostgreSQL 18, taken just before Grafana 13's storage migration |
+| `configs.tar.gz`, `data.tar.gz` | `configs/grafana` and `data/grafana` (without the database clusters) |
+| `dashboards/` | All dashboards as JSON from the API, at their stored version |
+| `rowcounts*.txt` | Row counts of every table before and after the restore into 18 |
+
+Going back to Grafana 12.2 requires one of these dumps. Restore it into a dropped and recreated `grafana` database, because a restore over the migrated database leaves Grafana 13's tables behind, and set the image back. The PostgreSQL 13 cluster itself is still in `data/grafana/pgdata/`.
 
 ### Container Health Monitoring
 

@@ -312,7 +312,7 @@ services:
     restart: unless-stopped
 
   grafana-pg:
-    image: postgres:13-alpine
+    image: postgres:18-alpine
     container_name: grafana-pg
     user: "70:70"
     mem_limit: 256M
@@ -329,7 +329,10 @@ services:
       - POSTGRES_DB=grafana
       - TZ=Europe/Vienna
     volumes:
-      - "{{ docker.paths.data }}grafana/pgdata:/var/lib/postgresql/data"
+      # From 18 on, the image keeps the cluster in /var/lib/postgresql/<major>/docker
+      # and refuses an older one mounted at .../data. pgdata/ holds the
+      # PostgreSQL 13 cluster from before the upgrade.
+      - "{{ docker.paths.data }}grafana/postgres:/var/lib/postgresql"
     labels:
       - autoheal=true
       - traefik.enable=false
@@ -342,7 +345,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:12.2.8
+    image: grafana/grafana:13.2.4
     container_name: web_grafana
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
@@ -381,7 +384,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 30s
+      # Version upgrades migrate the database before the HTTP server starts;
+      # autoheal must not restart Grafana in the middle of that.
+      start_period: 120s
     restart: unless-stopped
 
   pgadmin:

@@ -35,6 +35,11 @@
     loop: "{{ web_containers }}"
     loop_control:
       loop_var: container_name
+  # A static import, unlike the loop above, passes its tag to every task
+  # inside, so --tags grafana_dashboards runs just these and skips the rest.
+  - import_tasks: grafana_dashboards.yml
+    when: "'grafana' in web_containers"
+    tags: grafana_dashboards
   - name: Write docker compose file
     template:
       src: docker-compose_yml.j2
@@ -160,10 +165,14 @@
     changed_when: "'Recreated' in recreated_services.stderr"
     when: not restart_container
 
+  # Tagged so a dashboards-only run still applies a changed provider.
   - name: Grafana - Restart when its configuration changed
     command: docker restart web_grafana
     become: yes
-    when: grafana_config is defined and grafana_config.changed
+    when: >-
+      (grafana_config is defined and grafana_config.changed) or
+      (grafana_dashboard_provider is defined and grafana_dashboard_provider.changed)
+    tags: grafana_dashboards
 
   # Authelia reads its configuration once at startup. compose runs with
   # recreate: never, so access rule changes would otherwise sit on disk

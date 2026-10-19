@@ -29,6 +29,31 @@ Following extra parameters are available:
 
 * `restart_container=yes` | default "no"
 
+Deploy only parts
+-----------------
+
+Without `--tags`, the playbook deploys everything, as above. To run just one part, pass its tag:
+
+    ansible-playbook web.yml --tags grafana_dashboards
+
+| Tag | Deploys |
+|---|---|
+| `grafana_dashboards` | The dashboards in `roles/web/files/grafana/provisioning/dashboards/` and their provider |
+
+Grafana rescans its dashboards directory every 30 seconds, so changes show up without a restart. Only a change to the provider restarts Grafana.
+
+### Adding a Grafana dashboard
+
+A subdirectory is the Grafana folder of the same title, for example `Homeassistant/`. Files at the top level go to General. No task needs to change.
+
+1. In Grafana, open the dashboard's Export dialog.
+2. For v2 dashboards (dynamic dashboards), set Model to **V2 Resource** and Format to **JSON**. Keep `apiVersion`, `kind`, `metadata.name` and `spec`, and remove the rest of `metadata` and `status`.
+3. Save it as `<folder>/<name>.json`, then run `ansible-playbook web.yml --tags grafana_dashboards`.
+
+`metadata.name` is the dashboard uid. Keeping it makes Grafana take over the existing dashboard instead of creating a copy.
+
+This repository is public. Replace internal hostnames or other private values in a dashboard with a placeholder such as `@@PSA_URL@@`, put the value in the vault, and add a matching `replace` to the "Grafana - Write dashboards" task in `roles/web/tasks/grafana_dashboards.yml`. The files are not Jinja templates, because Grafana JSON is full of `{{ }}`.
+
 Motivation
 ==========
 
