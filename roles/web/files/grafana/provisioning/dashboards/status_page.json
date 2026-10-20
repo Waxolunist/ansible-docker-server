@@ -1,1042 +1,2207 @@
 {
-  "id": null,
-  "uid": "container-status-page",
-  "title": "Service Status",
-  "tags": ["status", "uptime"],
-  "style": "dark",
-  "timezone": "Europe/Vienna",
   "editable": true,
   "graphTooltip": 0,
-  "refresh": "1m",
-  "schemaVersion": 39,
-  "version": 1,
-  "time": { "from": "now-30d", "to": "now" },
-  "timepicker": {},
   "panels": [
-
     {
-      "id": 1,
-      "type": "stat",
-      "title": "Services Operational",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "Number of containers currently up out of 20 monitored.",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red",    "value": null },
-              { "color": "orange", "value": 16   },
-              { "color": "green",  "value": 20   }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 16
+              },
+              {
+                "color": "green",
+                "value": 20
+              }
             ]
           },
-          "color": { "mode": "thresholds" },
-          "unit": "short",
-          "noValue": "0"
+          "unit": "short"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "value_and_name",
-        "wideLayout": true,
-        "orientation": "auto"
+        "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "sum(container_last_seen{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"} > bool (time() - 90))",
           "instant": true,
           "legendFormat": "Services Up",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Services Operational",
+      "type": "stat"
     },
-
     {
-      "id": 2,
-      "type": "stat",
-      "title": "Overall Uptime (30d)",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "Average uptime across all monitored containers over the selected time range.",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
-      "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red",    "value": null },
-              { "color": "orange", "value": 0.95 },
-              { "color": "green",  "value": 0.99 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.95
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
             ]
           },
-          "color": { "mode": "thresholds" },
-          "unit": "percentunit",
-          "noValue": "N/A"
+          "unit": "percentunit"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "id": 2,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "avg(avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"}[$__range]))",
           "instant": true,
           "legendFormat": "Uptime",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Overall Uptime (30d)",
+      "type": "stat"
     },
-
     {
-      "id": 3,
-      "type": "stat",
-      "title": "Last Updated",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "Never",
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              {
+                "color": "green",
+                "value": null
+              }
             ]
           },
-          "color": { "mode": "thresholds" },
-          "unit": "dateTimeFromNow",
-          "noValue": "Never"
+          "unit": "dateTimeFromNow"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 3,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "Time" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "Time",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "prometheus_ready * 1000",
           "instant": true,
           "legendFormat": "Prometheus",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Last Updated",
+      "type": "stat"
     },
-
     {
-      "id": 10,
-      "type": "row",
-      "title": "Infrastructure",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 4 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 10,
+      "title": "Infrastructure",
+      "type": "row"
     },
-
     {
-      "id": 11,
-      "type": "stat",
-      "title": "Traefik",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 5 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down",        "color": "red"   }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 5
+      },
+      "id": 11,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_reverse-proxy\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Traefik",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Traefik",
+      "type": "stat"
     },
-
     {
-      "id": 12,
-      "type": "stat",
-      "title": "Prometheus",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 5 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 5
+      },
+      "id": 12,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_prometheus\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Prometheus",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Prometheus",
+      "type": "stat"
     },
-
     {
-      "id": 13,
-      "type": "stat",
-      "title": "Node Exporter",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 5 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 5
+      },
+      "id": 13,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_node-exporter\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Node Exporter",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Node Exporter",
+      "type": "stat"
     },
-
     {
-      "id": 14,
-      "type": "stat",
-      "title": "cAdvisor",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 9 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 9
+      },
+      "id": 14,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_cadvisor\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "cAdvisor",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "cAdvisor",
+      "type": "stat"
     },
-
     {
-      "id": 15,
-      "type": "stat",
-      "title": "Socket Proxy",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 9 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 9
+      },
+      "id": 15,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_socket-proxy\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Socket Proxy",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Socket Proxy",
+      "type": "stat"
     },
-
     {
-      "id": 16,
-      "type": "stat",
-      "title": "Autoheal",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 9 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 9
+      },
+      "id": 16,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_autoheal\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Autoheal",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Autoheal",
+      "type": "stat"
     },
-
     {
-      "id": 17,
-      "type": "row",
-      "title": "Logging",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 13 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 13
+      },
+      "id": 17,
+      "title": "Logging",
+      "type": "row"
     },
-
     {
-      "id": 61,
-      "type": "stat",
-      "title": "Loki",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 14 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 14
+      },
+      "id": 61,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_loki\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Loki",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Loki",
+      "type": "stat"
     },
-
     {
-      "id": 62,
-      "type": "stat",
-      "title": "Promtail",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 14 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 14
+      },
+      "id": 62,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_promtail\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Promtail",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Promtail",
+      "type": "stat"
     },
-
     {
-      "id": 63,
-      "type": "stat",
-      "title": "Postgres Exporter",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 14 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "id": 63,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_postgres-exporter\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Postgres Exporter",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Postgres Exporter",
+      "type": "stat"
     },
-
     {
-      "id": 20,
-      "type": "row",
-      "title": "Applications",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 20,
+      "title": "Applications",
+      "type": "row"
     },
-
     {
-      "id": 21,
-      "type": "stat",
-      "title": "Grafana",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 19 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 19
+      },
+      "id": 21,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_grafana\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Grafana",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Grafana",
+      "type": "stat"
     },
-
     {
-      "id": 22,
-      "type": "stat",
-      "title": "PhotoPrism",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 19 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 19
+      },
+      "id": 22,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"photoprism\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "PhotoPrism",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "PhotoPrism",
+      "type": "stat"
     },
-
     {
-      "id": 23,
-      "type": "stat",
-      "title": "Registry",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 19 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 19
+      },
+      "id": 23,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_registry\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Registry",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Registry",
+      "type": "stat"
     },
-
     {
-      "id": 24,
-      "type": "stat",
-      "title": "pgAdmin",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 23 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 23
+      },
+      "id": 24,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_pgadmin\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "pgAdmin",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "pgAdmin",
+      "type": "stat"
     },
-
     {
-      "id": 25,
-      "type": "stat",
-      "title": "Minecraft",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 23 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 23
+      },
+      "id": 25,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"minecraft\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Minecraft",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Minecraft",
+      "type": "stat"
     },
-
     {
-      "id": 26,
-      "type": "stat",
-      "title": "Authelia",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 23 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 23
+      },
+      "id": 26,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"authelia\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Authelia",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Authelia",
+      "type": "stat"
     },
-
     {
-      "id": 27,
-      "type": "stat",
-      "title": "Conduit (Matrix)",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 27 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 27
+      },
+      "id": 27,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_conduit\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Conduit",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Conduit (Matrix)",
+      "type": "stat"
     },
-
     {
-      "id": 28,
-      "type": "stat",
-      "title": "Code-Server",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 27 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 27
+      },
+      "id": 28,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_code-server\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Code-Server",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Code-Server",
+      "type": "stat"
     },
-
     {
-      "id": 30,
-      "type": "row",
-      "title": "Databases",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 31 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 30,
+      "title": "Databases",
+      "type": "row"
     },
-
     {
-      "id": 31,
-      "type": "stat",
-      "title": "TimescaleDB",
-      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 32 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 32
+      },
+      "id": 31,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"web_timescaledb\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "TimescaleDB",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "TimescaleDB",
+      "type": "stat"
     },
-
     {
-      "id": 32,
-      "type": "stat",
-      "title": "Grafana DB",
-      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 32 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 32
+      },
+      "id": 32,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"grafana-pg\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "Grafana DB",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Grafana DB",
+      "type": "stat"
     },
-
     {
-      "id": 33,
-      "type": "stat",
-      "title": "PhotoPrism DB",
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 32 },
-      "datasource": { "type": "prometheus" },
+      "datasource": {
+        "type": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down", "color": "red" }, "1": { "text": "Operational", "color": "green" } } },
-            { "type": "special", "options": { "match": "null", "result": { "text": "Down", "color": "red" } } }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "text": "Operational"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "color": "red",
+                  "text": "Down"
+                }
+              },
+              "type": "special"
+            }
           ],
-          "color": { "mode": "thresholds" },
-          "unit": "none",
-          "noValue": "Down"
+          "noValue": "Down",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 32
+      },
+      "id": 33,
       "options": {
-        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
         "colorMode": "background",
         "graphMode": "none",
         "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
         "textMode": "auto",
         "wideLayout": true
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "container_last_seen{name=\"photoprism-mariadb\"} > bool (time() - 90)",
           "instant": true,
           "legendFormat": "PhotoPrism DB",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "PhotoPrism DB",
+      "type": "stat"
     },
-
     {
-      "id": 40,
-      "type": "table",
-      "title": "30-Day Uptime by Service",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "Average uptime percentage per container over the dashboard time range. Based on the container_up_bool recording rule sampled every minute.",
-      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 36 },
-      "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "center",
+            "displayMode": "color-background"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red",    "value": null },
-              { "color": "orange", "value": 0.95 },
-              { "color": "green",  "value": 0.99 }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.95
+              },
+              {
+                "color": "green",
+                "value": 0.99
+              }
             ]
           },
-          "color": { "mode": "thresholds" },
-          "unit": "percentunit",
-          "custom": {
-            "displayMode": "color-background",
-            "align": "center"
-          }
+          "unit": "percentunit"
         },
         "overrides": [
           {
-            "matcher": { "id": "byName", "options": "Container" },
+            "matcher": {
+              "id": "byName",
+              "options": "Container"
+            },
             "properties": [
-              { "id": "custom.width", "value": 200 },
-              { "id": "custom.displayMode", "value": "auto" },
-              { "id": "custom.align", "value": "left" }
+              {
+                "id": "custom.width",
+                "value": 200
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "auto"
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              }
             ]
           },
           {
-            "matcher": { "id": "byName", "options": "Time" },
-            "properties": [{ "id": "custom.hidden", "value": true }]
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
           }
         ]
       },
-      "options": {
-        "sortBy": [{ "displayName": "Uptime", "desc": false }],
-        "cellHeight": "sm",
-        "footer": { "show": false }
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 36
       },
-      "transformations": [
-        { "id": "labelsToFields", "options": { "valueLabel": "name" } },
-        { "id": "organize", "options": { "renameByName": { "name": "Container", "Value": "Uptime" } } }
-      ],
+      "id": 40,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "Uptime"
+          }
+        ]
+      },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"}[$__range])",
           "instant": true,
           "legendFormat": "{{name}}",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "30-Day Uptime by Service",
+      "transformations": [
+        {
+          "id": "labelsToFields",
+          "options": {
+            "valueLabel": "name"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value": "Uptime",
+              "name": "Container"
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
-
     {
-      "id": 50,
-      "type": "row",
-      "title": "History",
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 }
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 46
+      },
+      "id": 50,
+      "title": "History",
+      "type": "row"
     },
-
     {
-      "id": 51,
-      "type": "state-timeline",
-      "title": "Container State History",
+      "datasource": {
+        "type": "prometheus"
+      },
       "description": "Historical up/down state for all monitored containers. Green = Operational, Red = Down.",
-      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 47 },
-      "datasource": { "type": "prometheus" },
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "fillOpacity": 80,
+            "lineWidth": 0,
+            "spanNulls": false
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Down"
+                },
+                "1": {
+                  "text": "Up"
+                }
+              },
+              "type": "value"
+            }
+          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "red",   "value": null },
-              { "color": "green", "value": 1    }
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
             ]
-          },
-          "mappings": [
-            { "type": "value", "options": { "0": { "text": "Down" }, "1": { "text": "Up" } } }
-          ],
-          "color": { "mode": "thresholds" },
-          "custom": { "fillOpacity": 80, "lineWidth": 0, "spanNulls": false }
+          }
         },
         "overrides": []
       },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 51,
       "options": {
-        "mergeValues": true,
-        "showValue": "never",
         "alignValue": "left",
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "mergeValues": true,
         "rowHeight": 0.85,
-        "legend": { "displayMode": "list", "placement": "bottom", "showLegend": false }
+        "showValue": "never"
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus" },
+          "datasource": {
+            "type": "prometheus"
+          },
           "expr": "max by (name) (container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"})",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
-      ]
+      ],
+      "title": "Container State History",
+      "type": "state-timeline"
     }
-
-  ]
+  ],
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": [
+    "status",
+    "uptime"
+  ],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "Europe/Vienna",
+  "title": "Service Status",
+  "uid": "container-status-page"
 }

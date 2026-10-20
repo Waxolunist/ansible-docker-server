@@ -9,20 +9,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -32,10 +32,6 @@
       "panel-10": {
         "kind": "Panel",
         "spec": {
-          "id": 10,
-          "title": "Last Update",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -43,13 +39,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -72,17 +68,18 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
+              "queryOptions": {},
               "transformations": [
                 {
-                  "kind": "Transformation",
                   "group": "formatTime",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "outputFormat": "MMMM Do YYYY, HH:mm:ss",
@@ -92,15 +89,39 @@
                     }
                   }
                 }
-              ],
-              "queryOptions": {}
+              ]
             }
           },
+          "description": "",
+          "id": 10,
+          "links": [],
+          "title": "Last Update",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "#ccccdb3b",
+                    "mode": "fixed"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "background",
                 "graphMode": "area",
@@ -117,40 +138,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "#ccccdb3b"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-15": {
         "kind": "Panel",
         "spec": {
-          "id": 15,
-          "title": "Battery SOC",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -158,13 +154,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -187,25 +183,50 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
-                "timeFrom": "now/d",
-                "hideTimeOverride": true
-              }
+                "hideTimeOverride": true,
+                "timeFrom": "now/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 15,
+          "links": [],
+          "title": "Battery SOC",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -222,40 +243,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "percent",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-16": {
         "kind": "Panel",
         "spec": {
-          "id": 16,
-          "title": "Current spotprice",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -263,13 +259,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -292,22 +288,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "Current Price",
-                    "hidden": false
+                    "refId": "Current Price"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -330,22 +326,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "Next price",
-                    "hidden": false
+                    "refId": "Next price"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -368,62 +364,48 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "Next after price",
-                    "hidden": false
+                    "refId": "Next after price"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
-                "timeFrom": "now/d",
-                "hideTimeOverride": true
-              }
+                "hideTimeOverride": true,
+                "timeFrom": "now/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 16,
+          "links": [],
+          "title": "Current spotprice",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "orientation": "horizontal",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "",
-                  "values": true
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "currencyEUR",
+                  "color": {
+                    "mode": "thresholds"
+                  },
                   "decimals": 2,
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
-                        "value": 0,
-                        "color": "red"
+                        "color": "red",
+                        "value": 0
                       },
                       {
-                        "value": 0,
-                        "color": "green"
+                        "color": "green",
+                        "value": 0
                       }
                     ]
                   },
-                  "color": {
-                    "mode": "thresholds"
-                  }
+                  "unit": "currencyEUR"
                 },
                 "overrides": [
                   {
@@ -463,18 +445,32 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "horizontal",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": true
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-17": {
         "kind": "Panel",
         "spec": {
-          "id": 17,
-          "title": "Price with Forecast",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -482,13 +478,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -548,22 +544,22 @@
                           }
                         },
                         "table": "spotdata_kwhtzadjusted"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -586,74 +582,31 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "B",
-                    "hidden": false
+                    "refId": "B"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
+                "hideTimeOverride": true,
                 "timeFrom": "now/d",
-                "timeShift": "0d/d",
-                "hideTimeOverride": true
-              }
+                "timeShift": "0d/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 17,
+          "links": [],
+          "title": "Price with Forecast",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "timeseries",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "max",
-                    "min",
-                    "mean",
-                    "median"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "hoverProximity": 500,
-                  "mode": "single",
-                  "sort": "none"
-                }
-              },
               "fieldConfig": {
                 "defaults": {
-                  "unit": "currencyEUR",
-                  "decimals": 2,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "red"
-                      },
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 0.1,
-                        "color": "#EAB839"
-                      },
-                      {
-                        "value": 0.15,
-                        "color": "#6ED0E0"
-                      },
-                      {
-                        "value": 0.2,
-                        "color": "purple"
-                      }
-                    ]
-                  },
                   "color": {
                     "mode": "thresholds",
                     "seriesBy": "last"
@@ -694,7 +647,34 @@
                     "thresholdsStyle": {
                       "mode": "line+area"
                     }
-                  }
+                  },
+                  "decimals": 2,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "red",
+                        "value": 0
+                      },
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "#EAB839",
+                        "value": 0.1
+                      },
+                      {
+                        "color": "#6ED0E0",
+                        "value": 0.15
+                      },
+                      {
+                        "color": "purple",
+                        "value": 0.2
+                      }
+                    ]
+                  },
+                  "unit": "currencyEUR"
                 },
                 "overrides": [
                   {
@@ -760,18 +740,34 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "max",
+                    "min",
+                    "mean",
+                    "median"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "hoverProximity": 500,
+                  "mode": "single",
+                  "sort": "none"
+                }
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-2": {
         "kind": "Panel",
         "spec": {
-          "id": 2,
-          "title": "Live",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -779,13 +775,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "marcusolsson-static-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "ea53bc9a-7449-42cb-aea5-d67715856cc0"
                       },
+                      "group": "marcusolsson-static-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "frame": {
                           "fields": [
@@ -801,22 +797,43 @@
                           "meta": {},
                           "name": "Logo"
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 2,
+          "links": [],
+          "title": "Live",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "marcusolsson-dynamictext-panel",
-            "version": "5.7.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "afterRender": "",
                 "content": "<div class=\"logo\" style=\"background-image: url('{{logo}}');\"></div>\n<p class=\"description\">Huawei SUN2000</p>",
@@ -836,36 +853,15 @@
                 "renderMode": "everyRow",
                 "styles": "& {\n  display: block;\n  container-type: inline-size;\n  container-name: logocontainer;\n}\n\n& .dt-row {\n  height: 100%;\n  display: flex;\n  padding: 0;\n  align-items: center;\n}\n\n& .dt-row .logo {\n  width: 100%;\n  height: 100%;\n  background-repeat: no-repeat;\n  background-size: contain;\n  background-position: center;\n}\n\n& .dt-row .description {\n  font-size: larger;\n  align-self: flex-start;\n  margin-top: 2rem;\n  width: 30%;\n}\n\n@container logocontainer (max-width: 500px) {\n  & .dt-row {\n    flex-direction: column;\n  }\n\n  & .dt-row .description {\n    align-self: center;\n    margin: 0;\n    width: auto;\n  }\n}",
                 "wrap": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "5.7.0"
           }
         }
       },
       "panel-3": {
         "kind": "Panel",
         "spec": {
-          "id": 3,
-          "title": "Current PV output",
-          "description": "Power the solar inverter delivers right now (data_solar_power, sampled every 5 minutes). Not the house consumption and not the power drawn from or fed into the grid.",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -873,13 +869,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -902,25 +898,60 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
-                "timeFrom": "now/d",
-                "hideTimeOverride": true
-              }
+                "hideTimeOverride": true,
+                "timeFrom": "now/d"
+              },
+              "transformations": []
             }
           },
+          "description": "Power the solar inverter delivers right now (data_solar_power, sampled every 5 minutes). Not the house consumption and not the power drawn from or fed into the grid.",
+          "id": 3,
+          "links": [],
+          "title": "Current PV output",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 2,
+                  "max": 4,
+                  "thresholds": {
+                    "mode": "percentage",
+                    "steps": [
+                      {
+                        "color": "red",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 25
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 50
+                      },
+                      {
+                        "color": "green",
+                        "value": 90
+                      }
+                    ]
+                  },
+                  "unit": "kwatt"
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -937,50 +968,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "kwatt",
-                  "decimals": 2,
-                  "max": 4,
-                  "thresholds": {
-                    "mode": "percentage",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "red"
-                      },
-                      {
-                        "value": 25,
-                        "color": "orange"
-                      },
-                      {
-                        "value": 50,
-                        "color": "yellow"
-                      },
-                      {
-                        "value": 90,
-                        "color": "green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-4": {
         "kind": "Panel",
         "spec": {
-          "id": 4,
-          "title": "Today production",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -988,13 +984,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1017,25 +1013,51 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
-                "timeFrom": "now/d",
-                "hideTimeOverride": true
-              }
+                "hideTimeOverride": true,
+                "timeFrom": "now/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 4,
+          "links": [],
+          "title": "Today production",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "kwatth"
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -1052,31 +1074,9 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "kwatth",
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "red"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       }
@@ -1088,15 +1088,12 @@
           {
             "kind": "RowsLayoutRow",
             "spec": {
-              "title": "New row",
               "collapse": false,
               "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
-                  "maxColumnCount": 5,
                   "columnWidthMode": "narrow",
-                  "rowHeightMode": "standard",
                   "items": [
                     {
                       "kind": "AutoGridLayoutItem",
@@ -1143,24 +1140,24 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "maxColumnCount": 5,
+                  "rowHeightMode": "standard"
                 }
-              }
+              },
+              "title": "New row"
             }
           },
           {
             "kind": "RowsLayoutRow",
             "spec": {
-              "title": "New row 1",
-              "hideHeader": true,
               "fillScreen": true,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
-                  "maxColumnCount": 3,
-                  "columnWidthMode": "custom",
                   "columnWidth": 448,
-                  "rowHeightMode": "standard",
+                  "columnWidthMode": "custom",
                   "fillScreen": true,
                   "items": [
                     {
@@ -1181,9 +1178,12 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "maxColumnCount": 3,
+                  "rowHeightMode": "standard"
                 }
-              }
+              },
+              "title": "New row 1"
             }
           }
         ]
@@ -1191,18 +1191,18 @@
     },
     "links": [
       {
-        "title": "Homeassistant",
-        "type": "dashboards",
+        "asDropdown": true,
         "icon": "external link",
-        "tooltip": "",
-        "url": "",
+        "includeVars": false,
+        "keepTime": false,
         "tags": [
           "homeassistant"
         ],
-        "asDropdown": true,
         "targetBlank": false,
-        "includeVars": false,
-        "keepTime": false
+        "title": "Homeassistant",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
       }
     ],
     "liveNow": false,
@@ -1211,9 +1211,6 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "now-6h",
-      "to": "now",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -1227,8 +1224,11 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
       "hideTimepicker": true,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "now"
     },
     "title": "Solar - Live",
     "variables": []

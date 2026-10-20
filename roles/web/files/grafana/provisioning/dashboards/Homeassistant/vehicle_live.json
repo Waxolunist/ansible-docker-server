@@ -9,20 +9,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -33,10 +33,6 @@
       "panel-1": {
         "kind": "Panel",
         "spec": {
-          "id": 1,
-          "title": "Battery Level",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -44,13 +40,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -73,22 +69,81 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 1,
+          "links": [],
+          "title": "Battery Level",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "gauge",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "dark-red",
+                        "value": 0
+                      },
+                      {
+                        "color": "super-light-red",
+                        "value": 15
+                      },
+                      {
+                        "color": "light-orange",
+                        "value": 25
+                      },
+                      {
+                        "color": "light-yellow",
+                        "value": 35
+                      },
+                      {
+                        "color": "green",
+                        "value": 45
+                      },
+                      {
+                        "color": "semi-dark-green",
+                        "value": 55
+                      },
+                      {
+                        "color": "dark-green",
+                        "value": 65
+                      },
+                      {
+                        "color": "dark-yellow",
+                        "value": 75
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 85
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
               "options": {
                 "minVizHeight": 75,
                 "minVizWidth": 75,
@@ -103,74 +158,15 @@
                 "showThresholdLabels": false,
                 "showThresholdMarkers": true,
                 "sizing": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "percent",
-                  "min": 0,
-                  "max": 100,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "dark-red"
-                      },
-                      {
-                        "value": 15,
-                        "color": "super-light-red"
-                      },
-                      {
-                        "value": 25,
-                        "color": "light-orange"
-                      },
-                      {
-                        "value": 35,
-                        "color": "light-yellow"
-                      },
-                      {
-                        "value": 45,
-                        "color": "green"
-                      },
-                      {
-                        "value": 55,
-                        "color": "semi-dark-green"
-                      },
-                      {
-                        "value": 65,
-                        "color": "dark-green"
-                      },
-                      {
-                        "value": 75,
-                        "color": "dark-yellow"
-                      },
-                      {
-                        "value": 85,
-                        "color": "dark-orange"
-                      },
-                      {
-                        "value": 95,
-                        "color": "dark-red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-10": {
         "kind": "Panel",
         "spec": {
-          "id": 10,
-          "title": "Battery SOH",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -178,13 +174,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -207,22 +203,69 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 10,
+          "links": [],
+          "title": "Battery SOH",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "gauge",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 100,
+                  "min": 70,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "dark-red",
+                        "value": 0
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 70
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 75
+                      },
+                      {
+                        "color": "super-light-yellow",
+                        "value": 80
+                      },
+                      {
+                        "color": "dark-yellow",
+                        "value": 85
+                      },
+                      {
+                        "color": "green",
+                        "value": 90
+                      },
+                      {
+                        "color": "dark-green",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
               "options": {
                 "minVizHeight": 75,
                 "minVizWidth": 75,
@@ -238,62 +281,15 @@
                 "showThresholdMarkers": true,
                 "sizing": "auto",
                 "text": {}
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "percent",
-                  "min": 70,
-                  "max": 100,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "dark-red"
-                      },
-                      {
-                        "value": 70,
-                        "color": "dark-red"
-                      },
-                      {
-                        "value": 75,
-                        "color": "dark-orange"
-                      },
-                      {
-                        "value": 80,
-                        "color": "super-light-yellow"
-                      },
-                      {
-                        "value": 85,
-                        "color": "dark-yellow"
-                      },
-                      {
-                        "value": 90,
-                        "color": "green"
-                      },
-                      {
-                        "value": 95,
-                        "color": "dark-green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-2": {
         "kind": "Panel",
         "spec": {
-          "id": 2,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -301,13 +297,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "marcusolsson-static-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "ea53bc9a-7449-42cb-aea5-d67715856cc0"
                       },
+                      "group": "marcusolsson-static-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "frame": {
                           "fields": [
@@ -323,22 +319,39 @@
                           "meta": {},
                           "name": "Logo"
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 2,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "marcusolsson-dynamictext-panel",
-            "version": "5.7.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "afterRender": "",
                 "content": "<div class=\"logo\" style=\"background-image: url('{{logo}}');\"></div>\n<p class=\"description\">Peugeot <span style=\"white-space:nowrap\">e-208&nbsp;GT</span></p>",
@@ -358,32 +371,15 @@
                 "renderMode": "everyRow",
                 "styles": "& {\n  display: block;\n  container-type: size;\n  container-name: logocontainer;\n}\n\n& .dt-row {\n  height: 100%;\n  display: flex;\n  padding: 0;\n  align-items: center;\n}\n\n& .dt-row .logo {\n  width: 100%;\n  height: 100%;\n  background-repeat: no-repeat;\n  background-size: contain;\n  background-position: center;\n}\n\n& .dt-row .description {\n  font-size: 20pt;\n  align-self: flex-start;\n  margin-top: 2rem;\n  width: 30%;\n}\n\n\n@container logocontainer ((max-width: 400px) and (max-height: 150px)) {\n  & .dt-row {\n    flex-direction: row;\n  }\n\n  & .dt-row .description {\n    align-self: center;\n    margin: 0;\n    width: auto;\n    font-size: 11pt;\n  }\n}\n\n\n@container logocontainer ((max-width: 400px) and (min-height: 150px)) {\n  & .dt-row {\n    flex-direction: column;\n  }\n\n  & .dt-row .description {\n    align-self: center;\n    margin: 0;\n    width: auto;\n    font-size: 11pt;\n  }\n}\n",
                 "wrap": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      }
-                    ]
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "5.7.0"
           }
         }
       },
       "panel-3": {
         "kind": "Panel",
         "spec": {
-          "id": 3,
-          "title": "Last Update",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -391,13 +387,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -420,17 +416,18 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
+              "queryOptions": {},
               "transformations": [
                 {
-                  "kind": "Transformation",
                   "group": "formatTime",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "outputFormat": "MMMM Do YYYY, HH:mm:ss",
@@ -440,15 +437,39 @@
                     }
                   }
                 }
-              ],
-              "queryOptions": {}
+              ]
             }
           },
+          "description": "",
+          "id": 3,
+          "links": [],
+          "title": "Last Update",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "#ccccdb3b",
+                    "mode": "fixed"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "background",
                 "graphMode": "area",
@@ -465,40 +486,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "#ccccdb3b"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-4": {
         "kind": "Panel",
         "spec": {
-          "id": 4,
-          "title": "Mileage",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -506,13 +502,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -535,26 +531,53 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
+                "hideTimeOverride": true,
                 "timeFrom": "now/w",
-                "timeShift": "0d/d",
-                "hideTimeOverride": true
-              }
+                "timeShift": "0d/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 4,
+          "links": [],
+          "title": "Mileage",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 1,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "lengthkm"
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -571,42 +594,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "lengthkm",
-                  "decimals": 1,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "blue"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-5": {
         "kind": "Panel",
         "spec": {
-          "id": 5,
-          "title": "Air Temp",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -614,13 +610,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -643,26 +639,53 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
+                "hideTimeOverride": true,
                 "timeFrom": "now/d",
-                "timeShift": "0d/d",
-                "hideTimeOverride": true
-              }
+                "timeShift": "0d/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 5,
+          "links": [],
+          "title": "Air Temp",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "continuous-BlYlRd"
+                  },
+                  "max": 40,
+                  "min": -10,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "celsius"
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -679,42 +702,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "celsius",
-                  "min": -10,
-                  "max": 40,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "continuous-BlYlRd"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-7": {
         "kind": "Panel",
         "spec": {
-          "id": 7,
-          "title": "Position",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -722,13 +718,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -751,22 +747,53 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 7,
+          "links": [],
+          "title": "Position",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "geomap",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "basemap": {
                   "config": {
@@ -855,46 +882,15 @@
                   "padding": 0,
                   "zoom": 9
                 }
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  },
-                  "custom": {
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    }
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-8": {
         "kind": "Panel",
         "spec": {
-          "id": 8,
-          "title": "Energy Autonomy Trend",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -902,13 +898,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -931,26 +927,69 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
               "queryOptions": {
+                "hideTimeOverride": true,
                 "timeFrom": "now/w",
-                "timeShift": "0d/d",
-                "hideTimeOverride": true
-              }
+                "timeShift": "0d/d"
+              },
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 8,
+          "links": [],
+          "title": "Energy Autonomy Trend",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 350,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "dark-red",
+                        "value": 0
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 50
+                      },
+                      {
+                        "color": "orange",
+                        "value": 100
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 150
+                      },
+                      {
+                        "color": "super-light-green",
+                        "value": 200
+                      },
+                      {
+                        "color": "semi-dark-green",
+                        "value": 250
+                      }
+                    ]
+                  },
+                  "unit": "lengthkm"
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "value",
                 "graphMode": "area",
@@ -967,58 +1006,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "lengthkm",
-                  "min": 0,
-                  "max": 350,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "dark-red"
-                      },
-                      {
-                        "value": 50,
-                        "color": "dark-red"
-                      },
-                      {
-                        "value": 100,
-                        "color": "orange"
-                      },
-                      {
-                        "value": 150,
-                        "color": "yellow"
-                      },
-                      {
-                        "value": 200,
-                        "color": "super-light-green"
-                      },
-                      {
-                        "value": 250,
-                        "color": "semi-dark-green"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-9": {
         "kind": "Panel",
         "spec": {
-          "id": 9,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -1026,13 +1022,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1055,22 +1051,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1093,22 +1089,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "B",
-                    "hidden": false
+                    "refId": "B"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1131,44 +1127,32 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "C",
-                    "hidden": false
+                    "refId": "C"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 9,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "none",
-                "justifyMode": "auto",
-                "orientation": "horizontal",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "/.*/",
-                  "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
               "fieldConfig": {
                 "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
                   "mappings": [
                     {
-                      "type": "value",
                       "options": {
                         "Disabled": {
                           "color": "blue",
@@ -1186,24 +1170,22 @@
                           "color": "yellow",
                           "index": 3
                         }
-                      }
+                      },
+                      "type": "value"
                     }
                   ],
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
-                        "value": 0,
-                        "color": "green"
+                        "color": "green",
+                        "value": 0
                       },
                       {
-                        "value": 80,
-                        "color": "red"
+                        "color": "red",
+                        "value": 80
                       }
                     ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
                   }
                 },
                 "overrides": [
@@ -1244,8 +1226,26 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "horizontal",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       }
@@ -1257,16 +1257,13 @@
           {
             "kind": "RowsLayoutRow",
             "spec": {
-              "title": "New row",
               "collapse": false,
-              "hideHeader": true,
               "fillScreen": true,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
-                  "maxColumnCount": 4,
                   "columnWidthMode": "narrow",
-                  "rowHeightMode": "short",
                   "fillScreen": true,
                   "items": [
                     {
@@ -1341,23 +1338,23 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "maxColumnCount": 4,
+                  "rowHeightMode": "short"
                 }
-              }
+              },
+              "title": "New row"
             }
           },
           {
             "kind": "RowsLayoutRow",
             "spec": {
-              "title": "New row 1",
-              "hideHeader": true,
               "fillScreen": true,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
-                  "maxColumnCount": 3,
                   "columnWidthMode": "standard",
-                  "rowHeightMode": "standard",
                   "fillScreen": true,
                   "items": [
                     {
@@ -1369,9 +1366,12 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "maxColumnCount": 3,
+                  "rowHeightMode": "standard"
                 }
-              }
+              },
+              "title": "New row 1"
             }
           }
         ]
@@ -1379,18 +1379,18 @@
     },
     "links": [
       {
-        "title": "Homeassistant",
-        "type": "dashboards",
+        "asDropdown": true,
         "icon": "external link",
-        "tooltip": "",
-        "url": "",
+        "includeVars": false,
+        "keepTime": false,
         "tags": [
           "homeassistant"
         ],
-        "asDropdown": true,
         "targetBlank": false,
-        "includeVars": false,
-        "keepTime": false
+        "title": "Homeassistant",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
       }
     ],
     "liveNow": false,
@@ -1399,9 +1399,6 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "now-6h",
-      "to": "now",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -1415,8 +1412,11 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
       "hideTimepicker": true,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "now"
     },
     "title": "Vehicle - Live",
     "variables": []

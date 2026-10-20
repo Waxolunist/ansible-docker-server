@@ -9,20 +9,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -32,10 +32,6 @@
       "panel-1": {
         "kind": "Panel",
         "spec": {
-          "id": 1,
-          "title": "Battery Level",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -43,13 +39,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -72,23 +68,90 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 1,
+          "links": [],
+          "title": "Battery Level",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "gauge",
-            "version": "12.4.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "dark-red",
+                        "value": 0
+                      },
+                      {
+                        "color": "super-light-red",
+                        "value": 15
+                      },
+                      {
+                        "color": "light-orange",
+                        "value": 25
+                      },
+                      {
+                        "color": "light-yellow",
+                        "value": 35
+                      },
+                      {
+                        "color": "green",
+                        "value": 45
+                      },
+                      {
+                        "color": "semi-dark-green",
+                        "value": 55
+                      },
+                      {
+                        "color": "dark-green",
+                        "value": 65
+                      },
+                      {
+                        "color": "dark-yellow",
+                        "value": 75
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 85
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
               "options": {
+                "barShape": "flat",
+                "barWidthFactor": 0.5,
+                "effects": {
+                  "barGlow": false,
+                  "centerGlow": false,
+                  "gradient": false
+                },
+                "endpointMarker": "point",
                 "minVizHeight": 75,
                 "minVizWidth": 75,
                 "orientation": "auto",
@@ -99,77 +162,23 @@
                   "fields": "",
                   "values": false
                 },
+                "segmentCount": 1,
+                "segmentSpacing": 0.3,
+                "shape": "gauge",
                 "showThresholdLabels": false,
                 "showThresholdMarkers": true,
-                "sizing": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "unit": "percent",
-                  "min": 0,
-                  "max": 100,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "dark-red"
-                      },
-                      {
-                        "value": 15,
-                        "color": "super-light-red"
-                      },
-                      {
-                        "value": 25,
-                        "color": "light-orange"
-                      },
-                      {
-                        "value": 35,
-                        "color": "light-yellow"
-                      },
-                      {
-                        "value": 45,
-                        "color": "green"
-                      },
-                      {
-                        "value": 55,
-                        "color": "semi-dark-green"
-                      },
-                      {
-                        "value": 65,
-                        "color": "dark-green"
-                      },
-                      {
-                        "value": 75,
-                        "color": "dark-yellow"
-                      },
-                      {
-                        "value": 85,
-                        "color": "dark-orange"
-                      },
-                      {
-                        "value": 95,
-                        "color": "dark-red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
-                  }
-                },
-                "overrides": []
+                "sizing": "auto",
+                "sparkline": false,
+                "textMode": "auto"
               }
-            }
+            },
+            "version": "13.2.4"
           }
         }
       },
       "panel-11": {
         "kind": "Panel",
         "spec": {
-          "id": 11,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -177,31 +186,58 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "grafana"
                       },
+                      "group": "datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "queryType": "randomWalk"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 11,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "volkovlabs-variable-panel",
-            "version": "3.9.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "thresholdsStyle": {
+                      "mode": "color",
+                      "thresholds": []
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "alertCustomMessage": "",
                 "alwaysVisibleFilter": false,
@@ -224,12 +260,21 @@
                 "groups": [],
                 "header": false,
                 "isMinimizeForTable": false,
+                "isMinimizeViewShowCustomIcon": false,
+                "isPinTabsEnabled": false,
                 "isUseLocalTime": false,
                 "minimizeOutputFormat": "text",
+                "minimizeViewCustomIcon": "",
+                "minimizeViewNativeIcon": "gf-movepane-right",
                 "padding": 10,
                 "persistent": false,
+                "requestLatency": "low",
                 "saveSelectedGroup": false,
                 "saveSelectedGroupKey": "",
+                "selectedValues": {
+                  "maxCount": 0,
+                  "showSelected": false
+                },
                 "showGroupTotal": false,
                 "showLabel": false,
                 "showName": false,
@@ -237,44 +282,20 @@
                 "showTotal": false,
                 "statusSort": false,
                 "sticky": false,
+                "tableViewPosition": "normal",
                 "tabsInOrder": true,
-                "variable": "weekday"
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "custom": {
-                    "thresholdsStyle": {
-                      "mode": "color",
-                      "thresholds": []
-                    }
-                  }
-                },
-                "overrides": []
+                "toolbarMode": "tabs",
+                "variable": "weekday",
+                "wordBreak": "normal"
               }
-            }
+            },
+            "version": "5.2.0"
           }
         }
       },
       "panel-18": {
         "kind": "Panel",
         "spec": {
-          "id": 18,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -282,13 +303,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -335,17 +356,18 @@
                           "limit": 50
                         },
                         "table": "charging_plan"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
+              "queryOptions": {},
               "transformations": [
                 {
-                  "kind": "Transformation",
                   "group": "formatTime",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "outputFormat": "HH:mm",
@@ -356,8 +378,8 @@
                   }
                 },
                 {
-                  "kind": "Transformation",
                   "group": "organize",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "excludeByName": {},
@@ -371,34 +393,19 @@
                     }
                   }
                 }
-              ],
-              "queryOptions": {}
+              ]
             }
           },
+          "description": "",
+          "id": 18,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "table",
-            "version": "12.4.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "cellHeight": "sm",
-                "showHeader": true
-              },
               "fieldConfig": {
                 "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
                   "color": {
                     "mode": "thresholds"
                   },
@@ -412,6 +419,19 @@
                     },
                     "inspect": false,
                     "minWidth": 50
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
                   }
                 },
                 "overrides": [
@@ -531,7 +551,7 @@
                         "value": [
                           {
                             "options": {
-                              "11:11": {
+                              "\"11:11:00\"": {
                                 "color": "transparent",
                                 "index": 0,
                                 "text": "-"
@@ -544,18 +564,19 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true
               }
-            }
+            },
+            "version": "13.2.4"
           }
         }
       },
       "panel-20": {
         "kind": "Panel",
         "spec": {
-          "id": 20,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -563,31 +584,38 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "grafana"
                       },
+                      "group": "datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "queryType": "randomWalk"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 20,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "speakyourcode-button-panel",
-            "version": "0.3.2",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
               "options": {
                 "buttons": [
                   {
@@ -604,22 +632,15 @@
                   }
                 ],
                 "orientation": "vertical"
-              },
-              "fieldConfig": {
-                "defaults": {},
-                "overrides": []
               }
-            }
+            },
+            "version": "0.3.2"
           }
         }
       },
       "panel-21": {
         "kind": "Panel",
         "spec": {
-          "id": 21,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -627,13 +648,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "marcusolsson-static-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "ea53bc9a-7449-42cb-aea5-d67715856cc0"
                       },
+                      "group": "marcusolsson-static-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "frame": {
                           "fields": [
@@ -649,22 +670,39 @@
                           "meta": {},
                           "name": "Logo"
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 21,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "marcusolsson-dynamictext-panel",
-            "version": "5.7.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "afterRender": "",
                 "content": "<div class=\"logo\" style=\"background-image: url('{{logo}}');\"></div>\n<p class=\"description\">Peugeot <span style=\"white-space:nowrap\">e-208&nbsp;GT</span></p>",
@@ -684,32 +722,15 @@
                 "renderMode": "everyRow",
                 "styles": "& {\n  display: block;\n  container-type: size;\n  container-name: logocontainer;\n}\n\n& .dt-row {\n  height: 100%;\n  display: flex;\n  padding: 0;\n  align-items: center;\n}\n\n& .dt-row .logo {\n  width: 100%;\n  height: 100%;\n  background-repeat: no-repeat;\n  background-size: contain;\n  background-position: center;\n}\n\n& .dt-row .description {\n  font-size: 20pt;\n  align-self: flex-start;\n  margin-top: 2rem;\n  width: 30%;\n}\n\n\n@container logocontainer ((max-width: 400px) and (max-height: 150px)) {\n  & .dt-row {\n    flex-direction: row;\n  }\n\n  & .dt-row .description {\n    align-self: center;\n    margin: 0;\n    width: auto;\n    font-size: 11pt;\n  }\n}\n\n\n@container logocontainer ((max-width: 400px) and (min-height: 150px)) {\n  & .dt-row {\n    flex-direction: column;\n  }\n\n  & .dt-row .description {\n    align-self: center;\n    margin: 0;\n    width: auto;\n    font-size: 11pt;\n  }\n}\n",
                 "wrap": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      }
-                    ]
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "6.3.0"
           }
         }
       },
       "panel-22": {
         "kind": "Panel",
         "spec": {
-          "id": 22,
-          "title": "Configuration",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -717,13 +738,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -746,22 +767,29 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 22,
+          "links": [],
+          "title": "Configuration",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "volkovlabs-form-panel",
-            "version": "5.1.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
               "options": {
                 "buttonGroup": {
                   "orientation": "center",
@@ -879,22 +907,15 @@
                   "payloadMode": "custom"
                 },
                 "updateEnabled": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {},
-                "overrides": []
               }
-            }
+            },
+            "version": "5.1.0"
           }
         }
       },
       "panel-23": {
         "kind": "Panel",
         "spec": {
-          "id": 23,
-          "title": "Set charging plan",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -902,13 +923,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -980,22 +1001,29 @@
                           "whereString": "day_of_week = 1"
                         },
                         "table": "charging_plan"
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 23,
+          "links": [],
+          "title": "Set charging plan",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "volkovlabs-form-panel",
-            "version": "5.1.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
               "options": {
                 "buttonGroup": {
                   "orientation": "center",
@@ -1494,22 +1522,15 @@
                   "payloadMode": "custom"
                 },
                 "updateEnabled": "auto"
-              },
-              "fieldConfig": {
-                "defaults": {},
-                "overrides": []
               }
-            }
+            },
+            "version": "6.3.5"
           }
         }
       },
       "panel-3": {
         "kind": "Panel",
         "spec": {
-          "id": 3,
-          "title": "Last Update",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -1517,13 +1538,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1546,17 +1567,18 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
+              "queryOptions": {},
               "transformations": [
                 {
-                  "kind": "Transformation",
                   "group": "formatTime",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "outputFormat": "MMMM Do YYYY, HH:mm:ss",
@@ -1566,15 +1588,39 @@
                     }
                   }
                 }
-              ],
-              "queryOptions": {}
+              ]
             }
           },
+          "description": "",
+          "id": 3,
+          "links": [],
+          "title": "Last Update",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.4.0",
+            "kind": "VizConfig",
             "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "#ccccdb3b",
+                    "mode": "fixed"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
               "options": {
                 "colorMode": "background",
                 "graphMode": "area",
@@ -1591,40 +1637,15 @@
                 "showPercentChange": false,
                 "textMode": "auto",
                 "wideLayout": true
-              },
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
-                  "color": {
-                    "mode": "fixed",
-                    "fixedColor": "#ccccdb3b"
-                  }
-                },
-                "overrides": []
               }
-            }
+            },
+            "version": "13.2.4"
           }
         }
       },
       "panel-9": {
         "kind": "Panel",
         "spec": {
-          "id": 9,
-          "title": "",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -1632,13 +1653,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1661,22 +1682,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1699,22 +1720,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "B",
-                    "hidden": false
+                    "refId": "B"
                   }
                 },
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -1737,44 +1758,32 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "C",
-                    "hidden": false
+                    "refId": "C"
                   }
                 }
               ],
-              "transformations": [],
-              "queryOptions": {}
+              "queryOptions": {},
+              "transformations": []
             }
           },
+          "description": "",
+          "id": 9,
+          "links": [],
+          "title": "",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "stat",
-            "version": "12.4.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "colorMode": "value",
-                "graphMode": "none",
-                "justifyMode": "center",
-                "orientation": "auto",
-                "percentChangeColorMode": "standard",
-                "reduceOptions": {
-                  "calcs": [
-                    "lastNotNull"
-                  ],
-                  "fields": "/.*/",
-                  "values": false
-                },
-                "showPercentChange": false,
-                "textMode": "auto",
-                "wideLayout": true
-              },
               "fieldConfig": {
                 "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
                   "mappings": [
                     {
-                      "type": "value",
                       "options": {
                         "Disabled": {
                           "color": "blue",
@@ -1792,24 +1801,22 @@
                           "color": "yellow",
                           "index": 3
                         }
-                      }
+                      },
+                      "type": "value"
                     }
                   ],
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
-                        "value": 0,
-                        "color": "green"
+                        "color": "green",
+                        "value": 0
                       },
                       {
-                        "value": 80,
-                        "color": "red"
+                        "color": "red",
+                        "value": 80
                       }
                     ]
-                  },
-                  "color": {
-                    "mode": "thresholds"
                   }
                 },
                 "overrides": [
@@ -1850,8 +1857,26 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
               }
-            }
+            },
+            "version": "13.2.4"
           }
         }
       }
@@ -1863,16 +1888,13 @@
           {
             "kind": "RowsLayoutRow",
             "spec": {
-              "title": "New row",
               "collapse": false,
-              "hideHeader": true,
               "fillScreen": true,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
-                  "maxColumnCount": 4,
                   "columnWidthMode": "narrow",
-                  "rowHeightMode": "standard",
                   "items": [
                     {
                       "kind": "AutoGridLayoutItem",
@@ -1910,18 +1932,20 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "maxColumnCount": 4,
+                  "rowHeightMode": "standard"
                 }
-              }
+              },
+              "title": "New row"
             }
           },
           {
             "kind": "RowsLayoutRow",
             "spec": {
-              "title": "Preconditioning",
               "collapse": false,
-              "hideHeader": true,
               "fillScreen": true,
+              "hideHeader": true,
               "layout": {
                 "kind": "TabsLayout",
                 "spec": {
@@ -1929,13 +1953,10 @@
                     {
                       "kind": "TabsLayoutTab",
                       "spec": {
-                        "title": "Plan",
                         "layout": {
                           "kind": "AutoGridLayout",
                           "spec": {
-                            "maxColumnCount": 3,
                             "columnWidthMode": "standard",
-                            "rowHeightMode": "standard",
                             "fillScreen": true,
                             "items": [
                               {
@@ -1947,21 +1968,21 @@
                                   }
                                 }
                               }
-                            ]
+                            ],
+                            "maxColumnCount": 3,
+                            "rowHeightMode": "standard"
                           }
-                        }
+                        },
+                        "title": "Plan"
                       }
                     },
                     {
                       "kind": "TabsLayoutTab",
                       "spec": {
-                        "title": "Charging",
                         "layout": {
                           "kind": "AutoGridLayout",
                           "spec": {
-                            "maxColumnCount": 2,
                             "columnWidthMode": "standard",
-                            "rowHeightMode": "standard",
                             "fillScreen": true,
                             "items": [
                               {
@@ -1982,21 +2003,21 @@
                                   }
                                 }
                               }
-                            ]
+                            ],
+                            "maxColumnCount": 2,
+                            "rowHeightMode": "standard"
                           }
-                        }
+                        },
+                        "title": "Charging"
                       }
                     },
                     {
                       "kind": "TabsLayoutTab",
                       "spec": {
-                        "title": "Preconditioning",
                         "layout": {
                           "kind": "AutoGridLayout",
                           "spec": {
-                            "maxColumnCount": 3,
                             "columnWidthMode": "standard",
-                            "rowHeightMode": "standard",
                             "fillScreen": true,
                             "items": [
                               {
@@ -2008,21 +2029,21 @@
                                   }
                                 }
                               }
-                            ]
+                            ],
+                            "maxColumnCount": 3,
+                            "rowHeightMode": "standard"
                           }
-                        }
+                        },
+                        "title": "Preconditioning"
                       }
                     },
                     {
                       "kind": "TabsLayoutTab",
                       "spec": {
-                        "title": "Configuration",
                         "layout": {
                           "kind": "AutoGridLayout",
                           "spec": {
-                            "maxColumnCount": 3,
                             "columnWidthMode": "standard",
-                            "rowHeightMode": "standard",
                             "items": [
                               {
                                 "kind": "AutoGridLayoutItem",
@@ -2033,14 +2054,18 @@
                                   }
                                 }
                               }
-                            ]
+                            ],
+                            "maxColumnCount": 3,
+                            "rowHeightMode": "standard"
                           }
-                        }
+                        },
+                        "title": "Configuration"
                       }
                     }
                   ]
                 }
-              }
+              },
+              "title": "Preconditioning"
             }
           }
         ]
@@ -2048,18 +2073,18 @@
     },
     "links": [
       {
-        "title": "Homeassistant",
-        "type": "dashboards",
+        "asDropdown": true,
         "icon": "external link",
-        "tooltip": "",
-        "url": "",
+        "includeVars": false,
+        "keepTime": false,
         "tags": [
           "homeassistant"
         ],
-        "asDropdown": true,
         "targetBlank": false,
-        "includeVars": false,
-        "keepTime": false
+        "title": "Homeassistant",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
       }
     ],
     "liveNow": false,
@@ -2068,9 +2093,6 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "now-1h",
-      "to": "now",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -2084,20 +2106,26 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-1h",
       "hideTimepicker": true,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "now"
     },
     "title": "Vehicle - Control",
     "variables": [
       {
         "kind": "CustomVariable",
         "spec": {
-          "name": "weekday",
-          "query": "Monday : 1, Tuesday : 2, Wednesday : 3, Thursday : 4, Friday : 5, Saturday : 6, Sunday : 7",
+          "allowCustomValue": false,
           "current": {
             "text": "Monday",
             "value": "1"
           },
+          "hide": "hideVariable",
+          "includeAll": false,
+          "multi": false,
+          "name": "weekday",
           "options": [
             {
               "selected": true,
@@ -2135,11 +2163,8 @@
               "value": "7"
             }
           ],
-          "multi": false,
-          "includeAll": false,
-          "hide": "hideVariable",
+          "query": "Monday : 1, Tuesday : 2, Wednesday : 3, Thursday : 4, Friday : 5, Saturday : 6, Sunday : 7",
           "skipUrlSync": false,
-          "allowCustomValue": false,
           "valuesFormat": "csv"
         }
       }
