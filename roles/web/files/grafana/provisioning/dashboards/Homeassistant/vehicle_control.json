@@ -144,6 +144,14 @@
                 "overrides": []
               },
               "options": {
+                "barShape": "flat",
+                "barWidthFactor": 0.5,
+                "effects": {
+                  "barGlow": false,
+                  "centerGlow": false,
+                  "gradient": false
+                },
+                "endpointMarker": "point",
                 "minVizHeight": 75,
                 "minVizWidth": 75,
                 "orientation": "auto",
@@ -154,12 +162,17 @@
                   "fields": "",
                   "values": false
                 },
+                "segmentCount": 1,
+                "segmentSpacing": 0.3,
+                "shape": "gauge",
                 "showThresholdLabels": false,
                 "showThresholdMarkers": true,
-                "sizing": "auto"
+                "sizing": "auto",
+                "sparkline": false,
+                "textMode": "auto"
               }
             },
-            "version": "12.4.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -247,12 +260,21 @@
                 "groups": [],
                 "header": false,
                 "isMinimizeForTable": false,
+                "isMinimizeViewShowCustomIcon": false,
+                "isPinTabsEnabled": false,
                 "isUseLocalTime": false,
                 "minimizeOutputFormat": "text",
+                "minimizeViewCustomIcon": "",
+                "minimizeViewNativeIcon": "gf-movepane-right",
                 "padding": 10,
                 "persistent": false,
+                "requestLatency": "low",
                 "saveSelectedGroup": false,
                 "saveSelectedGroupKey": "",
+                "selectedValues": {
+                  "maxCount": 0,
+                  "showSelected": false
+                },
                 "showGroupTotal": false,
                 "showLabel": false,
                 "showName": false,
@@ -260,11 +282,14 @@
                 "showTotal": false,
                 "statusSort": false,
                 "sticky": false,
+                "tableViewPosition": "normal",
                 "tabsInOrder": true,
-                "variable": "weekday"
+                "toolbarMode": "tabs",
+                "variable": "weekday",
+                "wordBreak": "normal"
               }
             },
-            "version": "3.9.0"
+            "version": "5.2.0"
           }
         }
       },
@@ -526,7 +551,7 @@
                         "value": [
                           {
                             "options": {
-                              "11:11": {
+                              "\"11:11:00\"": {
                                 "color": "transparent",
                                 "index": 0,
                                 "text": "-"
@@ -545,7 +570,7 @@
                 "showHeader": true
               }
             },
-            "version": "12.4.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -699,7 +724,7 @@
                 "wrap": true
               }
             },
-            "version": "5.7.0"
+            "version": "6.3.0"
           }
         }
       },
@@ -1499,7 +1524,7 @@
                 "updateEnabled": "auto"
               }
             },
-            "version": "5.1.0"
+            "version": "6.3.5"
           }
         }
       },
@@ -1614,7 +1639,7 @@
                 "wideLayout": true
               }
             },
-            "version": "12.4.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -1851,7 +1876,7 @@
                 "wideLayout": true
               }
             },
-            "version": "12.4.0"
+            "version": "13.2.4"
           }
         }
       }
