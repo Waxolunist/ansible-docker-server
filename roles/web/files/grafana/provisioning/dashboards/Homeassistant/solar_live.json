@@ -863,8 +863,8 @@
         "kind": "Panel",
         "spec": {
           "id": 3,
-          "title": "Current Power",
-          "description": "",
+          "title": "Current PV output",
+          "description": "Power the solar inverter delivers right now (data_solar_power, sampled every 5 minutes). Not the house consumption and not the power drawn from or fed into the grid.",
           "links": [],
           "data": {
             "kind": "QueryGroup",
