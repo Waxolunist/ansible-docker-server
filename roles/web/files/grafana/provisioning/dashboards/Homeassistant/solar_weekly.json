@@ -346,7 +346,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select hour_bucket as time, energy_consumed, energy_feeded, price_consumed, price_feeded, (price_feeded + price_self_consumption) as price_production  from agg_1h_energy_values_with_pricing\nwhere $__timeFilter(hour_bucket) ",
+                        "rawSql": "-- Hourly energy and its value. data_smartmeter_energy holds 15-min intervals\n-- stamped with their end time (1 = consumption, 2 = feeding); the solar counter\n-- is the inverter's lifetime total in kWh. Prices: contract price per kWh plus\n-- the spot price where the contract is spot based, looked up per hour in the\n-- metering point's time zone. Self-consumption is valued at the consumption price.\nwith smartmeter as (\n  select date_trunc('hour', time - interval '1 minute') as time,\n         sum(energy) filter (where metering_point_id = 1) as energy_consumed,\n         sum(energy) filter (where metering_point_id = 2) as energy_feeded\n  from data_smartmeter_energy\n  where time > $__timeFrom()::timestamptz and time <= $__timeTo()::timestamptz\n  group by 1\n), counter as (\n  select time,\n         max(energy) over (order by time) as counter,\n         time - lag(time) over (order by time) as gap\n  from data_solar_energy\n  where time > $__timeFrom()::timestamptz - interval '1 hour' and time <= $__timeTo()::timestamptz\n), solar as (\n  -- counter increase per reading, skipping increases across collector gaps,\n  -- which would otherwise all land in the first hour after the gap\n  select date_trunc('hour', time) as time,\n         sum(counter_increase) filter (where gap <= interval '1 hour') as energy_produced\n  from (select time, gap, counter - lag(counter) over (order by time) as counter_increase from counter) c\n  where time >= $__timeFrom()::timestamptz\n  group by 1\n), hourly as (\n  select coalesce(s.time, p.time) as time, s.energy_consumed, s.energy_feeded, p.energy_produced\n  from smartmeter s\n  full join solar p on p.time = s.time\n), priced as (\n  select h.*,\n         (select v.price + case when v.spot_tarif then spot.eur_per_kwh else 0 end\n          from master_energy_contract_pricing_variable v\n          join master_smartmeter_metering_point m on m.id = v.metering_point_id\n          where v.metering_point_id = 1\n            and v.contractrange @> h.time + interval '30 minutes'\n            and v.day_of_week = extract(isodow from h.time at time zone m.timezone)\n            and v.timeepochrange @> extract(epoch from ((h.time + interval '30 minutes') at time zone m.timezone)::time)::int\n          limit 1) as consumption_eur_per_kwh,\n         (select v.price + case when v.spot_tarif then spot.eur_per_kwh else 0 end\n          from master_energy_contract_pricing_variable v\n          join master_smartmeter_metering_point m on m.id = v.metering_point_id\n          where v.metering_point_id = 2\n            and v.contractrange @> h.time + interval '30 minutes'\n            and v.day_of_week = extract(isodow from h.time at time zone m.timezone)\n            and v.timeepochrange @> extract(epoch from ((h.time + interval '30 minutes') at time zone m.timezone)::time)::int\n          limit 1) as feeding_eur_per_kwh\n  from hourly h\n  left join lateral (\n    select avg(marketprice) / 1000.0 as eur_per_kwh\n    from data_spotdata\n    where timestamprange && tstzrange(h.time, h.time + interval '1 hour')\n  ) spot on true\n)\nselect time,\n       energy_consumed,\n       energy_feeded,\n       energy_produced,\n       energy_consumed * consumption_eur_per_kwh as price_consumed,\n       energy_feeded * feeding_eur_per_kwh as price_feeded,\n       energy_feeded * feeding_eur_per_kwh\n         + greatest(0, energy_produced - energy_feeded) * consumption_eur_per_kwh as price_production\nfrom priced\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -369,44 +369,6 @@
                     },
                     "refId": "A"
                   }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                      },
-                      "group": "grafana-postgresql-datasource",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "format": "table",
-                        "rawQuery": true,
-                        "rawSql": "select \n  hour_bucket as time, energy as energy_produced\nfrom agg_1h_counter_data_solar_energy_with_pricing\nwhere $__timeFilter(hour_bucket)\norder by hour_bucket desc;",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "B"
-                  }
                 }
               ],
               "queryOptions": {
@@ -415,13 +377,6 @@
                 "timeShift": "0d/d"
               },
               "transformations": [
-                {
-                  "group": "merge",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {}
-                  }
-                },
                 {
                   "group": "organize",
                   "kind": "Transformation",
@@ -775,7 +730,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select date_trunc('hour', hour_bucket) as time, energy from agg_1h_stats_data_smartmeter_energy_with_pricing\nwhere \n  $__timeFilter(hour_bucket) and \n  metering_point_id = 1",
+                        "rawSql": "-- 15-min intervals stamped with their end time, summed per hour\nselect date_trunc('hour', time - interval '1 minute') as time, sum(energy) as energy\nfrom data_smartmeter_energy\nwhere metering_point_id = 1\n  and time > $__timeFrom()::timestamptz and time <= $__timeTo()::timestamptz\ngroup by 1\norder by 1;",
                         "sql": {
                           "columns": [
                             {
@@ -881,7 +836,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select date_trunc('hour', hour_bucket) as time, energy from agg_1h_stats_data_smartmeter_energy_with_pricing\nwhere \n  $__timeFilter(hour_bucket) and \n  metering_point_id = 2",
+                        "rawSql": "-- 15-min intervals stamped with their end time, summed per hour\nselect date_trunc('hour', time - interval '1 minute') as time, sum(energy) as energy\nfrom data_smartmeter_energy\nwhere metering_point_id = 2\n  and time > $__timeFrom()::timestamptz and time <= $__timeTo()::timestamptz\ngroup by 1\norder by 1;",
                         "sql": {
                           "columns": [
                             {
@@ -1003,7 +958,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select \n  hour_bucket as time, energy\nfrom agg_1h_counter_data_solar_energy_with_pricing\nwhere $__timeFilter(hour_bucket)\norder by hour_bucket desc;",
+                        "rawSql": "-- energy is the inverter's lifetime counter (kWh). Production since the start\n-- of the range = running max (ignores dips, like data_solar_energy_cleaned)\n-- minus the last counter before the range, or the first one in it.\nselect time,\n       max(energy) over (order by time) - coalesce(\n         (select max(energy) from data_solar_energy\n          where time < $__timeFrom() and time >= $__timeFrom()::timestamptz - interval '7 days'),\n         first_value(energy) over (order by time)) as energy\nfrom data_solar_energy\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -1036,7 +991,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Increase of the inverter's lifetime energy counter since the start of the week. Over Modbus the counter is the inverter's AC output, which includes battery discharge, so it can be higher than PV production.",
           "id": 9,
           "links": [],
           "title": "Production",
@@ -1075,7 +1030,7 @@
                 "percentChangeColorMode": "standard",
                 "reduceOptions": {
                   "calcs": [
-                    "sum"
+                    "lastNotNull"
                   ],
                   "fields": "",
                   "values": false
