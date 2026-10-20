@@ -9,20 +9,20 @@
       {
         "kind": "AnnotationQuery",
         "spec": {
-          "query": {
-            "kind": "DataQuery",
-            "group": "grafana",
-            "version": "v0",
-            "datasource": {
-              "name": "-- Grafana --"
-            },
-            "spec": {}
-          },
+          "builtIn": true,
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "builtIn": true
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
         }
       }
     ],
@@ -33,10 +33,6 @@
       "panel-11": {
         "kind": "Panel",
         "spec": {
-          "id": 11,
-          "title": "Average Consumption",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -44,13 +40,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -73,17 +69,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "1y/y",
+                "timeShift": "0y/y"
+              },
               "transformations": [
                 {
-                  "kind": "Transformation",
                   "group": "regression",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "degree": 5,
@@ -93,63 +94,19 @@
                     }
                   }
                 }
-              ],
-              "queryOptions": {
-                "timeFrom": "1y/y",
-                "timeShift": "0y/y",
-                "hideTimeOverride": true
-              }
+              ]
             }
           },
+          "description": "",
+          "id": 11,
+          "links": [],
+          "title": "Average Consumption",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "timeseries",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "legend": {
-                  "calcs": [],
-                  "displayMode": "list",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "multi",
-                  "sort": "none"
-                }
-              },
               "fieldConfig": {
                 "defaults": {
-                  "displayName": "Consumption",
-                  "unit": "kWh/100km",
-                  "decimals": 1,
-                  "min": 10,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 17.5,
-                        "color": "#EAB839"
-                      },
-                      {
-                        "value": 20,
-                        "color": "dark-orange"
-                      },
-                      {
-                        "value": 22.5,
-                        "color": "red"
-                      },
-                      {
-                        "value": 25,
-                        "color": "dark-red"
-                      }
-                    ]
-                  },
                   "color": {
                     "mode": "thresholds",
                     "seriesBy": "last"
@@ -186,7 +143,36 @@
                     "thresholdsStyle": {
                       "mode": "dashed+area"
                     }
-                  }
+                  },
+                  "decimals": 1,
+                  "displayName": "Consumption",
+                  "min": 10,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "#EAB839",
+                        "value": 17.5
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 20
+                      },
+                      {
+                        "color": "red",
+                        "value": 22.5
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 25
+                      }
+                    ]
+                  },
+                  "unit": "kWh/100km"
                 },
                 "overrides": [
                   {
@@ -241,18 +227,28 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "none"
+                }
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       },
       "panel-12": {
         "kind": "Panel",
         "spec": {
-          "id": 12,
-          "title": "Vehicle - Home Charging",
-          "description": "",
-          "links": [],
           "data": {
             "kind": "QueryGroup",
             "spec": {
@@ -260,13 +256,13 @@
                 {
                   "kind": "PanelQuery",
                   "spec": {
+                    "hidden": false,
                     "query": {
-                      "kind": "DataQuery",
-                      "group": "grafana-postgresql-datasource",
-                      "version": "v0",
                       "datasource": {
                         "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
                       },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
                         "format": "table",
@@ -289,17 +285,22 @@
                           ],
                           "limit": 50
                         }
-                      }
+                      },
+                      "version": "v0"
                     },
-                    "refId": "A",
-                    "hidden": false
+                    "refId": "A"
                   }
                 }
               ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "1y/y",
+                "timeShift": "0y/y"
+              },
               "transformations": [
                 {
-                  "kind": "Transformation",
                   "group": "regression",
+                  "kind": "Transformation",
                   "spec": {
                     "options": {
                       "degree": 4,
@@ -309,55 +310,19 @@
                     }
                   }
                 }
-              ],
-              "queryOptions": {
-                "timeFrom": "1y/y",
-                "timeShift": "0y/y",
-                "hideTimeOverride": true
-              }
+              ]
             }
           },
+          "description": "",
+          "id": 12,
+          "links": [],
+          "title": "Vehicle - Home Charging",
           "vizConfig": {
-            "kind": "VizConfig",
             "group": "timeseries",
-            "version": "12.0.0",
+            "kind": "VizConfig",
             "spec": {
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "min",
-                    "max",
-                    "mean",
-                    "lastNotNull"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "multi",
-                  "sort": "none"
-                }
-              },
               "fieldConfig": {
                 "defaults": {
-                  "displayName": "GOE Pricing",
-                  "unit": "currencyEUR",
-                  "decimals": 0,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "value": 0,
-                        "color": "green"
-                      },
-                      {
-                        "value": 80,
-                        "color": "red"
-                      }
-                    ]
-                  },
                   "color": {
                     "mode": "palette-classic"
                   },
@@ -393,7 +358,23 @@
                     "thresholdsStyle": {
                       "mode": "off"
                     }
-                  }
+                  },
+                  "decimals": 0,
+                  "displayName": "GOE Pricing",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "currencyEUR"
                 },
                 "overrides": [
                   {
@@ -444,8 +425,27 @@
                     ]
                   }
                 ]
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "min",
+                    "max",
+                    "mean",
+                    "lastNotNull"
+                  ],
+                  "displayMode": "table",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": false,
+                  "mode": "multi",
+                  "sort": "none"
+                }
               }
-            }
+            },
+            "version": "12.0.0"
           }
         }
       }
@@ -453,9 +453,7 @@
     "layout": {
       "kind": "AutoGridLayout",
       "spec": {
-        "maxColumnCount": 2,
         "columnWidthMode": "standard",
-        "rowHeightMode": "standard",
         "fillScreen": true,
         "items": [
           {
@@ -476,23 +474,25 @@
               }
             }
           }
-        ]
+        ],
+        "maxColumnCount": 2,
+        "rowHeightMode": "standard"
       }
     },
     "links": [
       {
-        "title": "Homeassistant",
-        "type": "dashboards",
+        "asDropdown": true,
         "icon": "external link",
-        "tooltip": "",
-        "url": "",
+        "includeVars": false,
+        "keepTime": false,
         "tags": [
           "homeassistant"
         ],
-        "asDropdown": true,
         "targetBlank": false,
-        "includeVars": false,
-        "keepTime": false
+        "title": "Homeassistant",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
       }
     ],
     "liveNow": false,
@@ -501,9 +501,6 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "timezone": "browser",
-      "from": "now-6h",
-      "to": "now",
       "autoRefresh": "",
       "autoRefreshIntervals": [
         "5s",
@@ -517,8 +514,11 @@
         "2h",
         "1d"
       ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
       "hideTimepicker": true,
-      "fiscalYearStartMonth": 0
+      "timezone": "browser",
+      "to": "now"
     },
     "title": "Vehicle - Analysis",
     "variables": []
