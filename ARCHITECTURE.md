@@ -690,7 +690,7 @@ Usage:
 
 #### Pre-upgrade backup (Grafana 12.2 / PostgreSQL 13)
 
-The upgrade to Grafana 13 and PostgreSQL 18 on 2026-10-19 left a one-off backup in `/backup/grafana_pre13_2026-10-19_163557/`. The nightly cleanup does not touch it. The steps are in [`plans/GRAFANA_13_UPGRADE.md`](plans/GRAFANA_13_UPGRADE.md).
+The upgrade to Grafana 13 and PostgreSQL 18 on 2026-10-19 left a one-off backup in `/backup/grafana_pre13_2026-10-19_163557/`. The nightly cleanup does not touch it. The steps are in [`docs/plans/grafana-13-upgrade.md`](../docs/plans/grafana-13-upgrade.md) (in the `home_docs` repository).
 
 | File | Content |
 |---|---|
