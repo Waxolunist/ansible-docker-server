@@ -169,7 +169,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select bucket as time, average(soc) as soc from agg_15m_stats_data_battery_stats;",
+                        "rawSql": "select time, soc from data_battery_stats\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -194,20 +194,7 @@
                   }
                 }
               ],
-              "transformations": [
-                {
-                  "kind": "Transformation",
-                  "group": "formatTime",
-                  "spec": {
-                    "options": {
-                      "outputFormat": "MMMM Do YYYY, HH:mm:ss",
-                      "timeField": "time",
-                      "timezone": "Europe/Vienna",
-                      "useTimezone": true
-                    }
-                  }
-                }
-              ],
+              "transformations": [],
               "queryOptions": {
                 "timeFrom": "now/d",
                 "hideTimeOverride": true
@@ -897,7 +884,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select minute_bucket as time, power from agg_5m_stats_data_solar_power\nwhere $__timeFilter(minute_bucket)\norder by minute_bucket;",
+                        "rawSql": "select time, power from data_solar_power\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -1012,7 +999,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select \n  hour_bucket as time, energy\nfrom agg_1h_counter_data_solar_energy_with_pricing\nwhere $__timeFilter(hour_bucket)\norder by hour_bucket desc;",
+                        "rawSql": "-- energy is the inverter's lifetime counter (kWh). Production since the start\n-- of the range = running max (ignores dips, like data_solar_energy_cleaned)\n-- minus the last counter before the range, or the first one in it.\nselect time,\n       max(energy) over (order by time) - coalesce(\n         (select max(energy) from data_solar_energy\n          where time < $__timeFrom() and time >= $__timeFrom()::timestamptz - interval '7 days'),\n         first_value(energy) over (order by time)) as energy\nfrom data_solar_energy\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -1057,7 +1044,7 @@
                 "percentChangeColorMode": "standard",
                 "reduceOptions": {
                   "calcs": [
-                    "sum"
+                    "lastNotNull"
                   ],
                   "fields": "",
                   "values": false
