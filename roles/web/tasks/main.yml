@@ -71,6 +71,12 @@
       dest: "{{ docker_base_path }}/restore_grafana.sh"
       mode: 0755
       backup: yes
+  - name: Create TimescaleDB restore script
+    template:
+      src: restore_timescale.j2.sh
+      dest: "{{ docker_base_path }}/restore_timescale.sh"
+      mode: 0750
+      backup: yes
   - name: Add cronjob for backup job
     cron:
       name: "backup databases"

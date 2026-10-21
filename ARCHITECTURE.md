@@ -628,7 +628,8 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 ├── start.sh
 ├── backup_databases.sh
 ├── otterwiki_pull.sh
-└── restore_grafana.sh
+├── restore_grafana.sh
+└── restore_timescale.sh
 ```
 
 ### Volume Mounts by Service
@@ -688,6 +689,29 @@ Usage:
 # Restore from specific backup
 /var/docker/restore_grafana.sh /backup/dump_grafana_02-11-2025_14_30_45.sql.gz
 ```
+
+### TimescaleDB Restore Procedure
+
+A TimescaleDB dump only restores completely between `timescaledb_pre_restore()` and `timescaledb_post_restore()`, with the extension version it was made with. Without them the data lands in plain tables and the hypertables, continuous aggregates and jobs are gone, which is what happened to `timescale_home` on 2026-04-04 (TASK-051).
+
+The [`restore_timescale.sh`](roles/web/templates/restore_timescale.j2.sh) script restores a backup into a **separate** database, never over the running one:
+
+1. Takes an optional backup file (default: the newest non-empty `dump_timescale_*.sql.gz`) and target database (default: `timescale_home_restore`, must not exist)
+2. Creates the target from `template0` with the live database's `timescaledb` and `timescaledb_toolkit` versions (the image installs its newest version into `template1`)
+3. Runs `timescaledb_pre_restore()`, `pg_restore` without the materialized views' data, `timescaledb_post_restore()`, then refreshes the materialized views (pg_restore's empty `search_path` breaks their `time_bucket()` calls)
+4. Stops on any restore error other than the expected "extension already exists", and prints the hypertables, continuous aggregates and jobs it restored
+
+Usage:
+```bash
+/var/docker/restore_timescale.sh
+/var/docker/restore_timescale.sh /backup/dump_timescale_20-10-2026_23_00_01.sql.gz timescale_home_restore
+```
+
+Then check it and make it the live database with `TS_NEW=timescale_home_restore scripts/timescale_rebuild.sh swap` (below); the old database is kept.
+
+### TimescaleDB Rebuild
+
+[`scripts/timescale_rebuild.sh`](scripts/timescale_rebuild.sh) builds `timescale_home` again from the collector's alembic migrations and copies the data into it, for a database whose Timescale layer is lost (TASK-051). It runs on the Docker host, phase by phase: `create` (new database with the same extension versions), `build` (alembic upgrade head in a throwaway Python container on the database container's network; the home-data-collector source comes as a tar on stdin), `copy`, `refresh` (continuous aggregates and materialized views, with the background jobs paused), `verify` (row counts, foreign keys, Timescale catalog) and `swap` (the old database becomes `timescale_home_broken_<date>`). The steps, including stopping the collector on the Pi, are in the `home_docs` how-to "Rebuild the TimescaleDB database".
 
 #### Pre-upgrade backup (Grafana 12.2 / PostgreSQL 13)
 
