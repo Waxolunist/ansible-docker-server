@@ -8,7 +8,7 @@
 # hypertables, continuous aggregates, refresh jobs or the views built on them.
 # This script builds a fresh database next to it with the collector's alembic
 # migrations, copies every table over, refreshes the aggregates, compares the
-# two, and swaps the names. The old database stays as <name>_broken_<date>.
+# two, and swaps the names. The old database stays as <name>_broken_<date>_<time>.
 #
 # Run it on the Docker host, one phase at a time (docs: how-to/rebuild-the-
 # timescale-database.md). Stop the collector on the Pi before "copy" and start
@@ -19,7 +19,7 @@
 #   scripts/timescale_rebuild.sh copy              copy all tables, old -> new
 #   scripts/timescale_rebuild.sh refresh           refresh continuous aggregates and matviews
 #   scripts/timescale_rebuild.sh verify            row counts, foreign keys, Timescale catalog
-#   scripts/timescale_rebuild.sh swap              old -> <old>_broken_<date>, new -> old
+#   scripts/timescale_rebuild.sh swap              old -> <old>_broken_<date>_<time>, new -> old
 #
 # Environment:
 #   TS_CONTAINER  database container          (default: web_timescaledb)
@@ -206,7 +206,7 @@ phase_verify() {
 
 phase_swap() {
     local broken
-    broken="${TS_DB}_broken_$(date +%Y%m%d)"
+    broken="${TS_DB}_broken_$(date +%Y%m%d_%H%M)"
     db_exists "$TS_NEW" || fail "$TS_NEW does not exist"
     db_exists "$broken" && fail "$broken exists already"
     step "Renaming $TS_DB -> $broken and $TS_NEW -> $TS_DB"
@@ -221,7 +221,7 @@ phase_swap() {
     # The background jobs of the rebuilt database (refresh policies) start
     # with its scheduler; restart the workers for it after the rename.
     val "$TS_DB" "select _timescaledb_functions.start_background_workers()" >/dev/null
-    echo "  $TS_DB is the rebuilt database; $broken keeps the old one (connections off)." >&2
+    echo "  $TS_DB is now the former $TS_NEW; $broken keeps the previous $TS_DB (connections off)." >&2
 }
 
 # The comment block at the top, without the "# ".
