@@ -47,8 +47,9 @@
       owner: '472'
       group: '0'
     become: yes
-  # The dashboard provider and files are written by grafana_dashboards.yml,
-  # imported from main.yml so they can be deployed on their own.
+  # The dashboard provider and files, and the go-e datasource of the vehicle
+  # control dashboard, are written by grafana_dashboards.yml, imported from
+  # main.yml so they can be deployed on their own.
   - name: Grafana - Change permissions for data dir (top level only)
     file:
       path: "{{ docker.paths.data }}grafana"

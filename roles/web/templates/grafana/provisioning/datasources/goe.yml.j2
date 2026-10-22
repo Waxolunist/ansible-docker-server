@@ -1,0 +1,21 @@
+apiVersion: 1
+
+# The go-e charger behind Traefik on the Pi, for the start/stop buttons and the
+# live status on the "Vehicle - Control" dashboard. Its own datasource because
+# the proxy's basic auth differs from the car controller's. The button panel
+# finds it by name, so keep the name.
+datasources:
+  - name: go-e
+    uid: goe
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: false
+    editable: false
+    basicAuth: true
+    basicAuthUser: {{ vault_goe_proxy_username | to_json }}
+    jsonData:
+      auth_method: basicAuth
+      allowedHosts:
+        - {{ vault_goe_url | to_json }}
+    secureJsonData:
+      basicAuthPassword: {{ vault_goe_proxy_password | to_json }}

@@ -54,6 +54,9 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_smtp_server_password` | `tasks/grafana.yml` | `smtp_password` | Gmail app password for SMTP, shared by Grafana and Authelia (`AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE`) |
 | `vault_psa_url` | `tasks/grafana_dashboards.yml` | — | Base URL of the PSA car controller, without a trailing slash. Fills `@@PSA_URL@@` in the Homeassistant `vehicle_control.json` dashboard (preconditioning buttons). Kept out of the public repository. |
 | `vault_psa_vin` | `tasks/grafana_dashboards.yml` | — | VIN of the car (17 characters). Fills `@@PSA_VIN@@` in the preconditioning button URLs of `vehicle_control.json`. Kept out of the public repository. |
+| `vault_goe_url` | `tasks/grafana_dashboards.yml`, `grafana/provisioning/datasources/goe.yml.j2` | — | Base URL of the go-e charger behind Traefik on the Pi, without a trailing slash. Fills `@@GOE_URL@@` in `vehicle_control.json` (start/stop charging buttons, live status) and is the only allowed host of the `go-e` Infinity datasource. Kept out of the public repository. |
+| `vault_goe_proxy_username` | `grafana/provisioning/datasources/goe.yml.j2` | — | Basic auth user of the go-e Traefik route. Same value as `vault_collector.goe_proxy_username` in the raspberry vault. |
+| `vault_goe_proxy_password` | `grafana/provisioning/datasources/goe.yml.j2` | — | Basic auth password of the go-e Traefik route, stored in the `go-e` datasource's `secureJsonData`. Same value as `vault_collector.goe_proxy_password` in the raspberry vault; change both together. |
 | `vault_grafana_dashboard_sync_token` | `scripts/grafana_dashboards.py` | — | Token of the Grafana service account `dashboard-sync` (role Viewer), created in the UI under Administration → Service accounts. Used only by the script, which pulls dashboards into the repository over SSH; not deployed. |
 
 ### PgAdmin

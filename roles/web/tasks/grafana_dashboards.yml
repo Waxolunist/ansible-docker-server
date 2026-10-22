@@ -22,6 +22,21 @@
       group: '0'
     become: yes
     register: grafana_dashboard_provider
+  # Used only by the start/stop buttons and the live status on "Vehicle -
+  # Control", so it ships with the dashboards. Holds the go-e proxy password,
+  # so only Grafana can read it. Grafana reads datasources only at startup;
+  # main.yml restarts it on a change.
+  - name: Grafana - Write go-e datasource provisioning
+    template:
+      src: grafana/provisioning/datasources/goe.yml.j2
+      dest: "{{ docker.paths.configs }}grafana/provisioning/datasources/goe.yml"
+      mode: '0600'
+      owner: '472'
+      group: '0'
+    become: yes
+    # --diff would print the password.
+    diff: no
+    register: grafana_goe_datasource
   - name: Grafana - Create dashboard folders
     file:
       path: "{{ docker.paths.configs }}grafana/provisioning/dashboards/{{ item.path }}"
@@ -38,7 +53,7 @@
   # repository are written as @@NAME@@ placeholders and filled in here.
   - name: Grafana - Write dashboards
     copy:
-      content: "{{ lookup('file', item.src, rstrip=False) | replace('@@PSA_URL@@', vault_psa_url) | replace('@@PSA_VIN@@', vault_psa_vin) }}"
+      content: "{{ lookup('file', item.src, rstrip=False) | replace('@@PSA_URL@@', vault_psa_url) | replace('@@PSA_VIN@@', vault_psa_vin) | replace('@@GOE_URL@@', vault_goe_url) }}"
       dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/{{ item.path }}"
       mode: '0644'
       owner: '472'
