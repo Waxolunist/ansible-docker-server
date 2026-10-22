@@ -607,7 +607,7 @@
           "description": "",
           "id": 20,
           "links": [],
-          "title": "",
+          "title": "Preconditioning",
           "vizConfig": {
             "group": "speakyourcode-button-panel",
             "kind": "VizConfig",
@@ -1528,6 +1528,277 @@
           }
         }
       },
+      "panel-24": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafana"
+                      },
+                      "group": "datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "randomWalk"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Starts (frc 2, force on) or stops (frc 1, force off) charging on the go-e charger at once. The automatic charging control may undo it within 5 minutes.",
+          "id": 24,
+          "links": [],
+          "title": "Charging",
+          "vizConfig": {
+            "group": "speakyourcode-button-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "buttons": [
+                  {
+                    "datasource": "go-e",
+                    "query": "{\n\"source\": \"url\",\n\"type\": \"json\",\n\"url\": \"@@GOE_URL@@/api/set?frc=2\",\n\"url_options\": {\n\"body_content_type\": \"text/plain\",\n\"method\": \"GET\"\n}\n}",
+                    "text": "Start charging",
+                    "variant": "primary"
+                  },
+                  {
+                    "datasource": "go-e",
+                    "query": "{\n\"source\": \"url\",\n\"type\": \"json\",\n\"url\": \"@@GOE_URL@@/api/set?frc=1\",\n\"url_options\": {\n\"body_content_type\": \"text/plain\",\n\"method\": \"GET\"\n}\n}",
+                    "text": "Stop charging",
+                    "variant": "destructive"
+                  }
+                ],
+                "orientation": "vertical"
+              }
+            },
+            "version": "0.3.2"
+          }
+        }
+      },
+      "panel-25": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "goe"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "car",
+                            "text": "Car",
+                            "type": "number"
+                          },
+                          {
+                            "selector": "frc",
+                            "text": "Command",
+                            "type": "number"
+                          },
+                          {
+                            "selector": "nrg.11",
+                            "text": "Power",
+                            "type": "number"
+                          }
+                        ],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@GOE_URL@@/api/status",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET",
+                          "params": [
+                            {
+                              "key": "filter",
+                              "value": "frc,car,nrg"
+                            }
+                          ]
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Read from the charger's local API when the dashboard loads or refreshes, unlike the other panels, which show the last values in the database. Refresh the dashboard after pressing a button.",
+          "id": 25,
+          "links": [],
+          "title": "Charger (live)",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text",
+                        "value": 0
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Car"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "0": {
+                                "color": "text",
+                                "index": 0,
+                                "text": "Unknown"
+                              },
+                              "1": {
+                                "color": "text",
+                                "index": 1,
+                                "text": "No car"
+                              },
+                              "2": {
+                                "color": "green",
+                                "index": 2,
+                                "text": "Charging"
+                              },
+                              "3": {
+                                "color": "yellow",
+                                "index": 3,
+                                "text": "Waiting for car"
+                              },
+                              "4": {
+                                "color": "blue",
+                                "index": 4,
+                                "text": "Complete"
+                              },
+                              "5": {
+                                "color": "red",
+                                "index": 5,
+                                "text": "Error"
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Command"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "0": {
+                                "color": "text",
+                                "index": 0,
+                                "text": "Automatic"
+                              },
+                              "1": {
+                                "color": "red",
+                                "index": 1,
+                                "text": "Forced off"
+                              },
+                              "2": {
+                                "color": "green",
+                                "index": 2,
+                                "text": "Forced on"
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Power"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "watt"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "vertical",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
       "panel-3": {
         "kind": "Panel",
         "spec": {
@@ -2025,6 +2296,24 @@
                                 "spec": {
                                   "element": {
                                     "kind": "ElementReference",
+                                    "name": "panel-24"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-25"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
                                     "name": "panel-20"
                                   }
                                 }
@@ -2034,7 +2323,7 @@
                             "rowHeightMode": "standard"
                           }
                         },
-                        "title": "Preconditioning"
+                        "title": "Control"
                       }
                     },
                     {
@@ -2065,7 +2354,7 @@
                   ]
                 }
               },
-              "title": "Preconditioning"
+              "title": "Control"
             }
           }
         ]
