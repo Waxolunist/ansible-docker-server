@@ -38,7 +38,7 @@ VAULT_FILE = REPO / "group_vars/web/vault.yml"
 TOKEN_VAR = "vault_grafana_dashboard_sync_token"
 # Placeholder -> vault variable. Must match the replace() filters in
 # roles/web/tasks/grafana_dashboards.yml, which fill them in on deploy.
-PLACEHOLDERS = {"@@PSA_URL@@": "vault_psa_url"}
+PLACEHOLDERS = {"@@PSA_URL@@": "vault_psa_url", "@@PSA_VIN@@": "vault_psa_vin"}
 
 SSH_HOST = os.environ.get("GRAFANA_SSH_HOST", "devops@v-collaborate.com")
 CONTAINER = "web_grafana"

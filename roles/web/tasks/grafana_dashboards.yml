@@ -38,7 +38,7 @@
   # repository are written as @@NAME@@ placeholders and filled in here.
   - name: Grafana - Write dashboards
     copy:
-      content: "{{ lookup('file', item.src, rstrip=False) | replace('@@PSA_URL@@', vault_psa_url) }}"
+      content: "{{ lookup('file', item.src, rstrip=False) | replace('@@PSA_URL@@', vault_psa_url) | replace('@@PSA_VIN@@', vault_psa_vin) }}"
       dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/{{ item.path }}"
       mode: '0644'
       owner: '472'

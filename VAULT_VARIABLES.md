@@ -53,6 +53,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_smtp_server_user` | `docker-compose_yml.j2`, `authelia/authelia_yml.j2` | — | Gmail address used for SMTP by Grafana (`GF_SMTP_USER`) and Authelia (`notifier.smtp.username`, also the sender) |
 | `vault_smtp_server_password` | `tasks/grafana.yml` | `smtp_password` | Gmail app password for SMTP, shared by Grafana and Authelia (`AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE`) |
 | `vault_psa_url` | `tasks/grafana_dashboards.yml` | — | Base URL of the PSA car controller, without a trailing slash. Fills `@@PSA_URL@@` in the Homeassistant `vehicle_control.json` dashboard (preconditioning buttons). Kept out of the public repository. |
+| `vault_psa_vin` | `tasks/grafana_dashboards.yml` | — | VIN of the car (17 characters). Fills `@@PSA_VIN@@` in the preconditioning button URLs of `vehicle_control.json`. Kept out of the public repository. |
 | `vault_grafana_dashboard_sync_token` | `scripts/grafana_dashboards.py` | — | Token of the Grafana service account `dashboard-sync` (role Viewer), created in the UI under Administration → Service accounts. Used only by the script, which pulls dashboards into the repository over SSH; not deployed. |
 
 ### PgAdmin

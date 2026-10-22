@@ -620,13 +620,13 @@
                 "buttons": [
                   {
                     "datasource": "yesoreyeram-infinity-datasource",
-                    "query": "{\n\"source\": \"url\",\n\"type\": \"json\",\n\"url\": \"@@PSA_URL@@/preconditioning/${VIN}/1\",\n\"url_options\": {\n\"body_content_type\": \"text/plain\",\n\"method\": \"GET\"\n}\n}",
+                    "query": "{\n\"source\": \"url\",\n\"type\": \"json\",\n\"url\": \"@@PSA_URL@@/preconditioning/@@PSA_VIN@@/1\",\n\"url_options\": {\n\"body_content_type\": \"text/plain\",\n\"method\": \"GET\"\n}\n}",
                     "text": "Preconditioning On",
                     "variant": "primary"
                   },
                   {
                     "datasource": "yesoreyeram-infinity-datasource",
-                    "query": "{\n\"source\": \"url\",\n\"type\": \"json\",\n\"url\": \"@@PSA_URL@@/preconditioning/${VIN}/0\",\n\"url_options\": {\n\"body_content_type\": \"text/plain\",\n\"method\": \"GET\"\n}\n}",
+                    "query": "{\n\"source\": \"url\",\n\"type\": \"json\",\n\"url\": \"@@PSA_URL@@/preconditioning/@@PSA_VIN@@/0\",\n\"url_options\": {\n\"body_content_type\": \"text/plain\",\n\"method\": \"GET\"\n}\n}",
                     "text": "Preconditioning Off",
                     "variant": "destructive"
                   }
