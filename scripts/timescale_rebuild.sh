@@ -28,6 +28,8 @@
 #   TS_PASSWORD   password for alembic        (default: the container's
 #                 /run/secrets/timescale_superuser_password)
 #   PY_IMAGE      image alembic runs in       (default: python:3.14-slim)
+#   INIT_ROLES    role grants, applied by swap (default:
+#                 /docker-entrypoint-initdb.d/01_init_roles.sql in the container)
 
 set -euo pipefail
 
@@ -35,6 +37,8 @@ TS_CONTAINER="${TS_CONTAINER:-web_timescaledb}"
 TS_DB="${TS_DB:-timescale_home}"
 TS_NEW="${TS_NEW:-timescale_home_new}"
 PY_IMAGE="${PY_IMAGE:-python:3.14-slim}"
+# Role grants (Ansible: roles/web/templates/timescale/init_roles_sql.j2)
+INIT_ROLES="${INIT_ROLES:-/docker-entrypoint-initdb.d/01_init_roles.sql}"
 
 step() { printf '\n\033[1m==> %s\033[0m\n' "$*" >&2; }
 fail() { printf '\033[31mERROR: %s\033[0m\n' "$*" >&2; exit 1; }
@@ -221,12 +225,21 @@ phase_swap() {
     # The background jobs of the rebuilt database (refresh policies) start
     # with its scheduler; restart the workers for it after the rename.
     val "$TS_DB" "select _timescaledb_functions.start_background_workers()" >/dev/null
+    # The grants for app_rw and grafana_ro are per database and name it
+    # (GRANT CONNECT ON DATABASE timescale_home), so they are applied after the
+    # rename. Without them Grafana gets "permission denied" (2026-10-22).
+    if docker exec "$TS_CONTAINER" test -f "$INIT_ROLES"; then
+        docker exec "$TS_CONTAINER" psql -U "$PGUSER" -d "$TS_DB" -X -q -v ON_ERROR_STOP=1 -f "$INIT_ROLES" >/dev/null
+        echo "  grants applied ($INIT_ROLES)" >&2
+    else
+        echo "  WARNING: $INIT_ROLES not found; grant app_rw and grafana_ro their rights by hand" >&2
+    fi
     echo "  $TS_DB is now the former $TS_NEW; $broken keeps the previous $TS_DB (connections off)." >&2
 }
 
 # The comment block at the top, without the "# ".
 usage() {
-    sed -n '3,31p' "$0" | cut -c3- >&2
+    awk 'NR > 2 && /^#/ { print substr($0, 3); next } NR > 2 { exit }' "$0" >&2
     exit 2
 }
 
