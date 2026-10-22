@@ -654,6 +654,12 @@ services:
     container_name: web_postgres-exporter
     mem_limit: 128M
     cpus: 0.25
+    # The per-table collectors emit ~20 series for each of the ~2,300
+    # hypertable chunks, which got the exporter OOM-killed every few minutes
+    # after the TASK-051 rebuild. Nothing uses them.
+    command:
+      - --no-collector.stat_user_tables
+      - --no-collector.statio_user_tables
     expose:
       - 9187
     environment:
