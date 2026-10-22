@@ -765,6 +765,234 @@
           }
         }
       },
+      "panel-18": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time, house_kw from data_power_live\nwhere $__timeFilter(time)\norder by time;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "now-1h"
+              },
+              "transformations": []
+            }
+          },
+          "description": "What the house uses right now: inverter output (PV and battery) plus grid import. The car charger is part of it. Near-live from the collector's live power monitor (data_power_live): read every 5 s from the inverter's power meter, averaged per 15 s, written every 30 s, so up to about 45 s behind.",
+          "id": 18,
+          "links": [],
+          "title": "House",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 2,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 5
+                      },
+                      {
+                        "color": "orange",
+                        "value": 8
+                      },
+                      {
+                        "color": "red",
+                        "value": 10
+                      }
+                    ]
+                  },
+                  "unit": "kwatt"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              }
+            },
+            "version": "12.0.0"
+          }
+        }
+      },
+      "panel-19": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time, grid_kw from data_power_live\nwhere $__timeFilter(time)\norder by time;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "now-1h"
+              },
+              "transformations": []
+            }
+          },
+          "description": "Power drawn from the grid right now; negative while feeding into the grid. Near-live from the collector's live power monitor (data_power_live): read every 5 s from the inverter's power meter, averaged per 15 s, written every 30 s, so up to about 45 s behind.",
+          "id": 19,
+          "links": [],
+          "title": "From grid",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 2,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "yellow",
+                        "value": 0.1
+                      },
+                      {
+                        "color": "orange",
+                        "value": 5
+                      },
+                      {
+                        "color": "red",
+                        "value": 8
+                      }
+                    ]
+                  },
+                  "unit": "kwatt"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              }
+            },
+            "version": "12.0.0"
+          }
+        }
+      },
       "panel-2": {
         "kind": "Panel",
         "spec": {
@@ -856,6 +1084,258 @@
               }
             },
             "version": "5.7.0"
+          }
+        }
+      },
+      "panel-20": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time, goe_kw from data_power_live\nwhere $__timeFilter(time)\norder by time;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "now-1h"
+              },
+              "transformations": []
+            }
+          },
+          "description": "Power the go-e charger draws right now (its local API, read with the live power monitor). Near-live from the collector's live power monitor (data_power_live): read every 5 s from the inverter's power meter, averaged per 15 s, written every 30 s, so up to about 45 s behind.",
+          "id": 20,
+          "links": [],
+          "title": "Car charger",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 2,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text",
+                        "value": 0
+                      },
+                      {
+                        "color": "blue",
+                        "value": 0.1
+                      }
+                    ]
+                  },
+                  "unit": "kwatt"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              }
+            },
+            "version": "12.0.0"
+          }
+        }
+      },
+      "panel-21": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "time_series",
+                        "rawQuery": true,
+                        "rawSql": "select time, house_kw as \"House\", grid_kw as \"Grid\", pv_kw as \"PV\",\n       battery_kw as \"Battery\", goe_kw as \"Car charger\"\nfrom data_power_live\nwhere $__timeFilter(time)\norder by time;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [
+                                {
+                                  "name": "start_timestamp",
+                                  "type": "functionParameter"
+                                }
+                              ],
+                              "type": "function"
+                            },
+                            {
+                              "parameters": [
+                                {
+                                  "name": "marketprice_kwh",
+                                  "type": "functionParameter"
+                                }
+                              ],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "orderBy": {
+                            "property": {
+                              "name": "start_timestamp",
+                              "type": "string"
+                            },
+                            "type": "property"
+                          },
+                          "orderByDirection": "DESC",
+                          "whereJsonTree": {
+                            "children1": [
+                              {
+                                "id": "ab8a8b9b-89ab-4cde-b012-31962e21eed2",
+                                "properties": {
+                                  "fieldSrc": "field",
+                                  "value": [],
+                                  "valueSrc": []
+                                },
+                                "type": "rule"
+                              }
+                            ],
+                            "id": "ab8a88bb-0123-4456-b89a-b1962d95f58c",
+                            "type": "group"
+                          }
+                        },
+                        "table": "spotdata_kwhtzadjusted"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "House consumption and where it comes from, per 15 s. Grid positive = from the grid, battery positive = charging. Near-live from the collector's live power monitor (data_power_live): read every 5 s from the inverter's power meter, averaged per 15 s, written every 30 s, so up to about 45 s behind.",
+          "id": 21,
+          "links": [],
+          "title": "House power",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisPlacement": "auto",
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "lineWidth": 1,
+                    "showPoints": "never",
+                    "spanNulls": 60000
+                  },
+                  "decimals": 2,
+                  "unit": "kwatt"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "House"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 10
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "12.0.0"
           }
         }
       },
@@ -1151,6 +1631,80 @@
           {
             "kind": "RowsLayoutRow",
             "spec": {
+              "collapse": false,
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "narrow",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-18"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-19"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-20"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 5,
+                  "rowHeightMode": "standard"
+                }
+              },
+              "title": "House power"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "fillScreen": true,
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidth": 448,
+                  "columnWidthMode": "custom",
+                  "fillScreen": true,
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-21"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 1,
+                  "rowHeightMode": "standard"
+                }
+              },
+              "title": "House power history"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
               "fillScreen": true,
               "hideHeader": true,
               "layout": {
@@ -1211,7 +1765,7 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "autoRefresh": "",
+      "autoRefresh": "30s",
       "autoRefreshIntervals": [
         "5s",
         "10s",
