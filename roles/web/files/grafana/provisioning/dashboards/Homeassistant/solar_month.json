@@ -50,7 +50,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select date_trunc('month',agg.month_bucket) as time, agg.energy as energy from agg_1month_stats_data_smartmeter_energy_with_pricing agg\nleft join master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nwhere msmp.feeding = false;\n",
+                        "rawSql": "-- One row per month, stamped at local midnight on the 1st (year/month are local).\n-- Self consumption is null where there is no production data (solar gap, TASK-107).\nselect make_timestamptz(agg.year::int, agg.month::int, 1, 0, 0, 0, msmp.timezone) as time,\n  agg.energy as \"Grid consumption\",\n  ev.energy_self_consumption as \"Self consumption\",\n  agg.energy + ev.energy_self_consumption as \"Total consumption\"\nfrom agg_1month_stats_data_smartmeter_energy_with_pricing agg\njoin master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nleft join agg_1month_energy_values_with_pricing ev\n  on ev.name = msmp.name and ev.year = agg.year and ev.month = agg.month\n  and ev.energy_produced is not null\nwhere msmp.feeding = false\norder by 1\n",
                         "sql": {
                           "columns": [
                             {
@@ -73,44 +73,6 @@
                     },
                     "refId": "A"
                   }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                      },
-                      "group": "grafana-postgresql-datasource",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "format": "table",
-                        "rawQuery": true,
-                        "rawSql": "select to_timestamp(concat(year, '-', month, '-01'), 'yyyy-mm-dd') as time, agg.energy_self_consumption as energy_self_consumption from agg_1month_energy_values_with_pricing agg;",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "B"
-                  }
                 }
               ],
               "queryOptions": {
@@ -120,23 +82,6 @@
               },
               "transformations": [
                 {
-                  "group": "calculateField",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "mode": "reduceRow",
-                      "reduce": {
-                        "include": [
-                          "energy",
-                          "energy_self_consumption"
-                        ],
-                        "reducer": "sum"
-                      },
-                      "replaceFields": false
-                    }
-                  }
-                },
-                {
                   "group": "regression",
                   "kind": "Transformation",
                   "spec": {
@@ -145,7 +90,7 @@
                       "modelType": "polynomial",
                       "predictionCount": 100,
                       "xFieldName": "time",
-                      "yFieldName": "energy"
+                      "yFieldName": "Grid consumption"
                     }
                   }
                 }
@@ -163,7 +108,7 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "green",
+                    "fixedColor": "dark-red",
                     "mode": "fixed"
                   },
                   "custom": {
@@ -174,17 +119,17 @@
                     "axisPlacement": "auto",
                     "barAlignment": 0,
                     "barWidthFactor": 0.8,
-                    "drawStyle": "bars",
-                    "fillOpacity": 100,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
                     "gradientMode": "none",
                     "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
+                      "legend": true,
+                      "tooltip": true,
                       "viz": false
                     },
                     "insertNulls": false,
                     "lineInterpolation": "linear",
-                    "lineWidth": 0,
+                    "lineWidth": 5,
                     "pointSize": 5,
                     "scaleDistribution": {
                       "type": "linear"
@@ -193,7 +138,7 @@
                     "spanNulls": false,
                     "stacking": {
                       "group": "A",
-                      "mode": "normal"
+                      "mode": "none"
                     },
                     "thresholdsStyle": {
                       "mode": "off"
@@ -218,88 +163,22 @@
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "energy predicted"
+                      "id": "byFrameRefID",
+                      "options": "A"
                     },
                     "properties": [
                       {
                         "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "dark-red",
-                          "mode": "fixed"
-                        }
+                        "value": "bars"
                       },
                       {
                         "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": true,
-                          "viz": false
-                        }
+                        "value": 100
                       },
                       {
                         "id": "custom.lineWidth",
-                        "value": 5
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Grid consumption"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "time"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "time: DD.MM.YYYY"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy_self_consumption"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Self consumption"
+                        "value": 0
                       },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "yellow",
-                          "mode": "fixed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Total"
-                    },
-                    "properties": [
                       {
                         "id": "custom.hideFrom",
                         "value": {
@@ -312,16 +191,65 @@
                         "id": "custom.stacking",
                         "value": {
                           "group": "A",
+                          "mode": "normal"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Self consumption"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Total consumption"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
                           "mode": "none"
                         }
                       },
                       {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": false,
+                          "tooltip": false,
+                          "viz": true
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "time"
+                    },
+                    "properties": [
                       {
-                        "id": "displayName",
-                        "value": "Total consumption"
+                        "id": "unit",
+                        "value": "time: DD.MM.YYYY"
                       }
                     ]
                   }
@@ -371,7 +299,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select date_trunc('month',agg.month_bucket) as time, agg.price as price from agg_1month_stats_data_smartmeter_energy_with_pricing agg\nleft join master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nwhere msmp.feeding = false;\n",
+                        "rawSql": "-- One row per month, stamped at local midnight on the 1st (year/month are local).\nselect make_timestamptz(agg.year::int, agg.month::int, 1, 0, 0, 0, msmp.timezone) as time,\n  agg.price as \"Price\",\n  agg.price / nullif(agg.energy, 0) as \"Price / kWh\"\nfrom agg_1month_stats_data_smartmeter_energy_with_pricing agg\njoin master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nwhere msmp.feeding = false\norder by 1\n",
                         "sql": {
                           "columns": [
                             {
@@ -394,44 +322,6 @@
                     },
                     "refId": "A"
                   }
-                },
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                      },
-                      "group": "grafana-postgresql-datasource",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "format": "table",
-                        "rawQuery": true,
-                        "rawSql": "select date_trunc('month',agg.month_bucket) as time, agg.energy / agg.price / 100 as avg_price from agg_1month_stats_data_smartmeter_energy_with_pricing agg\nleft join master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nwhere msmp.feeding = false;",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "B"
-                  }
                 }
               ],
               "queryOptions": {
@@ -449,7 +339,7 @@
                       "modelType": "polynomial",
                       "predictionCount": 100,
                       "xFieldName": "time",
-                      "yFieldName": "price"
+                      "yFieldName": "Price"
                     }
                   }
                 }
@@ -467,7 +357,7 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "green",
+                    "fixedColor": "dark-red",
                     "mode": "fixed"
                   },
                   "custom": {
@@ -478,17 +368,17 @@
                     "axisPlacement": "auto",
                     "barAlignment": 0,
                     "barWidthFactor": 0.8,
-                    "drawStyle": "bars",
-                    "fillOpacity": 100,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
                     "gradientMode": "none",
                     "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
+                      "legend": true,
+                      "tooltip": true,
                       "viz": false
                     },
                     "insertNulls": false,
                     "lineInterpolation": "linear",
-                    "lineWidth": 0,
+                    "lineWidth": 5,
                     "pointSize": 5,
                     "scaleDistribution": {
                       "type": "linear"
@@ -522,55 +412,50 @@
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "price predicted"
+                      "id": "byFrameRefID",
+                      "options": "A"
                     },
                     "properties": [
                       {
                         "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "dark-red",
-                          "mode": "fixed"
-                        }
+                        "value": "bars"
                       },
                       {
                         "id": "custom.fillOpacity",
+                        "value": 100
+                      },
+                      {
+                        "id": "custom.lineWidth",
                         "value": 0
                       },
                       {
                         "id": "custom.hideFrom",
                         "value": {
-                          "legend": true,
-                          "tooltip": true,
+                          "legend": false,
+                          "tooltip": false,
                           "viz": false
                         }
                       },
                       {
-                        "id": "custom.lineWidth",
-                        "value": 5
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "price"
-                    },
-                    "properties": [
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
                       {
-                        "id": "displayName",
-                        "value": "Price"
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
                       }
                     ]
                   },
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "avg_price"
+                      "options": "Price / kWh"
                     },
                     "properties": [
                       {
@@ -578,12 +463,16 @@
                         "value": "line"
                       },
                       {
-                        "id": "custom.axisPlacement",
-                        "value": "right"
-                      },
-                      {
                         "id": "custom.fillOpacity",
                         "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 5
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
                       },
                       {
                         "id": "color",
@@ -591,14 +480,6 @@
                           "fixedColor": "yellow",
                           "mode": "fixed"
                         }
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Price / kwh"
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 5
                       }
                     ]
                   },
@@ -660,7 +541,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_timestamp(concat(year, '-', month, '-01'), 'yyyy-mm-dd') as time, saved, cumulative_cost, cumulative_saved, months_till_roi * 30 as days_till_roi from agg_1month_roi;\n",
+                        "rawSql": "select make_timestamptz(year::int, month::int, 1, 0, 0, 0, 'Europe/Vienna') as time,\n  saved as \"Savings\",\n  cumulative_cost,\n  cumulative_saved,\n  months_till_roi * 365.25 / 12 as days_till_roi\nfrom agg_1month_roi\norder by 1\n",
                         "sql": {
                           "columns": [
                             {
@@ -699,7 +580,7 @@
                       "degree": 4,
                       "modelType": "polynomial",
                       "xFieldName": "time",
-                      "yFieldName": "saved"
+                      "yFieldName": "Savings"
                     }
                   }
                 }
@@ -717,7 +598,7 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "blue",
+                    "fixedColor": "red",
                     "mode": "fixed"
                   },
                   "custom": {
@@ -725,15 +606,15 @@
                     "axisCenteredZero": false,
                     "axisColorMode": "text",
                     "axisLabel": "",
-                    "axisPlacement": "auto",
+                    "axisPlacement": "left",
                     "barAlignment": 0,
                     "barWidthFactor": 0.6,
                     "drawStyle": "line",
                     "fillOpacity": 0,
                     "gradientMode": "none",
                     "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
+                      "legend": true,
+                      "tooltip": true,
                       "viz": false
                     },
                     "insertNulls": false,
@@ -753,8 +634,6 @@
                       "mode": "off"
                     }
                   },
-                  "displayName": "Cumulative costs",
-                  "max": 20000,
                   "min": 0,
                   "thresholds": {
                     "mode": "absolute",
@@ -774,10 +653,158 @@
                 "overrides": [
                   {
                     "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "bars"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 100
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": false,
+                          "tooltip": false,
+                          "viz": false
+                        }
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "left"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "cumulative_cost"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 5
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "max",
+                        "value": 20000
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Cumulative costs"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "cumulative_saved"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 5
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "max",
+                        "value": 20000
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "purple",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": true,
+                          "tooltip": false,
+                          "viz": false
+                        }
+                      },
+                      {
+                        "id": "displayName",
+                        "value": "Cumulative savings"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "currencyEUR"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
                       "id": "byName",
                       "options": "days_till_roi"
                     },
                     "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 5
+                      },
                       {
                         "id": "custom.axisPlacement",
                         "value": "right"
@@ -806,117 +833,12 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "saved"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "bars"
-                      },
-                      {
-                        "id": "custom.axisPlacement",
-                        "value": "left"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 100
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "green",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Savings"
-                      },
-                      {
-                        "id": "custom.axisSoftMax",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 0
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "saved predicted"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.axisPlacement",
-                        "value": "left"
-                      },
-                      {
-                        "id": "custom.axisSoftMax",
-                        "value": 0
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "red",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Regression"
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": true,
-                          "viz": false
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
                       "options": "time"
                     },
                     "properties": [
                       {
                         "id": "unit",
                         "value": "time: DD.MM.YYYY"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "cumulative_saved"
-                    },
-                    "properties": [
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "purple",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": false,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Cumulative savings"
-                      },
-                      {
-                        "id": "unit",
-                        "value": "currencyEUR"
                       }
                     ]
                   }
@@ -967,7 +889,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with base as (select to_timestamp(concat(year, '-', month, '-01'), 'yyyy-mm-dd') as time, \nagg.energy_self_consumption as energy_self_consumption,\nagg.energy_feeded as energy_feeded from agg_1month_energy_values_with_pricing agg)\nselect * from base\nwhere $__timeFilter(time) ",
+                        "rawSql": "-- Self consumption and the share are null where there is no production data (solar gap, TASK-107).\nwith base as (\n  select make_timestamptz(year::int, month::int, 1, 0, 0, 0, 'Europe/Vienna') as time,\n    case when energy_produced is not null then energy_self_consumption end as energy_self_consumption,\n    energy_feeded\n  from agg_1month_energy_values_with_pricing\n)\nselect time, energy_self_consumption, energy_feeded,\n  energy_self_consumption + energy_feeded as \"Total\",\n  energy_self_consumption / nullif(energy_self_consumption + energy_feeded, 0) as selfusage_percentage\nfrom base\nwhere $__timeFilter(time)\norder by time\n",
                         "sql": {
                           "columns": [
                             {
@@ -997,53 +919,7 @@
                 "timeFrom": "18M",
                 "timeShift": "1y/M+15M"
               },
-              "transformations": [
-                {
-                  "group": "calculateField",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "mode": "reduceRow",
-                      "reduce": {
-                        "include": [
-                          "energy_self_consumption",
-                          "energy_feeded"
-                        ],
-                        "reducer": "sum"
-                      },
-                      "replaceFields": false
-                    }
-                  }
-                },
-                {
-                  "group": "calculateField",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "alias": "selfusage_percentage",
-                      "binary": {
-                        "left": {
-                          "matcher": {
-                            "id": "byName",
-                            "options": "energy_self_consumption"
-                          }
-                        },
-                        "operator": "/",
-                        "right": {
-                          "matcher": {
-                            "id": "byName",
-                            "options": "Total"
-                          }
-                        }
-                      },
-                      "mode": "binary",
-                      "reduce": {
-                        "reducer": "sum"
-                      }
-                    }
-                  }
-                }
-              ]
+              "transformations": []
             }
           },
           "description": "",
@@ -1110,41 +986,6 @@
                   "unit": "kwatth"
                 },
                 "overrides": [
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy predicted"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "dark-red",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": true,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 5
-                      }
-                    ]
-                  },
                   {
                     "matcher": {
                       "id": "byName",
