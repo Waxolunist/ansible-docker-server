@@ -13,6 +13,7 @@
       dest: "{{ docker.paths.configs }}prometheus/prometheus.yml"
       mode: 0644
       backup: yes
+    register: prometheus_config
   - name: Prometheus - Create rules directory
     file:
       path: "{{ docker.paths.configs }}prometheus/rules"
@@ -24,9 +25,21 @@
       dest: "{{ docker.paths.configs }}prometheus/rules/container_uptime.yml"
       mode: 0644
       backup: yes
+    register: prometheus_uptime_rules
   - name: Prometheus - Write infrastructure alerting rules
     template:
       src: prometheus/alerts_yml.j2
       dest: "{{ docker.paths.configs }}prometheus/rules/alerts.yml"
       mode: 0644
       backup: yes
+    register: prometheus_alert_rules
+  # Prometheus reads its configuration and rules at startup and on SIGHUP.
+  # compose runs with recreate: never, so a change would otherwise sit on disk
+  # unapplied. On a fresh host the container doesn't exist yet and starts with
+  # the new files anyway.
+  - name: Prometheus - Reload when its configuration or rules changed
+    command: docker kill --signal HUP web_prometheus
+    become: yes
+    register: prometheus_reload
+    failed_when: prometheus_reload.rc != 0 and 'No such container' not in prometheus_reload.stderr
+    when: prometheus_config.changed or prometheus_uptime_rules.changed or prometheus_alert_rules.changed

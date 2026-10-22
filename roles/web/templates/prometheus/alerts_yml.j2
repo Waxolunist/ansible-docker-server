@@ -35,6 +35,18 @@ groups:
           summary: "Filesystem {{ $labels.mountpoint }} above 85% usage"
           description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is at {{ printf \"%.1f\" $value }}% usage."
 
+      # The kernel OOM killer ran. Host-wide, so it also catches a process
+      # killed inside a container that keeps running (PostgreSQL restarts its
+      # backends itself, so the container never restarts). cAdvisor's
+      # container_oom_events_total missed the 2026-10-22 kill.
+      - alert: OomKill
+        expr: increase(node_vmstat_oom_kill[10m]) > 0
+        labels:
+          severity: critical
+        annotations:
+          summary: "The OOM killer ran on {{ $labels.instance }}"
+          description: "{{ $value }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
+
       # No successful database backup in the last 36 hours.
       # Metric is emitted by backup_databases.sh via the node_exporter textfile collector.
       - alert: BackupStale

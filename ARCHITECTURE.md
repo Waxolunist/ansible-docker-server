@@ -825,6 +825,15 @@ This setup requires a **VPS (KVM-based) or dedicated server**. A shared vHost (v
 
 Note: Minecraft alone reserves 2 GB RAM (`mem_limit: 2048M`), and PhotoPrism with TensorFlow-based AI processing needs significant resources. Prometheus retains 100 days of metrics data.
 
+### Memory Limits
+
+The current VPS has 7.9 GB RAM and no swap. Most containers have a `mem_limit` in the compose file. The limits are caps, not reservations, so together they add up to more than the host has. What matters is actual use: about 6 GB on 2026-10-22, with about 1.5 GB still available.
+
+- **TimescaleDB**: `mem_limit` and `memswap_limit` are 2560m. PostgreSQL is sized for that through `command: postgres -c ...` in the compose file: `shared_buffers=640MB`, `effective_cache_size=1792MB`, `maintenance_work_mem=256MB`, `work_mem=8MB`, `autovacuum_max_workers=3`, `autovacuum_work_mem=64MB`, two parallel workers. These flags override `postgresql.conf` in the data directory. That file was written by timescaledb-tune at init for a bigger host (`shared_buffers` ≈ 2 GB under a 1 GB limit), and with those settings an aggregate refresh got the server OOM-killed on 2026-10-22.
+- **Grafana**: capped at 1G (it used about 0.5 GB on 2026-10-22).
+- The compose module runs with `recreate: never`, and `timescaledb` isn't in `recreate_when_changed`, so a change to its service only takes effect after `docker compose up -d --no-deps timescaledb` on the host. That restarts the database, and Grafana and the collector lose it for about 20 s.
+- The Prometheus rule `OomKill` fires when the kernel's OOM killer runs anywhere on the host (`node_vmstat_oom_kill`). The alert has no receiver yet, see TASK-038.
+
 **OpenVZ or LXC-based VPS will not work** — Docker requires full KVM virtualization.
 
 ### Migration to a New Provider

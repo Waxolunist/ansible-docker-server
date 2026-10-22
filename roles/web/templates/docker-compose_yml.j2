@@ -347,6 +347,7 @@ services:
   grafana:
     image: grafana/grafana:13.2.4
     container_name: web_grafana
+    mem_limit: 1G
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
       - "{{ docker.paths.data }}grafana:/var/lib/grafana"
@@ -548,8 +549,31 @@ services:
   timescaledb:
     image: timescale/timescaledb-ha:pg16
     container_name: web_timescaledb
-    mem_limit: 1G
+    mem_limit: 2560m
+    memswap_limit: 2560m
     cpus: 2.0
+    # Sized for the 2.5 GB limit. These override the postgresql.conf that
+    # timescaledb-tune wrote into the data directory at init (tuned for a
+    # bigger host: shared_buffers ~2 GB, maintenance_work_mem ~1 GB and up to
+    # 10 autovacuum workers, which got the server OOM-killed, TASK-096).
+    command:
+      - postgres
+      - -c
+      - shared_buffers=640MB
+      - -c
+      - effective_cache_size=1792MB
+      - -c
+      - maintenance_work_mem=256MB
+      - -c
+      - work_mem=8MB
+      - -c
+      - autovacuum_max_workers=3
+      - -c
+      - autovacuum_work_mem=64MB
+      - -c
+      - max_parallel_workers=2
+      - -c
+      - max_parallel_workers_per_gather=1
     networks:
       - grafana
     environment:
@@ -630,6 +654,12 @@ services:
     container_name: web_postgres-exporter
     mem_limit: 128M
     cpus: 0.25
+    # The per-table collectors emit ~20 series for each of the ~2,300
+    # hypertable chunks, which got the exporter OOM-killed every few minutes
+    # after the TASK-051 rebuild. Nothing uses them.
+    command:
+      - --no-collector.stat_user_tables
+      - --no-collector.statio_user_tables
     expose:
       - 9187
     environment:
