@@ -1,0 +1,8 @@
+---
+  - name: reload wireguard
+    systemd:
+      name: "wg-quick@{{ wireguard.interface }}"
+      state: reloaded
+  - name: reload systemd
+    systemd:
+      daemon_reload: true

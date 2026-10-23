@@ -41,6 +41,8 @@ All web-facing services are accessible through subdomains of `v-collaborate.com`
 ```mermaid
 graph TD
     A[site.yml] -->|imports| B[web.yml]
+    A -->|imports| WG[wireguard.yml]
+    WG -->|hosts: web| WR[wireguard role]
     C[system.yml] -->|standalone| D[system role]
     E[docker.yml] -->|standalone| F[debian + docker roles]
     B -->|hosts: web| G[web role]
@@ -50,7 +52,8 @@ graph TD
 
 | Playbook | Target Group | Purpose |
 |---|---|---|
-| [`site.yml`](site.yml) | — | Main entry point; imports [`web.yml`](web.yml) |
+| [`site.yml`](site.yml) | — | Main entry point; imports [`hardening.yml`](hardening.yml), [`wireguard.yml`](wireguard.yml) and [`web.yml`](web.yml) |
+| [`wireguard.yml`](wireguard.yml) | `web` | WireGuard interface `wg0` (`10.8.0.1`, UDP 51820) for the Pi's tunnel to TimescaleDB; peers in [`group_vars/web/vars.yml`](group_vars/web/vars.yml) |
 | [`system.yml`](system.yml) | `system` | Initial server setup as root — creates `devops` user, hardens SSH |
 | [`docker.yml`](docker.yml) | `web` | Standalone playbook to install Docker CE with the `debian` and `docker` roles |
 | [`web.yml`](web.yml) | `web` | Deploys all Docker containers via the `web` role |
@@ -180,7 +183,7 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 9 | `grafana-pg` | `postgres:18-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
 | 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
 | 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
-| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
+| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
 | 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
 | 14 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
 | 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
@@ -272,7 +275,8 @@ graph TB
     INTERNET((Internet)) -->|80, 443| RP
     INTERNET -->|25565| MC[minecraft]
     INTERNET -->|3478, 5349, 49152-49200| CT[coturn]
-    INTERNET -->|5432| TS
+    INTERNET -->|51820/udp| WG0[wg0]
+    WG0 -->|10.8.0.1:5432| TS
 ```
 
 | Network | Name | Purpose | Connected Services |
@@ -286,14 +290,15 @@ graph TB
 
 ### Directly Exposed Ports
 
-Traefik, Minecraft, TimescaleDB and coturn bind ports to the host:
+Traefik, Minecraft, TimescaleDB and coturn bind ports to the host. Which of them the internet can reach is set in the provider's firewall, see [FIREWALL.md](FIREWALL.md):
 
 | Port | Service | Protocol |
 |---|---|---|
 | `80` | reverse-proxy | HTTP — redirects to HTTPS |
 | `443` | reverse-proxy | HTTPS — all web traffic, plus SSH wrapped in TLS for `ssh.v-collaborate.com` |
 | `25565` | minecraft | Minecraft server protocol |
-| `5432` | timescaledb | PostgreSQL wire protocol |
+| `10.8.0.1:5432` | timescaledb | PostgreSQL wire protocol, on the WireGuard address only. Docker starts after `wg-quick@wg0` (drop-in in `docker.service.d`) so the address exists. `pg_hba.conf` allows password logins from `samenet` (the Docker networks) and `10.8.0.0/24` only (`tasks/timescale.yml`). A laptop uses `ssh -N -L 5432:10.8.0.1:5432 v-collaborate.com` |
+| `51820/udp` | WireGuard (host, not a container) | The Pi's tunnel; peer `10.8.0.2` |
 | `3478` | coturn | STUN/TURN (UDP + TCP) |
 | `5349` | coturn | TURN over TLS/DTLS |
 | `49152-49200` | coturn | TURN relay range (UDP) |
@@ -773,7 +778,7 @@ Vault-encrypted variables used across the project include:
 ### Network Isolation
 
 - Services are segmented into four Docker networks, limiting inter-service communication
-- Only Traefik, Minecraft, TimescaleDB, and coturn expose ports to the host
+- Only Traefik, Minecraft, TimescaleDB (on the WireGuard address only) and coturn expose ports to the host; the provider firewall is described in [FIREWALL.md](FIREWALL.md)
 - Backend databases (`grafana-pg`, `photoprism-mariadb`) are not accessible from the `proxy` network
 - Node Exporter has Traefik disabled (`traefik.enable=false`) and is only reachable within the `prometheus` network
 - Otterwiki is only on the `wiki` network, shared with Traefik alone, so no other container can send it forged `Remote-*` headers. Because compose runs with `recreate: never`, `tasks/main.yml` attaches the running Traefik to `web_wiki` with `docker network connect`
@@ -812,7 +817,7 @@ This setup requires a **VPS (KVM-based) or dedicated server**. A shared vHost (v
 | CPU | 2 vCPUs | 4 vCPUs |
 | Disk | 40 GB SSD | 80+ GB SSD |
 | IP | Dedicated IPv4 | — |
-| Ports | 22, 80, 443 open | + 5432, 25565 if needed |
+| Ports | 22, 80, 443 open | + 51820/udp for the WireGuard tunnel, coturn and 25565 if needed |
 
 Note: Minecraft alone reserves 2 GB RAM (`mem_limit: 2048M`), and PhotoPrism with TensorFlow-based AI processing needs significant resources. Prometheus retains 100 days of metrics data.
 

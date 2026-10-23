@@ -1,0 +1,6 @@
+---
+  - name: reload timescale
+    command: >-
+      docker exec web_timescaledb
+      psql -U {{ vault_timescale_pg_user }} -d postgres -c "select pg_reload_conf()"
+    become: yes

@@ -93,6 +93,13 @@ No vault variables required. code-server's own authentication is disabled (`auth
 |---|---|---|---|
 | `vault_coturn_password` | `coturn/turnserver_conf.j2` | — | Long-term TURN credential for the `hhfh` user, handed to game clients alongside `turn:turn.v-collaborate.com`. Generate with `openssl rand -base64 32` |
 
+### WireGuard
+
+| Variable | Used in | Docker secret | Description |
+|---|---|---|---|
+| `vault_wireguard_private_key` | `wireguard/templates/wg_conf.j2` | — | The VPS's WireGuard private key (`/etc/wireguard/wg0.conf`). Generate with `wg genkey`; its public key goes into the raspberry vault as `vault_wireguard_server_public_key` |
+| `vault_wireguard_pi_public_key` | `group_vars/web/vars.yml` | — | The Pi's public key (peer `10.8.0.2`); the private key is in the raspberry vault |
+
 ### Otterwiki
 
 | Variable | Used in | Docker secret | Description |

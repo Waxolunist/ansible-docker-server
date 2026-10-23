@@ -1,0 +1,35 @@
+---
+  - name: WireGuard - Install tools
+    apt:
+      name: wireguard-tools
+      state: present
+      update_cache: yes
+      cache_valid_time: 3600
+  - name: WireGuard - Write interface config
+    template:
+      src: wg_conf.j2
+      dest: "/etc/wireguard/{{ wireguard.interface }}.conf"
+      owner: root
+      group: root
+      mode: '0600'
+    notify: reload wireguard
+  - name: WireGuard - Create Docker unit drop-in directory
+    file:
+      path: /etc/systemd/system/docker.service.d
+      state: directory
+      mode: '0755'
+  - name: WireGuard - Start Docker after the tunnel
+    copy:
+      dest: /etc/systemd/system/docker.service.d/wireguard.conf
+      content: |
+        [Unit]
+        Wants=wg-quick@{{ wireguard.interface }}.service
+        After=wg-quick@{{ wireguard.interface }}.service
+      mode: '0644'
+    notify: reload systemd
+  - name: WireGuard - Enable and start the interface
+    systemd:
+      name: "wg-quick@{{ wireguard.interface }}"
+      state: started
+      enabled: true
+      daemon_reload: true

@@ -539,7 +539,7 @@ services:
     secrets:
       - timescale_superuser_password
     ports:
-      - "5432:5432"
+      - "{{ wireguard.address }}:5432:5432"
     volumes:
       - "{{ docker.paths.data }}timescale/pgdata:/home/postgres/pgdata/data"
       - "{{ docker.paths.configs }}timescale/init_roles.sql:/docker-entrypoint-initdb.d/01_init_roles.sql:ro"
