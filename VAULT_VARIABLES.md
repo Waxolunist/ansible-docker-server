@@ -59,13 +59,6 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_goe_proxy_password` | `grafana/provisioning/datasources/goe.yml.j2` | — | Basic auth password of the go-e Traefik route, stored in the `go-e` datasource's `secureJsonData`. Same value as `vault_collector.goe_proxy_password` in the raspberry vault; change both together. |
 | `vault_grafana_dashboard_sync_token` | `scripts/grafana_dashboards.py` | — | Token of the Grafana service account `dashboard-sync` (role Viewer), created in the UI under Administration → Service accounts. Used only by the script, which pulls dashboards into the repository over SSH; not deployed. |
 
-### PgAdmin
-
-| Variable | Used in | Docker secret | Description |
-|---|---|---|---|
-| `vault_pgadmin_default_email` | `docker-compose_yml.j2` | — | Admin login email (no `_FILE` variant in pgAdmin) |
-| `vault_pgadmin_default_password` | `tasks/pgadmin.yml` | `pgadmin_default_password` | Admin login password for the PgAdmin web UI |
-
 ### TimescaleDB
 
 | Variable | Used in | Docker secret | Description |

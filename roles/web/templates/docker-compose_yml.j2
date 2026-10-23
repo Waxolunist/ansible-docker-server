@@ -390,51 +390,6 @@ services:
       start_period: 120s
     restart: unless-stopped
 
-  pgadmin:
-    image: dpage/pgadmin4:9.14.0
-    container_name: web_pgadmin
-    mem_limit: 512M
-    cpus: 0.5
-    security_opt:
-      - no-new-privileges:false
-    links:
-      - "grafana-pg:database-grafana"
-      - "timescaledb:timescaledb"
-    depends_on:
-      - grafana-pg
-    expose:
-      - {{ pgadmin.port }}
-    volumes:
-      - "{{ docker.paths.data }}pgadmin:/var/lib/pgadmin"
-    secrets:
-      - pgadmin_default_password
-    environment:
-      - TZ=Europe/Vienna
-      - PGADMIN_DEFAULT_EMAIL={{ vault_pgadmin_default_email }}
-      - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin_default_password
-    labels:
-      - autoheal=true
-      - traefik.enable=true
-      - traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.scheme=https
-      - traefik.http.routers.pgadmin-secure.entrypoints=websecure
-      - traefik.http.routers.pgadmin-secure.rule=Host(`{{ pgadmin.domain }}`)
-      - traefik.http.routers.pgadmin-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
-      - traefik.http.routers.pgadmin-secure.tls=true
-      - traefik.http.routers.pgadmin-secure.tls.certresolver=myresolver
-      - traefik.http.routers.pgadmin.entrypoints=web
-      - traefik.http.routers.pgadmin.middlewares=pgadmin-https-redirect
-      - traefik.http.routers.pgadmin.rule=Host(`{{ pgadmin.domain }}`)
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/misc/ping"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    networks:
-      - proxy
-      - grafana
-    restart: unless-stopped
-
   minecraft:
     image: itzg/minecraft-server:2026.4.1
     container_name: minecraft
@@ -1008,8 +963,6 @@ secrets:
     file: "{{ docker_base_path }}/secrets/grafana_pg_password"
   smtp_password:
     file: "{{ docker_base_path }}/secrets/smtp_password"
-  pgadmin_default_password:
-    file: "{{ docker_base_path }}/secrets/pgadmin_default_password"
   photoprism_db_password:
     file: "{{ docker_base_path }}/secrets/photoprism_db_password"
   photoprism_db_root_password:
