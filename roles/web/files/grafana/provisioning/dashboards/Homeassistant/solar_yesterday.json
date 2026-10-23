@@ -849,7 +849,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select \n  hour_bucket as time, energy\nfrom agg_1h_counter_data_solar_energy_with_pricing\nwhere $__timeFilter(hour_bucket)\norder by hour_bucket desc;",
+                        "rawSql": "-- Hourly PV production: increase of the PV counter (data_solar_production, the\n-- inverter's AC counter without battery charge/discharge, TASK-085) per reading,\n-- skipping increases across collector gaps. Gaps come from data_solar_energy,\n-- because data_solar_production leaves out the night's dips.\nwith counter as (\n  select e.time,\n         max(p.energy) over w as counter,\n         e.time - lag(e.time) over w as gap\n  from data_solar_energy e\n  left join data_solar_production p on p.time = e.time\n  where e.time > $__timeFrom()::timestamptz - interval '1 hour' and e.time <= $__timeTo()::timestamptz\n  window w as (order by e.time)\n)\nselect date_trunc('hour', time) as time,\n       sum(increase) filter (where gap <= interval '1 hour') as energy\nfrom (select time, gap, counter - lag(counter) over (order by time) as increase from counter) c\nwhere time >= $__timeFrom()::timestamptz\ngroup by 1\norder by 1 desc;",
                         "sql": {
                           "columns": [
                             {

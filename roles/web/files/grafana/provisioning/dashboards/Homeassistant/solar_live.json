@@ -1065,7 +1065,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- energy is the inverter's lifetime counter (kWh). Production since the start\n-- of the range = running max (ignores dips, like data_solar_energy_cleaned)\n-- minus the last counter before the range, or the first one in it.\nselect time,\n       max(energy) over (order by time) - coalesce(\n         (select max(energy) from data_solar_energy\n          where time < $__timeFrom() and time >= $__timeFrom()::timestamptz - interval '7 days'),\n         first_value(energy) over (order by time)) as energy\nfrom data_solar_energy\nwhere $__timeFilter(time)\norder by time;",
+                        "rawSql": "-- data_solar_production is the PV production counter (kWh): the inverter's\n-- AC counter without battery charge/discharge since the Modbus switch, dips\n-- dropped (TASK-085). Production since the start of the range = the counter\n-- minus the last one before the range, or the first one in it.\nselect time,\n       energy - coalesce(\n         (select max(energy) from data_solar_production\n          where time < $__timeFrom() and time >= $__timeFrom()::timestamptz - interval '7 days'),\n         first_value(energy) over (order by time)) as energy\nfrom data_solar_production\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -1097,7 +1097,7 @@
               "transformations": []
             }
           },
-          "description": "Production since midnight from the inverter's lifetime counter (data_solar_energy), updated every 5 minutes.",
+          "description": "PV production since midnight: the inverter's AC counter plus battery charge minus discharge (data_solar_production), updated every 5 minutes.",
           "id": 4,
           "links": [],
           "title": "Today production",
