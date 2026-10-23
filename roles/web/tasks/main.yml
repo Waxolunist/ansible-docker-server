@@ -178,7 +178,8 @@
     when: >-
       (grafana_config is defined and grafana_config.changed) or
       (grafana_goe_datasource is defined and grafana_goe_datasource.changed) or
-      (grafana_dashboard_provider is defined and grafana_dashboard_provider.changed)
+      (grafana_dashboard_provider is defined and grafana_dashboard_provider.changed) or
+      (grafana_alerting is defined and grafana_alerting.changed)
     tags: grafana_dashboards
 
   # Authelia reads its configuration once at startup. compose runs with
