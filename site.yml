@@ -1,3 +1,4 @@
 ---
 - import_playbook: hardening.yml
+- import_playbook: wireguard.yml
 - import_playbook: web.yml

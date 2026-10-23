@@ -51,3 +51,19 @@
       mode: '0644'
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+  - name: Timescale - Drop the catch-all pg_hba rule
+    lineinfile:
+      path: "{{ docker.paths.data }}timescale/pgdata/pg_hba.conf"
+      regexp: '^host\s+all\s+all\s+all\s+scram-sha-256'
+      state: absent
+    become: yes
+    notify: reload timescale
+  - name: Timescale - Allow the Docker networks and the WireGuard peers
+    lineinfile:
+      path: "{{ docker.paths.data }}timescale/pgdata/pg_hba.conf"
+      line: "host all all {{ item }} scram-sha-256"
+    loop:
+      - samenet
+      - "{{ wireguard.network }}"
+    become: yes
+    notify: reload timescale

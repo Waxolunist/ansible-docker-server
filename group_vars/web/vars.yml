@@ -1,0 +1,10 @@
+---
+  wireguard:
+    interface: wg0
+    address: 10.8.0.1
+    network: 10.8.0.0/24
+    port: 51820
+    peers:
+      - name: pi
+        address: 10.8.0.2
+        public_key: "{{ vault_wireguard_pi_public_key }}"
