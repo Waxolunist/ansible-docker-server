@@ -749,7 +749,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select value::boolean from settings_config where key = 'goesignaller_enable';",
+                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode;",
                         "sql": {
                           "columns": [
                             {
@@ -829,6 +829,51 @@
                     "uid": "e2a4926f-25f7-4691-b6ab-9470b5d4d173",
                     "unit": "",
                     "value": false
+                  },
+                  {
+                    "id": "charging_mode",
+                    "labelWidth": 30,
+                    "queryField": {
+                      "label": "A:charging_mode",
+                      "refId": "A",
+                      "value": "charging_mode"
+                    },
+                    "section": "",
+                    "title": "Charging mode",
+                    "tooltip": "Charging power of the go-e, applied within 5 minutes",
+                    "type": "select",
+                    "uid": "47f28024-5b45-4cbe-a093-880f689e8ffa",
+                    "unit": "",
+                    "value": "balanced",
+                    "optionsSource": "Custom",
+                    "allowCustomValues": false,
+                    "isMulti": false,
+                    "options": [
+                      {
+                        "id": "fast",
+                        "label": "Fast (3 phases × 16 A ≈ 11 kW)",
+                        "type": "string",
+                        "value": "fast"
+                      },
+                      {
+                        "id": "balanced",
+                        "label": "Balanced (3 phases × 10 A ≈ 6.9 kW)",
+                        "type": "string",
+                        "value": "balanced"
+                      },
+                      {
+                        "id": "slow",
+                        "label": "Slow (1 phase × 10 A ≈ 2.3 kW)",
+                        "type": "string",
+                        "value": "slow"
+                      },
+                      {
+                        "id": "auto",
+                        "label": "Auto (like Balanced for now)",
+                        "type": "string",
+                        "value": "auto"
+                      }
+                    ]
                   }
                 ],
                 "initial": {
@@ -884,7 +929,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "update\n  settings_config\nset\n  value = ${payload.value}\nwhere\n  key = 'goesignaller_enable';",
+                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode');",
                     "refId": "A",
                     "sql": {
                       "columns": [
