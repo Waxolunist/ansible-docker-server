@@ -5,7 +5,6 @@
     - registry
     - authelia
     - grafana
-    - pgadmin
     - minecraft
     - timescale
     - photoprism
@@ -34,9 +33,6 @@
     domain: "proxy.{{ topleveldomain }}"
   grafana:
     domain: "graph.{{ topleveldomain }}"
-  pgadmin:
-    domain: "pgadmin.{{ topleveldomain }}"
-    port: 5050
   minecraft:
     port: 25565
   cadvisor:

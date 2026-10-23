@@ -28,7 +28,7 @@ The server runs 21 Docker containers providing:
 - **Authentication and SSO** via Authelia
 - **Monitoring and dashboarding** via Prometheus, Node Exporter, and Grafana
 - **Database services** including PostgreSQL, TimescaleDB, and MariaDB
-- **Application services** including a private Docker registry, PhotoPrism photo management, pgAdmin, and a Minecraft game server
+- **Application services** including a private Docker registry, PhotoPrism photo management, and a Minecraft game server
 
 All web-facing services are accessible through subdomains of `v-collaborate.com`, routed through Traefik with HTTPS enforcement.
 
@@ -179,19 +179,18 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 8 | `authelia` | `authelia/authelia:4.39.28` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
 | 9 | `grafana-pg` | `postgres:18-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
 | 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
-| 11 | `pgadmin` | `dpage/pgadmin4:9.14.0` | Database administration UI | — | `proxy`, `grafana` | `pgadmin.v-collaborate.com` |
-| 12 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
-| 13 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
-| 14 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
-| 15 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
-| 16 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
-| 17 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
-| 18 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
-| 19 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
-| 20 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `proxy` | `picoclaw.v-collaborate.com` |
-| 21 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
-| 22 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
-| 23 | `otterwiki` | `redimp/otterwiki:2.25.2` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
+| 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
+| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `5432` | `grafana` | — |
+| 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
+| 14 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
+| 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
+| 16 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
+| 17 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
+| 18 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
+| 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `proxy` | `picoclaw.v-collaborate.com` |
+| 20 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
+| 21 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
+| 22 | `otterwiki` | `redimp/otterwiki:2.25.2` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
 
 ### Service Dependencies
 
@@ -206,7 +205,6 @@ graph TD
     CA[cadvisor]
     GPG[grafana-pg]
     GR[grafana]
-    PGA[pgadmin]
     REG[registry]
     MC[minecraft]
     TS[timescaledb]
@@ -223,8 +221,6 @@ graph TD
     CA -->|depends_on| PROM
     GR -->|depends_on| GPG
     GR -->|depends_on| PROM
-    PGA -->|depends_on| GPG
-    PGA -->|links| TS
     PP -->|depends_on| PM
     PP -->|depends_on| RP
     CO -->|depends_on| RP
@@ -246,7 +242,6 @@ graph TB
         AUTH[authelia]
         PROM[prometheus]
         GR[grafana]
-        PGA[pgadmin]
         PP[photoprism]
         CO[conduit]
         PC[picoclaw]
@@ -261,7 +256,6 @@ graph TB
     subgraph graf_net[grafana network]
         GPG[grafana-pg]
         GR2[grafana]
-        PGA2[pgadmin]
         TS[timescaledb]
     end
 
@@ -283,9 +277,9 @@ graph TB
 
 | Network | Name | Purpose | Connected Services |
 |---|---|---|---|
-| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, pgadmin, photoprism, conduit, picoclaw, code-server |
+| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, photoprism, conduit, picoclaw, code-server |
 | `prometheus` | auto-generated | Metrics collection | prometheus, node-exporter, cadvisor, postgres-exporter |
-| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, pgadmin, timescaledb, loki, promtail, postgres-exporter |
+| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, promtail, postgres-exporter |
 | `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
 | `photoprism` | auto-generated | PhotoPrism database access | photoprism-mariadb, photoprism |
 | `wiki` | `web_wiki` | Isolates Otterwiki, which trusts auth headers blindly, so only Traefik can reach it | reverse-proxy, otterwiki |
@@ -439,7 +433,6 @@ Services protected by Authelia include:
 - **Prometheus** (`metrics.v-collaborate.com`)
 - **Grafana** (`graph.v-collaborate.com`) — also uses proxy authentication to auto-login users
 - **cAdvisor** (`cadvisor.v-collaborate.com`)
-- **pgAdmin** (`pgadmin.v-collaborate.com`)
 - **Registry** (`registry.v-collaborate.com`)
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
@@ -610,7 +603,6 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 ├── data/             # Persistent application data
 │   ├── prometheus/   # Prometheus TSDB
 │   ├── grafana/      # Grafana data + postgres/ (PostgreSQL 18) + pgdata/ (PostgreSQL 13, pre-upgrade copy)
-│   ├── pgadmin/      # pgAdmin session data
 │   ├── minecraft/    # Minecraft world data
 │   ├── timescale/    # TimescaleDB pgdata/
 │   ├── authelia/     # db.sqlite3, users/users_database.yml
@@ -643,7 +635,6 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3`, `data/authelia/users` → `/users` | — | — |
 | grafana-pg | — | `data/grafana/postgres` → `/var/lib/postgresql` (cluster in `18/docker`, the layout of the 18+ images) | — | — |
 | grafana | `configs/grafana` → `/etc/grafana` | `data/grafana` → `/var/lib/grafana` | — | `logs/grafana` → `/var/log/grafana` |
-| pgadmin | — | `data/pgadmin` → `/var/lib/pgadmin` | — | — |
 | minecraft | — | `data/minecraft` → `/data` | — | — |
 | timescaledb | `configs/timescale/init_roles.sql`, `configs/timescale/monitoring.sql` → `/docker-entrypoint-initdb.d/` | `data/timescale/pgdata` → `/home/postgres/pgdata/data` | — | — |
 | loki | `configs/loki/loki.yml` → `/etc/loki/loki.yml` | `data/loki` → `/var/loki` | — | — |
@@ -773,7 +764,6 @@ Vault-encrypted variables used across the project include:
 | `vault_devops_pass` | Password for the `devops` user |
 | `vault_grafana_pg_user` / `vault_grafana_pg_password` | Grafana PostgreSQL credentials |
 | `vault_timescale_pg_user` / `vault_timescale_pg_password` | TimescaleDB credentials |
-| `vault_pgadmin_default_email` / `vault_pgadmin_default_password` | pgAdmin admin credentials |
 | `vault_authelia_jwt_secret` / `vault_authelia_session_secret` | Authelia security tokens |
 | `vault_registry_http_secret` | Docker registry HTTP secret |
 | `vault_photoprism_admin_password` | PhotoPrism admin password |
@@ -790,7 +780,7 @@ Vault-encrypted variables used across the project include:
 
 ### Authentication Layers
 
-1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, Grafana, pgAdmin, Registry, cAdvisor, PicoClaw, and Code-Server
+1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, Grafana, Registry, cAdvisor, PicoClaw, and Code-Server
 2. **Grafana proxy auth** — Trusts Authelia's `Remote-User` header for seamless SSO
 3. **PhotoPrism native auth** — Uses its own password-based authentication
 4. **Registry** — Accessible via Traefik with TLS; secrets stored in a dedicated directory

@@ -61,7 +61,7 @@
           "datasource": {
             "type": "prometheus"
           },
-          "expr": "sum(container_last_seen{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"} > bool (time() - 90))",
+          "expr": "sum(container_last_seen{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"} > bool (time() - 90))",
           "instant": true,
           "legendFormat": "Services Up",
           "refId": "A"
@@ -128,7 +128,7 @@
           "datasource": {
             "type": "prometheus"
           },
-          "expr": "avg(avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"}[$__range]))",
+          "expr": "avg(avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"}[$__range]))",
           "instant": true,
           "legendFormat": "Uptime",
           "refId": "A"
@@ -1333,93 +1333,6 @@
         "x": 0,
         "y": 23
       },
-      "id": 24,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus"
-          },
-          "expr": "container_last_seen{name=\"web_pgadmin\"} > bool (time() - 90)",
-          "instant": true,
-          "legendFormat": "pgAdmin",
-          "refId": "A"
-        }
-      ],
-      "title": "pgAdmin",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "color": "red",
-                  "text": "Down"
-                },
-                "1": {
-                  "color": "green",
-                  "text": "Operational"
-                }
-              },
-              "type": "value"
-            },
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "color": "red",
-                  "text": "Down"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "noValue": "Down",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "green",
-                "value": 1
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 4,
-        "w": 8,
-        "x": 8,
-        "y": 23
-      },
       "id": 25,
       "options": {
         "colorMode": "background",
@@ -1504,7 +1417,7 @@
       "gridPos": {
         "h": 4,
         "w": 8,
-        "x": 16,
+        "x": 8,
         "y": 23
       },
       "id": 26,
@@ -1591,8 +1504,8 @@
       "gridPos": {
         "h": 4,
         "w": 8,
-        "x": 0,
-        "y": 27
+        "x": 16,
+        "y": 23
       },
       "id": 27,
       "options": {
@@ -1678,7 +1591,7 @@
       "gridPos": {
         "h": 4,
         "w": 8,
-        "x": 8,
+        "x": 0,
         "y": 27
       },
       "id": 28,
@@ -2075,7 +1988,7 @@
           "datasource": {
             "type": "prometheus"
           },
-          "expr": "avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"}[$__range])",
+          "expr": "avg_over_time(container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"}[$__range])",
           "instant": true,
           "legendFormat": "{{name}}",
           "refId": "A"
@@ -2180,7 +2093,7 @@
           "datasource": {
             "type": "prometheus"
           },
-          "expr": "max by (name) (container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|web_pgadmin|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"})",
+          "expr": "max by (name) (container_up_bool{name=~\"web_reverse-proxy|web_prometheus|web_node-exporter|web_cadvisor|web_socket-proxy|web_autoheal|web_grafana|photoprism|web_registry|minecraft|authelia|web_timescaledb|grafana-pg|photoprism-mariadb|web_loki|web_promtail|web_postgres-exporter|web_conduit|web_code-server\"})",
           "legendFormat": "{{name}}",
           "refId": "A"
         }
