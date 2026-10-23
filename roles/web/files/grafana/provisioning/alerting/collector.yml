@@ -1,0 +1,44 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: Collector
+    folder: General Alerting
+    interval: 5m
+    rules:
+      - uid: collector-data-stale
+        title: Collector data stale
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: c17a467f-0417-4c81-b598-1bf916d7bba7
+            model:
+              refId: A
+              editorMode: code
+              format: table
+              rawQuery: true
+              rawSql: |
+                SELECT 'data_solar_energy' AS "table", extract(epoch FROM now() - max(time)) / 60 AS minutes FROM data_solar_energy
+                UNION ALL
+                SELECT 'data_power_live', extract(epoch FROM now() - max(time)) / 60 FROM data_power_live
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 30
+        noDataState: Alerting
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "The collector has not written {{ $labels.table }} for {{ humanize $values.A.Value }} minutes."
+          description: "Check ./pi logs --jobs on the Pi; see docs how-to/diagnose-missing-data.md."
+        labels:
+          severity: warning
