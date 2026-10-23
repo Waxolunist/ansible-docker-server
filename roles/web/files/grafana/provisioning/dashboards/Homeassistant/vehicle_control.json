@@ -749,7 +749,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode;",
+                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold;",
                         "sql": {
                           "columns": [
                             {
@@ -874,6 +874,87 @@
                         "value": "auto"
                       }
                     ]
+                  },
+                  {
+                    "id": "charging_threshold",
+                    "labelWidth": 30,
+                    "queryField": {
+                      "label": "A:charging_threshold",
+                      "refId": "A",
+                      "value": "charging_threshold"
+                    },
+                    "section": "",
+                    "title": "Charging threshold",
+                    "tooltip": "Battery level the car charges to, unless the weekly plan charges it to full for a journey",
+                    "type": "select",
+                    "uid": "06ee87c9-1eea-4aea-9760-a5aab668c67a",
+                    "unit": "%",
+                    "value": "80",
+                    "optionsSource": "Custom",
+                    "allowCustomValues": false,
+                    "isMulti": false,
+                    "options": [
+                      {
+                        "id": "10",
+                        "label": "10 %",
+                        "type": "string",
+                        "value": "10"
+                      },
+                      {
+                        "id": "20",
+                        "label": "20 %",
+                        "type": "string",
+                        "value": "20"
+                      },
+                      {
+                        "id": "30",
+                        "label": "30 %",
+                        "type": "string",
+                        "value": "30"
+                      },
+                      {
+                        "id": "40",
+                        "label": "40 %",
+                        "type": "string",
+                        "value": "40"
+                      },
+                      {
+                        "id": "50",
+                        "label": "50 %",
+                        "type": "string",
+                        "value": "50"
+                      },
+                      {
+                        "id": "60",
+                        "label": "60 %",
+                        "type": "string",
+                        "value": "60"
+                      },
+                      {
+                        "id": "70",
+                        "label": "70 %",
+                        "type": "string",
+                        "value": "70"
+                      },
+                      {
+                        "id": "80",
+                        "label": "80 %",
+                        "type": "string",
+                        "value": "80"
+                      },
+                      {
+                        "id": "90",
+                        "label": "90 %",
+                        "type": "string",
+                        "value": "90"
+                      },
+                      {
+                        "id": "100",
+                        "label": "100 %",
+                        "type": "string",
+                        "value": "100"
+                      }
+                    ]
                   }
                 ],
                 "initial": {
@@ -929,7 +1010,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode');",
+                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold');",
                     "refId": "A",
                     "sql": {
                       "columns": [
