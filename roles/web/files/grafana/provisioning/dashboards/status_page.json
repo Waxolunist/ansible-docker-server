@@ -49,7 +49,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(container_up_bool{name=~\"$container\"}) or vector(0)",
+                        "expr": "sum(container_up_bool{id=\"\",name=~\"$container\"}) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -132,7 +132,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(time() - max by (name) (max_over_time(container_last_seen{name=~\"$container\"}[1d])) and on (name) (container_up_bool{name=~\"$container\"} == 0), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(time() - max_over_time(name:container_last_seen:max{name=~\"$container\"}[1d]) and on (name) (container_up_bool{id=\"\",name=~\"$container\"} == 0), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -492,7 +492,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace((sum by (name) (changes(container_start_time_seconds{name=~\"$container\"}[24h])) + (count by (name) (count by (name, id) (count_over_time(container_start_time_seconds{name=~\"$container\"}[24h]))) - 1)) > 0, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace((changes(name:container_start_time_seconds:max{name=~\"$container\"}[24h])) > 0, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -579,7 +579,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "((max(container_health_state{name=\"$container\"}) == 0) - 1) or (max(container_up_bool{name=\"$container\"}) * (time() - max(container_start_time_seconds{name=\"$container\"}))) or (max(container_up_bool{name=\"$container\"}) * 0)",
+                        "expr": "((max(container_health_state{name=\"$container\"}) == 0) - 1) or (max(container_up_bool{id=\"\",name=\"$container\"}) * (time() - max(name:container_start_time_seconds:max{name=\"$container\"}))) or (max(container_up_bool{id=\"\",name=\"$container\"}) * 0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -689,7 +689,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(sum by (name) (sum_over_time(container_up_bool{name=~\"$container\"}[$__range])) / sum by (name) (count_over_time(container_up_bool{name=~\"$container\"}[$__range])), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(sum_over_time(container_up_bool{id=\"\",name=~\"$container\"}[$__range]) / count_over_time(container_up_bool{id=\"\",name=~\"$container\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -712,7 +712,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(sum by (name) (changes(container_start_time_seconds{name=~\"$container\"}[$__range])) + (count by (name) (count by (name, id) (count_over_time(container_start_time_seconds{name=~\"$container\"}[$__range]))) - 1), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(changes(name:container_start_time_seconds:max{name=~\"$container\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -735,7 +735,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(max by (name) (container_start_time_seconds{name=~\"$container\"}) * 1000, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(name:container_start_time_seconds:max{name=~\"$container\"} * 1000, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -953,7 +953,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(max by (name) (container_up_bool{name=~\"$container\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(container_up_bool{id=\"\",name=~\"$container\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "time_series",
                         "instant": false,
                         "legendFormat": "{{name}}",
@@ -1061,7 +1061,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(sum by (name) (sum_over_time(container_up_bool{name=~\"$container\"}[1d])) / sum by (name) (count_over_time(container_up_bool{name=~\"$container\"}[1d])), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(avg_over_time(container_up_bool{id=\"\",name=~\"$container\"}[1d]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "time_series",
                         "instant": false,
                         "interval": "1d",
@@ -1239,7 +1239,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "count(container_up_bool{name=~\"$container\"} == 0) or vector(0)",
+                        "expr": "count(container_up_bool{id=\"\",name=~\"$container\"} == 0) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -1742,7 +1742,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(sum by (name) (changes(container_start_time_seconds{name=~\"$container\"}[24h])) + (count by (name) (count by (name, id) (count_over_time(container_start_time_seconds{name=~\"$container\"}[24h]))) - 1)) or vector(0)",
+                        "expr": "sum(changes(name:container_start_time_seconds:max{name=~\"$container\"}[24h])) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -2189,7 +2189,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "vector(1) unless on() ((container_up_bool{name=~\"$container\"} == 0) or (max by (name) (container_health_state{name=~\"$container\"}) == 0) or (up == 0) or (ALERTS{alertstate=\"firing\"}))",
+                        "expr": "vector(1) unless on() ((container_up_bool{id=\"\",name=~\"$container\"} == 0) or (max by (name) (container_health_state{name=~\"$container\"}) == 0) or (up == 0) or (ALERTS{alertstate=\"firing\"}))",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -2870,7 +2870,7 @@
               "$__all"
             ]
           },
-          "definition": "query_result(max by (name) (container_up_bool))",
+          "definition": "query_result(container_up_bool{id=\"\"})",
           "description": "Containers running, or seen in the last 24 hours",
           "hide": "dontHide",
           "includeAll": true,
@@ -2886,7 +2886,7 @@
             "kind": "DataQuery",
             "spec": {
               "qryType": 3,
-              "query": "query_result(max by (name) (container_up_bool))",
+              "query": "query_result(container_up_bool{id=\"\"})",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "version": "v0"

@@ -2,8 +2,12 @@ groups:
   - name: container_uptime
     interval: 1m
     rules:
+      - record: name:container_last_seen:max
+        expr: max by (name) (container_last_seen{name!="",name!="/"})
+      - record: name:container_start_time_seconds:max
+        expr: max by (name) (container_start_time_seconds{name!="",name!="/"})
       - record: container_up_bool
         expr: |
-          max by (name) (container_last_seen{name!="",name!="/"} > bool (time() - 90))
+          (name:container_last_seen:max > bool (time() - 90))
           or
-          max by (name) (max_over_time(container_last_seen{name!="",name!="/"}[1d])) * 0
+          max_over_time(name:container_last_seen:max[1d]) * 0

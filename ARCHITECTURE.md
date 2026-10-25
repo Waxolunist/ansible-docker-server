@@ -542,7 +542,8 @@ graph LR
 
 The `docker.host` target resolves to the Docker bridge IP via the `extra_hosts` directive in the compose file.
 
-- **Recording rule** [`container_up_bool`](roles/web/files/prometheus/rules/container_uptime.yml), evaluated every minute, one series per container `name`: `1` while cAdvisor has seen the container in the last 90 seconds, `0` for a container seen in the last 24 hours that is gone now. The "Service Status" dashboard computes availability and down states from it. Series recorded before 2026-10-25 carry all cAdvisor labels and have no `0` samples, so always aggregate `by (name)`.
+- **Recording rules** in [`container_uptime.yml`](roles/web/files/prometheus/rules/container_uptime.yml), evaluated every minute, one series per container `name`: `name:container_last_seen:max`, `name:container_start_time_seconds:max` (restarts = `changes()` of it), and `container_up_bool`, which is `1` while cAdvisor has seen the container in the last 90 seconds and `0` for a container seen in the last 24 hours that is gone now. The "Service Status" dashboard reads only these.
+- **Avoid raw cAdvisor series over long ranges**: a crash-looping container creates a new series on every restart (pgadmin left about 20,600 in October 2026, kept for the 100-day retention), and a 7-day range query over them got Prometheus OOM-killed at its 2 GB limit. `container_up_bool` series recorded before 2026-10-25 18:05 carry all cAdvisor labels, so select the clean ones with `container_up_bool{id=""}`.
 - **Rules deploy**: The Prometheus tasks have no tag. To ship only the config and rules, copy them with ad-hoc `template`/`copy` and send `SIGHUP` (`docker kill --signal HUP web_prometheus`); `include_role` would also run the `docker` role dependency.
 
 ### Node Exporter
