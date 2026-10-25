@@ -5,6 +5,7 @@
       dest: "{{ docker.paths.configs }}loki/loki.yml"
       mode: 0644
       backup: yes
+    register: loki_config
   - name: Loki - Fix data directory ownership (Loki runs as uid 10001)
     file:
       path: "{{ docker.paths.data }}loki"
@@ -13,3 +14,9 @@
       mode: '0755'
       recurse: yes
     become: yes
+  - name: Loki - Restart when its configuration changed
+    command: docker restart web_loki
+    become: yes
+    register: loki_restart
+    failed_when: loki_restart.rc != 0 and 'No such container' not in loki_restart.stderr
+    when: loki_config.changed

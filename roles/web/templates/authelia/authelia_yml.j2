@@ -8,6 +8,11 @@ server:
 log:
   level: debug
 
+telemetry:
+  metrics:
+    enabled: true
+    address: tcp://0.0.0.0:9959/metrics
+
 totp:
   issuer: {{ topleveldomain }}
 
