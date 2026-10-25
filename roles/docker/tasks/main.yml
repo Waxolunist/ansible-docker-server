@@ -137,6 +137,7 @@
       ansible.builtin.shell: ip addr show | grep "\binet\b.*\bdocker0\b" | awk '{print $2}' | cut -d '/' -f 1
       register: docker_ip_address
       changed_when: false
+      check_mode: false
 
     - name: Set docker_ip_address fact
       ansible.builtin.set_fact:
