@@ -50,7 +50,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- One row per month, stamped at local midnight on the 1st (year/month are local).\n-- Self consumption is null where there is no production data (solar gap, TASK-107).\nselect make_timestamptz(agg.year::int, agg.month::int, 1, 0, 0, 0, msmp.timezone) as time,\n  agg.energy as \"Grid consumption\",\n  ev.energy_self_consumption as \"Self consumption\",\n  agg.energy + ev.energy_self_consumption as \"Total consumption\"\nfrom agg_1month_stats_data_smartmeter_energy_with_pricing agg\njoin master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nleft join agg_1month_energy_values_with_pricing ev\n  on ev.name = msmp.name and ev.year = agg.year and ev.month = agg.month\n  and ev.energy_produced is not null\nwhere msmp.feeding = false\norder by 1\n",
+                        "rawSql": "select time,\n  energy_consumed as \"Grid consumption\",\n  case when energy_inverter > 0 then energy_self_consumption end as \"Self consumption\",\n  case when energy_inverter > 0 then energy_used end as \"Total consumption\"\nfrom agg_1month_energy_priced\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -299,7 +299,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- One row per month, stamped at local midnight on the 1st (year/month are local).\nselect make_timestamptz(agg.year::int, agg.month::int, 1, 0, 0, 0, msmp.timezone) as time,\n  agg.price as \"Price\",\n  agg.price / nullif(agg.energy, 0) as \"Price / kWh\"\nfrom agg_1month_stats_data_smartmeter_energy_with_pricing agg\njoin master_smartmeter_metering_point msmp on msmp.id = agg.metering_point_id\nwhere msmp.feeding = false\norder by 1\n",
+                        "rawSql": "select time,\n  price_consumed + price_standing as \"Price\",\n  (price_consumed + price_standing) / nullif(energy_consumed, 0) as \"Price / kWh\"\nfrom agg_1month_energy_priced\nwhere metered_hours > 0\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -541,7 +541,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select make_timestamptz(year::int, month::int, 1, 0, 0, 0, 'Europe/Vienna') as time,\n  saved as \"Savings\",\n  cumulative_cost,\n  cumulative_saved,\n  months_till_roi * 365.25 / 12 as days_till_roi\nfrom agg_1month_roi\norder by 1\n",
+                        "rawSql": "select month::timestamp at time zone 'Europe/Vienna' as time,\n  saved as \"Savings\",\n  cumulative_cost,\n  cumulative_saved,\n  months_till_roi * 365.25 / 12 as days_till_roi\nfrom agg_1month_pv_roi\norder by 1;",
                         "sql": {
                           "columns": [
                             {
@@ -889,7 +889,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- Self consumption and the share are null where there is no production data (solar gap, TASK-107).\nwith base as (\n  select make_timestamptz(year::int, month::int, 1, 0, 0, 0, 'Europe/Vienna') as time,\n    case when energy_produced is not null then energy_self_consumption end as energy_self_consumption,\n    energy_feeded\n  from agg_1month_energy_values_with_pricing\n)\nselect time, energy_self_consumption, energy_feeded,\n  energy_self_consumption + energy_feeded as \"Total\",\n  energy_self_consumption / nullif(energy_self_consumption + energy_feeded, 0) as selfusage_percentage\nfrom base\nwhere $__timeFilter(time)\norder by time\n",
+                        "rawSql": "with base as (\n  select time,\n    case when energy_inverter > 0 then energy_self_consumption end as energy_self_consumption,\n    energy_feeded\n  from agg_1month_energy_priced\n  where metered_hours > 0\n)\nselect time, energy_self_consumption, energy_feeded,\n  energy_self_consumption + energy_feeded as \"Total\",\n  energy_self_consumption / nullif(energy_self_consumption + energy_feeded, 0) as selfusage_percentage\nfrom base\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {
