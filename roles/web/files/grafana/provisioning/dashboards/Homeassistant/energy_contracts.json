@@ -3581,12 +3581,1743 @@
                         "version": "3.6.8"
                     }
                 }
+            },
+            "panel-5": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "with m as materialized (select * from agg_1month_what_if),\npv as (select * from m where month >= (select date_trunc('month', min(date)) from master_pv_investition)),\nroi as (select cumulative_pv_investment as cumulative_cost,\n               cumulative_pv_investment - cumulative_saved_pv as open_sum,\n               (select avg(saved_pv) from pv) as average_saved,\n               (now() + interval '1 month' * ((cumulative_pv_investment - cumulative_saved_pv) / nullif((select avg(saved_pv) from pv), 0)))::date as time_of_roi\n        from m order by month desc limit 1),\nmetered as (select * from m where price_actual is not null),\nsince as (select to_char(min(month), 'YYYY-MM') as car, (select to_char(min(month), 'YYYY-MM') from pv) as pv,\n                 to_char(max(month) filter (where estimated), 'YYYY-MM') as estimated_until from m)\nselect 1 as nr, '1. Energy without PV' as item, (select sum(price_without_pv) from pv) as eur,\n       'every kWh the household used bought at the hour''s price, since ' || since.pv || ' (energy only, no standing charges)' as note from since\nunion all select 2, '   Energy actually paid', (select sum(price_actual) from pv), 'grid import minus feed-in' from since\nunion all select 3, '   PV saved', (select sum(saved_pv) from pv), '' from since\nunion all select 4, '2. Fuel for the reference car', (select sum(price_fuel) from m),\n       'since ' || since.car || ', until ' || since.estimated_until || ' estimated from the odometer' from since\nunion all select 5, '   EV''s grid energy', (select sum(price_car) from m), 'home charging, the house takes the PV first, PV energy into the car free' from since\nunion all select 6, '   EV saved', (select sum(saved_ev) from m),\n       (select round(sum(saved_ev) filter (where estimated)::numeric) || ' € of it estimated' from m) from since\nunion all select 7, '3. PV investment', roi.cumulative_cost, 'master_pv_investition' from roi\nunion all select 8, '   PV still open', roi.open_sum,\n       'paid back around ' || to_char(roi.time_of_roi, 'YYYY-MM') || ' at the average saving so far (' || round(roi.average_saved::numeric) || ' € per month)' from roi\nunion all select 9, '4. No PV and a combustion car', (select sum(price_house_without_pv + price_fuel) from metered) + (select coalesce(sum(price_fuel), 0) from m where price_actual is null),\n       'the house without the car from the grid, plus fuel' from since\nunion all select 10, '   Actually paid, car included', (select sum(price_actual) from metered) + (select coalesce(sum(price_car), 0) from m where price_actual is null), '' from since\nunion all select 11, '   PV and EV saved', (select sum(saved_both) from m), 'the car''s PV energy counted once' from since\norder by nr;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_what_if: what PV, the EV and both together have saved, against what it would have cost without them. Energy only: standing charges, maintenance, tax and insurance are left out.",
+                    "id": 5,
+                    "links": [],
+                    "title": "Savings in total",
+                    "vizConfig": {
+                        "group": "table",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {},
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "eur"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "currencyEUR"
+                                            },
+                                            {
+                                                "id": "decimals",
+                                                "value": 0
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "nr"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "custom.hidden",
+                                                "value": true
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "showHeader": true,
+                                "cellHeight": "sm"
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-6": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select to_char(month, 'YYYY-MM') as month, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1month_what_if\norder by month;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_what_if: PV = self-consumption at the consumption price plus feed-in; EV = fuel for the reference car minus the car's grid energy at the hour's price (house first, PV energy into the car free); PV and EV = no PV and a combustion car against the actual bill, the overlap counted once. Months up to February 2024 are estimated for the EV.",
+                    "id": 6,
+                    "links": [],
+                    "title": "Savings per month",
+                    "vizConfig": {
+                        "group": "barchart",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "currencyEUR",
+                                    "decimals": 0
+                                },
+                                "overrides": []
+                            },
+                            "options": {
+                                "xField": "month",
+                                "legend": {
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "xTickLabelRotation": -45,
+                                "xTickLabelSpacing": 0
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-7": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select to_char(year, 'YYYY') as year, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by year;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1year_what_if, the same as per month. 2022 is only December.",
+                    "id": 7,
+                    "links": [],
+                    "title": "Savings per year",
+                    "vizConfig": {
+                        "group": "barchart",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "currencyEUR",
+                                    "decimals": 0
+                                },
+                                "overrides": []
+                            },
+                            "options": {
+                                "xField": "year",
+                                "legend": {
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-8": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "time_series",
+                                                "rawQuery": true,
+                                                "rawSql": "select time, cumulative_saved_pv as \"PV saved\", cumulative_saved_ev as \"EV saved\", cumulative_saved_both as \"PV and EV saved\", cumulative_pv_investment as \"PV investment\"\nfrom agg_1month_what_if\norder by time;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {
+                                "timeFrom": "4y"
+                            },
+                            "transformations": []
+                        }
+                    },
+                    "description": "Running totals from agg_1month_what_if, each at the start of its month.",
+                    "id": 8,
+                    "links": [],
+                    "title": "Savings over time against the PV investment",
+                    "vizConfig": {
+                        "group": "timeseries",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "currencyEUR",
+                                    "decimals": 0,
+                                    "custom": {
+                                        "lineInterpolation": "stepAfter",
+                                        "fillOpacity": 0
+                                    }
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "PV investment"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "custom.lineStyle",
+                                                "value": {
+                                                    "fill": "dash",
+                                                    "dash": [
+                                                        10,
+                                                        10
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "legend": {
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "tooltip": {
+                                    "mode": "multi",
+                                    "sort": "none"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-9": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select to_char(month, 'YYYY-MM') as month,\n       estimated,\n       km,\n       litres,\n       price_fuel,\n       energy_car,\n       energy_car_pv,\n       price_car,\n       price_without_pv,\n       price_actual,\n       saved_pv,\n       saved_ev,\n       saved_both\nfrom agg_1month_what_if\norder by month desc;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_what_if. energy_car is the go-e energy (charging losses included), energy_car_pv its PV share with the house served first. price_without_pv and price_actual are empty where the smart meter has no complete day.",
+                    "id": 9,
+                    "links": [],
+                    "title": "Per month",
+                    "vizConfig": {
+                        "group": "table",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "decimals": 0
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byRegexp",
+                                            "options": "^(price_.*|saved_.*)$"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "currencyEUR"
+                                            },
+                                            {
+                                                "id": "decimals",
+                                                "value": 2
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "showHeader": true,
+                                "cellHeight": "sm"
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-10": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select r.id,\n       r.name,\n       r.fuel_type,\n       r.consumption,\n       r.comment,\n       to_char(r.valid_from at time zone z.timezone, 'YYYY-MM-DD') as valid_from,\n       case when r.valid_to = 'infinity' then '' else to_char(r.valid_to at time zone z.timezone, 'YYYY-MM-DD') end as valid_to\nfrom master_reference_car r\ncross join (select timezone from master_smartmeter_metering_point order by id limit 1) z\norder by r.valid_from desc;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                },
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select 'DIE' as value, 'Diesel' as label\nunion all\nselect 'SUP', 'Super 95';"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "FuelTypes"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "master_reference_car: the combustion car the EV is compared with, per period, in litres per 100 km. Fuel type DIE (diesel) or SUP (Super 95). Adding a row from a date ends the row that runs on that date the day before.",
+                    "id": 10,
+                    "links": [],
+                    "title": "Reference car",
+                    "vizConfig": {
+                        "group": "volkovlabs-table-panel",
+                        "kind": "VizConfig",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {},
+                                "overrides": []
+                            },
+                            "options": {
+                                "columnManagerCustomIcon": "",
+                                "columnManagerNativeIcon": "table",
+                                "externalExport": {
+                                    "enabled": false,
+                                    "request": {
+                                        "datasource": "",
+                                        "payload": {}
+                                    }
+                                },
+                                "isColumnManagerAvailable": false,
+                                "isColumnManagerShowCustomIcon": false,
+                                "nestedObjects": [],
+                                "openColumnManagerMode": "group",
+                                "saveUserPreference": false,
+                                "showFiltersInColumnManager": false,
+                                "showSortingInColumnManager": false,
+                                "tables": [
+                                    {
+                                        "actionsColumnConfig": {
+                                            "alignment": "start",
+                                            "fontSize": "sm",
+                                            "label": "",
+                                            "width": {
+                                                "auto": false,
+                                                "value": 100
+                                            }
+                                        },
+                                        "addRow": {
+                                            "enabled": true,
+                                            "permission": {
+                                                "mode": "userRole",
+                                                "userRole": [
+                                                    "Admin",
+                                                    "Editor"
+                                                ]
+                                            },
+                                            "request": {
+                                                "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                                                "payload": {
+                                                    "editorMode": "code",
+                                                    "format": "table",
+                                                    "rawQuery": true,
+                                                    "rawSql": "with s as (\n    select ${payload.valid_from:sqlstring}::date::timestamp at time zone (select timezone from master_smartmeter_metering_point order by id limit 1) as start_ts\n), closed as (\n    update master_reference_car r\n    set valid_to = s.start_ts - interval '1 second'\n    from s\n    where r.validrange @> s.start_ts\n      and r.valid_from < s.start_ts\n    returning r.id\n)\ninsert into master_reference_car (vehicle_id, name, fuel_type, consumption, comment, valid_from, valid_to)\nselect (select min(id) from master_vehicles where purchased_on is not null), ${payload.name:sqlstring}, ${payload.fuel_type:sqlstring}, ${payload.consumption}, ${payload.comment:sqlstring}, s.start_ts,\n       coalesce((nullif(${payload.valid_to:sqlstring}, '')::date + interval '23:59:59')::timestamp at time zone (select timezone from master_smartmeter_metering_point order by id limit 1), 'infinity')\nfrom s;",
+                                                    "refId": "A",
+                                                    "sql": {
+                                                        "columns": [
+                                                            {
+                                                                "parameters": [],
+                                                                "type": "function"
+                                                            }
+                                                        ],
+                                                        "groupBy": [
+                                                            {
+                                                                "property": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": "groupBy"
+                                                            }
+                                                        ],
+                                                        "limit": 50
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "deleteRow": {
+                                            "enabled": true,
+                                            "permission": {
+                                                "mode": "userRole",
+                                                "userRole": [
+                                                    "Admin",
+                                                    "Editor"
+                                                ]
+                                            },
+                                            "request": {
+                                                "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                                                "payload": {
+                                                    "editorMode": "code",
+                                                    "format": "table",
+                                                    "rawQuery": true,
+                                                    "rawSql": "delete from master_reference_car\nwhere id = ${payload.id};",
+                                                    "refId": "A",
+                                                    "sql": {
+                                                        "columns": [
+                                                            {
+                                                                "parameters": [],
+                                                                "type": "function"
+                                                            }
+                                                        ],
+                                                        "groupBy": [
+                                                            {
+                                                                "property": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": "groupBy"
+                                                            }
+                                                        ],
+                                                        "limit": 50
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "expanded": false,
+                                        "highlightRowsOnHover": true,
+                                        "items": [
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": false,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "id",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "name",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Car",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "end",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "select",
+                                                        "customValues": false,
+                                                        "queryOptions": {
+                                                            "source": "FuelTypes",
+                                                            "value": "value",
+                                                            "label": "label"
+                                                        }
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "fuel_type",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Fuel",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "select",
+                                                        "customValues": false,
+                                                        "queryOptions": {
+                                                            "source": "FuelTypes",
+                                                            "value": "value",
+                                                            "label": "label"
+                                                        }
+                                                    },
+                                                    "enabled": true
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "end",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "number"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "consumption",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "l/100 km",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "number"
+                                                    },
+                                                    "enabled": true
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "valid_from",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Valid from (YYYY-MM-DD)",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "valid_to",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Valid to (YYYY-MM-DD, empty = open)",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "comment",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Comment",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            }
+                                        ],
+                                        "name": "Reference car",
+                                        "pagination": {
+                                            "defaultPageSize": 20,
+                                            "enabled": false,
+                                            "mode": "client"
+                                        },
+                                        "rowHighlight": {
+                                            "backgroundColor": "transparent",
+                                            "columnId": "",
+                                            "enabled": false,
+                                            "resetVariable": false,
+                                            "scrollTo": "",
+                                            "smooth": false,
+                                            "variable": ""
+                                        },
+                                        "showHeader": true,
+                                        "stripedRows": true,
+                                        "update": {
+                                            "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                                            "payload": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "update master_reference_car r\nset name = ${payload.name:sqlstring},\n    fuel_type = ${payload.fuel_type:sqlstring},\n    consumption = ${payload.consumption},\n    comment = ${payload.comment:sqlstring},\n    valid_from = ${payload.valid_from:sqlstring}::date::timestamp at time zone (select timezone from master_smartmeter_metering_point order by id limit 1),\n    valid_to = coalesce((nullif(${payload.valid_to:sqlstring}, '')::date + interval '23:59:59')::timestamp at time zone (select timezone from master_smartmeter_metering_point order by id limit 1), 'infinity')\nwhere r.id = ${payload.id};",
+                                                "refId": "A",
+                                                "sql": {
+                                                    "columns": [
+                                                        {
+                                                            "parameters": [],
+                                                            "type": "function"
+                                                        }
+                                                    ],
+                                                    "groupBy": [
+                                                        {
+                                                            "property": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": "groupBy"
+                                                        }
+                                                    ],
+                                                    "limit": 50
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "tabsSorting": false,
+                                "toolbar": {
+                                    "alignment": "left",
+                                    "export": true,
+                                    "exportFormats": [
+                                        "csv",
+                                        "xlsx"
+                                    ]
+                                }
+                            }
+                        },
+                        "version": "3.6.8"
+                    }
+                }
+            },
+            "panel-11": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select id, name, to_char(purchased_on, 'YYYY-MM-DD') as purchased_on, purchase_mileage\nfrom master_vehicles\norder by id;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "master_vehicles: when the EV was bought and its odometer then. The months before the first odometer reading (2024-02-26) are estimated from these.",
+                    "id": 11,
+                    "links": [],
+                    "title": "Electric car",
+                    "vizConfig": {
+                        "group": "volkovlabs-table-panel",
+                        "kind": "VizConfig",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {},
+                                "overrides": []
+                            },
+                            "options": {
+                                "columnManagerCustomIcon": "",
+                                "columnManagerNativeIcon": "table",
+                                "externalExport": {
+                                    "enabled": false,
+                                    "request": {
+                                        "datasource": "",
+                                        "payload": {}
+                                    }
+                                },
+                                "isColumnManagerAvailable": false,
+                                "isColumnManagerShowCustomIcon": false,
+                                "nestedObjects": [],
+                                "openColumnManagerMode": "group",
+                                "saveUserPreference": false,
+                                "showFiltersInColumnManager": false,
+                                "showSortingInColumnManager": false,
+                                "tables": [
+                                    {
+                                        "actionsColumnConfig": {
+                                            "alignment": "start",
+                                            "fontSize": "sm",
+                                            "label": "",
+                                            "width": {
+                                                "auto": false,
+                                                "value": 100
+                                            }
+                                        },
+                                        "addRow": {
+                                            "enabled": false,
+                                            "permission": {
+                                                "mode": "userRole",
+                                                "userRole": [
+                                                    "Admin",
+                                                    "Editor"
+                                                ]
+                                            },
+                                            "request": {
+                                                "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                                                "payload": {
+                                                    "editorMode": "code",
+                                                    "format": "table",
+                                                    "rawQuery": true,
+                                                    "rawSql": "with m as (\n    select id, timezone, ${payload.valid_from:sqlstring}::date::timestamp at time zone timezone as start_ts\n    from master_smartmeter_metering_point\n    where id = ${payload.metering_point_id}\n), closed as (\n    update master_energy_contract_pricing_fixed f\n    set end_of_contract = m.start_ts - interval '1 second'\n    from m\n    where f.metering_point_id = m.id\n      and f.contractrange @> m.start_ts\n      and f.start_of_contract < m.start_ts\n    returning f.id\n)\ninsert into master_energy_contract_pricing_fixed (metering_point_id, name, price, pricing_base, comment, start_of_contract, end_of_contract)\nselect m.id, ${payload.name:sqlstring}, ${payload.price}, 'per_day', ${payload.comment:sqlstring}, m.start_ts, coalesce((nullif(${payload.valid_to:sqlstring}, '')::date + interval '23:59:59')::timestamp at time zone m.timezone, 'infinity')\nfrom m;",
+                                                    "refId": "A",
+                                                    "sql": {
+                                                        "columns": [
+                                                            {
+                                                                "parameters": [],
+                                                                "type": "function"
+                                                            }
+                                                        ],
+                                                        "groupBy": [
+                                                            {
+                                                                "property": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": "groupBy"
+                                                            }
+                                                        ],
+                                                        "limit": 50
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "deleteRow": {
+                                            "enabled": false,
+                                            "permission": {
+                                                "mode": "userRole",
+                                                "userRole": [
+                                                    "Admin",
+                                                    "Editor"
+                                                ]
+                                            },
+                                            "request": {
+                                                "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                                                "payload": {
+                                                    "editorMode": "code",
+                                                    "format": "table",
+                                                    "rawQuery": true,
+                                                    "rawSql": "delete from master_energy_contract_pricing_fixed\nwhere id = ${payload.id};",
+                                                    "refId": "A",
+                                                    "sql": {
+                                                        "columns": [
+                                                            {
+                                                                "parameters": [],
+                                                                "type": "function"
+                                                            }
+                                                        ],
+                                                        "groupBy": [
+                                                            {
+                                                                "property": {
+                                                                    "type": "string"
+                                                                },
+                                                                "type": "groupBy"
+                                                            }
+                                                        ],
+                                                        "limit": 50
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        "expanded": false,
+                                        "highlightRowsOnHover": true,
+                                        "items": [
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": false,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "id",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "name",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Car",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "start",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "purchased_on",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Bought on (YYYY-MM-DD)",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "string"
+                                                    },
+                                                    "enabled": false
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            },
+                                            {
+                                                "aggregation": "none",
+                                                "appearance": {
+                                                    "alignment": "end",
+                                                    "background": {
+                                                        "applyToRow": false
+                                                    },
+                                                    "header": {
+                                                        "fontSize": "md"
+                                                    },
+                                                    "width": {
+                                                        "auto": true,
+                                                        "min": 20,
+                                                        "value": 100
+                                                    },
+                                                    "wrap": false
+                                                },
+                                                "edit": {
+                                                    "editor": {
+                                                        "type": "number"
+                                                    },
+                                                    "enabled": true,
+                                                    "permission": {
+                                                        "field": {
+                                                            "name": "",
+                                                            "source": ""
+                                                        },
+                                                        "mode": "userRole",
+                                                        "userRole": [
+                                                            "Admin",
+                                                            "Editor"
+                                                        ]
+                                                    }
+                                                },
+                                                "enabled": true,
+                                                "columnTooltip": "",
+                                                "field": {
+                                                    "name": "purchase_mileage",
+                                                    "source": "A"
+                                                },
+                                                "fileCell": {
+                                                    "size": "md",
+                                                    "text": "",
+                                                    "variant": "primary"
+                                                },
+                                                "filter": {
+                                                    "enabled": false,
+                                                    "mode": "client",
+                                                    "variable": ""
+                                                },
+                                                "footer": [],
+                                                "gauge": {
+                                                    "mode": "basic",
+                                                    "valueDisplayMode": "text",
+                                                    "valueSize": 14
+                                                },
+                                                "group": false,
+                                                "label": "Odometer then (km)",
+                                                "newRowEdit": {
+                                                    "editor": {
+                                                        "type": "number"
+                                                    },
+                                                    "enabled": false
+                                                },
+                                                "objectId": "",
+                                                "pin": "",
+                                                "preformattedStyle": false,
+                                                "scale": "auto",
+                                                "showingRows": 20,
+                                                "sort": {
+                                                    "descFirst": false,
+                                                    "enabled": false
+                                                },
+                                                "type": "auto"
+                                            }
+                                        ],
+                                        "name": "Electric car",
+                                        "pagination": {
+                                            "defaultPageSize": 20,
+                                            "enabled": false,
+                                            "mode": "client"
+                                        },
+                                        "rowHighlight": {
+                                            "backgroundColor": "transparent",
+                                            "columnId": "",
+                                            "enabled": false,
+                                            "resetVariable": false,
+                                            "scrollTo": "",
+                                            "smooth": false,
+                                            "variable": ""
+                                        },
+                                        "showHeader": true,
+                                        "stripedRows": true,
+                                        "update": {
+                                            "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                                            "payload": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "update master_vehicles\nset purchased_on = nullif(${payload.purchased_on:sqlstring}, '')::date,\n    purchase_mileage = ${payload.purchase_mileage}\nwhere id = ${payload.id};",
+                                                "refId": "A",
+                                                "sql": {
+                                                    "columns": [
+                                                        {
+                                                            "parameters": [],
+                                                            "type": "function"
+                                                        }
+                                                    ],
+                                                    "groupBy": [
+                                                        {
+                                                            "property": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": "groupBy"
+                                                        }
+                                                    ],
+                                                    "limit": 50
+                                                }
+                                            }
+                                        }
+                                    }
+                                ],
+                                "tabsSorting": false,
+                                "toolbar": {
+                                    "alignment": "left",
+                                    "export": true,
+                                    "exportFormats": [
+                                        "csv",
+                                        "xlsx"
+                                    ]
+                                }
+                            }
+                        },
+                        "version": "3.6.8"
+                    }
+                }
             }
         },
         "layout": {
             "kind": "TabsLayout",
             "spec": {
                 "tabs": [
+                    {
+                        "kind": "TabsLayoutTab",
+                        "spec": {
+                            "layout": {
+                                "kind": "AutoGridLayout",
+                                "spec": {
+                                    "columnWidthMode": "standard",
+                                    "fillScreen": false,
+                                    "maxColumnCount": 1,
+                                    "rowHeightMode": "tall",
+                                    "items": [
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-5"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-6"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-7"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-8"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-9"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-10"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-11"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "title": "Savings"
+                        }
+                    },
                     {
                         "kind": "TabsLayoutTab",
                         "spec": {
