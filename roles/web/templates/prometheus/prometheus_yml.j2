@@ -61,5 +61,6 @@ scrape_configs:
   # coturn is host-networked, so it is reached through the host address
   # rather than by container name.
   - job_name: 'coturn'
+    fallback_scrape_protocol: PrometheusText0.0.4
     static_configs:
       - targets: ['docker.host:9641']

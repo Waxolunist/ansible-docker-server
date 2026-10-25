@@ -538,8 +538,12 @@ graph LR
 | `node-metrics` | `node-exporter:9100` | Host CPU, memory, disk, network |
 | `cadvisor` | `cadvisor:8080` | Container resource metrics |
 | `postgres_exporter` | `postgres-exporter:9187` | TimescaleDB connection metrics via `pg_stat_activity` |
+| `coturn` | `docker.host:9641` | TURN server metrics. coturn sends no `Content-Type`, so the job sets `fallback_scrape_protocol: PrometheusText0.0.4`; without it Prometheus 3 rejects every scrape |
 
 The `docker.host` target resolves to the Docker bridge IP via the `extra_hosts` directive in the compose file.
+
+- **Recording rule** [`container_up_bool`](roles/web/files/prometheus/rules/container_uptime.yml), evaluated every minute, one series per container `name`: `1` while cAdvisor has seen the container in the last 90 seconds, `0` for a container seen in the last 24 hours that is gone now. The "Service Status" dashboard computes availability and down states from it. Series recorded before 2026-10-25 carry all cAdvisor labels and have no `0` samples, so always aggregate `by (name)`.
+- **Rules deploy**: The Prometheus tasks have no tag. To ship only the config and rules, copy them with ad-hoc `template`/`copy` and send `SIGHUP` (`docker kill --signal HUP web_prometheus`); `include_role` would also run the `docker` role dependency.
 
 ### Node Exporter
 
@@ -583,7 +587,7 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 - **Root URL**: `https://graph.v-collaborate.com/`
 - **Provisioned dashboards**: The JSON files in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), rescanned every 30 seconds. Deploy them alone with `--tags grafana_dashboards` (see [Partial Deploys](#partial-deploys)). Details:
   - **Folders**: `foldersFromFilesStructure` is on. A subdirectory becomes the Grafana folder with the same title. Grafana matches it by title, so `Homeassistant/` reuses the existing folder (uid `cekag6n00voxsd`). Files at the top level go to General.
-  - **Format**: v2 dashboards (`Homeassistant/`) are stored as Kubernetes resources with `apiVersion: dashboard.grafana.app/v2`, `kind`, `metadata.name` (the dashboard uid) and `spec`. v1 dashboards (`status_page.json`, `timescale_connections.json`) are plain dashboard JSON. Classic file provisioning loads both.
+  - **Format**: v2 dashboards (`Homeassistant/`, `status_page.json`) are stored as Kubernetes resources with `apiVersion: dashboard.grafana.app/v2`, `kind`, `metadata.name` (the dashboard uid) and `spec`. v1 dashboards (`timescale_connections.json` and the imported ones at the top level) are plain dashboard JSON. Classic file provisioning loads both.
   - **Placeholders**: Private values are written as `@@NAME@@` placeholders and filled in from the vault when the files are copied, for example `@@PSA_URL@@` → `vault_psa_url` and `@@GOE_URL@@` → `vault_goe_url` in `Homeassistant/vehicle_control.json`.
   - **go-e datasource**: The start/stop charging buttons and the live charger status on the "Control" tab of `Homeassistant/vehicle_control.json` query the go-e charger through Traefik on the Pi (`vault_goe_url`), via the Infinity datasource `go-e` (uid `goe`). It is provisioned from [`goe.yml.j2`](roles/web/templates/grafana/provisioning/datasources/goe.yml.j2) with basic auth (`vault_goe_proxy_username`/`vault_goe_proxy_password`, the same credentials as the collector's proxy mode on the Pi) and `allowedHosts` limited to that URL. It ships with the dashboards (`--tags grafana_dashboards`), and Grafana restarts when it changes. The button panel (`speakyourcode-button-panel`) finds its datasource by name, so the name must stay `go-e`. The preconditioning buttons use the Infinity datasource `yesoreyeram-infinity-datasource`, which was created in the UI and holds the car controller's basic auth.
   - **UI edits**: `allowUiUpdates` is on, so provisioned dashboards can be edited in the UI. An edit lives only in the database until it is pulled back into the file, and the next change to the file overwrites it.
