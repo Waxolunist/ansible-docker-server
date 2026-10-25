@@ -3584,47 +3584,60 @@
             }
         },
         "layout": {
-            "kind": "AutoGridLayout",
+            "kind": "TabsLayout",
             "spec": {
-                "columnWidthMode": "standard",
-                "fillScreen": false,
-                "maxColumnCount": 1,
-                "rowHeightMode": "tall",
-                "items": [
+                "tabs": [
                     {
-                        "kind": "AutoGridLayoutItem",
+                        "kind": "TabsLayoutTab",
                         "spec": {
-                            "element": {
-                                "kind": "ElementReference",
-                                "name": "panel-4"
-                            }
-                        }
-                    },
-                    {
-                        "kind": "AutoGridLayoutItem",
-                        "spec": {
-                            "element": {
-                                "kind": "ElementReference",
-                                "name": "panel-1"
-                            }
-                        }
-                    },
-                    {
-                        "kind": "AutoGridLayoutItem",
-                        "spec": {
-                            "element": {
-                                "kind": "ElementReference",
-                                "name": "panel-2"
-                            }
-                        }
-                    },
-                    {
-                        "kind": "AutoGridLayoutItem",
-                        "spec": {
-                            "element": {
-                                "kind": "ElementReference",
-                                "name": "panel-3"
-                            }
+                            "layout": {
+                                "kind": "AutoGridLayout",
+                                "spec": {
+                                    "columnWidthMode": "standard",
+                                    "fillScreen": false,
+                                    "maxColumnCount": 1,
+                                    "rowHeightMode": "tall",
+                                    "items": [
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-4"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-1"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-2"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-3"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            "title": "Contract prices"
                         }
                     }
                 ]
@@ -3671,7 +3684,7 @@
             "timezone": "browser",
             "to": "now"
         },
-        "title": "Energy - Contract prices",
+        "title": "Energy - Monetary Analysis",
         "variables": []
     }
 }
