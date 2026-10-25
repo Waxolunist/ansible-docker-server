@@ -54,6 +54,10 @@ scrape_configs:
     static_configs:
       - targets: ['cadvisor:8080']
 
+  - job_name: 'authelia'
+    static_configs:
+      - targets: ['authelia:9959']
+
   - job_name: 'postgres_exporter'
     static_configs:
       - targets: ['postgres-exporter:9187']

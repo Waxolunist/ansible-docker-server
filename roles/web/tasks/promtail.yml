@@ -5,3 +5,10 @@
       dest: "{{ docker.paths.configs }}promtail/promtail.yml"
       mode: 0644
       backup: yes
+    register: promtail_config
+  - name: Promtail - Restart when its configuration changed
+    command: docker restart web_promtail
+    become: yes
+    register: promtail_restart
+    failed_when: promtail_restart.rc != 0 and 'No such container' not in promtail_restart.stderr
+    when: promtail_config.changed

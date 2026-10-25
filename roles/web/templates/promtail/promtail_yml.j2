@@ -36,3 +36,26 @@ scrape_configs:
           expression: '(?i)(?P<pg_level>LOG|FATAL|ERROR|WARNING|NOTICE|DEBUG\d?):\s+'
       - labels:
           pg_level:
+
+  - job_name: authelia
+    docker_sd_configs:
+      - host: tcp://socket-proxy:2375
+        refresh_interval: 5s
+        filters:
+          - name: name
+            values: ["authelia"]
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: container
+      - source_labels: ['__meta_docker_container_log_stream']
+        target_label: logstream
+    pipeline_stages:
+      - replace:
+          expression: '( stack="(?:[^"\\]|\\.)*")'
+          replace: ''
+      - logfmt:
+          mapping:
+            level:
+      - labels:
+          level:
