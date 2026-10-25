@@ -259,7 +259,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_timestamp(concat(year, '-', month, '-01'), 'yyyy-mm-dd') as time, goe_grid_consumption_price\nfrom agg_1month_energy_values_with_pricing\norder by time;",
+                        "rawSql": "select time, price_car as goe_grid_consumption_price\nfrom agg_1month_what_if\norder by time;",
                         "sql": {
                           "columns": [
                             {
