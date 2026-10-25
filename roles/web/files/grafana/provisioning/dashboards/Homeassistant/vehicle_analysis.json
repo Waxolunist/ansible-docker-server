@@ -51,7 +51,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time_bucket('1 month', start_at) as time, average(stats_agg(consumption_km)) as consumption\nfrom data_vehicle_trips \nwhere $__timeFilter(start_at) \ngroup by time;",
+                        "rawSql": "select time_bucket('1 month', start_at) as time, average(stats_agg(consumption_km)) as consumption\nfrom data_vehicle_trips \nwhere $__timeFilter(start_at) \ngroup by time\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -108,8 +108,8 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "mode": "thresholds",
-                    "seriesBy": "last"
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
                   },
                   "custom": {
                     "axisBorderShow": false,
@@ -119,17 +119,17 @@
                     "axisPlacement": "auto",
                     "barAlignment": 0,
                     "barWidthFactor": 0.6,
-                    "drawStyle": "bars",
-                    "fillOpacity": 100,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
                     "gradientMode": "none",
                     "hideFrom": {
-                      "legend": false,
+                      "legend": true,
                       "tooltip": false,
                       "viz": false
                     },
                     "insertNulls": false,
                     "lineInterpolation": "linear",
-                    "lineWidth": 0,
+                    "lineWidth": 5,
                     "pointSize": 5,
                     "scaleDistribution": {
                       "type": "linear"
@@ -145,7 +145,7 @@
                     }
                   },
                   "decimals": 1,
-                  "displayName": "Consumption",
+                  "displayName": "Consumption (Regression)",
                   "min": 10,
                   "thresholds": {
                     "mode": "absolute",
@@ -177,40 +177,32 @@
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "consumption predicted"
+                      "id": "byFrameRefID",
+                      "options": "A"
                     },
                     "properties": [
                       {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "dark-red",
-                          "mode": "fixed"
-                        }
+                        "id": "displayName",
+                        "value": "Consumption"
                       },
                       {
-                        "id": "displayName",
-                        "value": "Consumption (Regression)"
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds",
+                          "seriesBy": "last"
+                        }
                       },
                       {
                         "id": "custom.drawStyle",
-                        "value": "line"
+                        "value": "bars"
                       },
                       {
                         "id": "custom.fillOpacity",
-                        "value": 0
+                        "value": 100
                       },
                       {
                         "id": "custom.lineWidth",
-                        "value": 5
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": false,
-                          "viz": false
-                        }
+                        "value": 0
                       }
                     ]
                   },
@@ -267,7 +259,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_timestamp(concat(year, '-', month, '-01'), 'yyyy-mm-dd') as time, goe_grid_consumption_price\nfrom agg_1month_energy_values_with_pricing;",
+                        "rawSql": "select to_timestamp(concat(year, '-', month, '-01'), 'yyyy-mm-dd') as time, goe_grid_consumption_price\nfrom agg_1month_energy_values_with_pricing\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -324,7 +316,8 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "mode": "palette-classic"
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
                   },
                   "custom": {
                     "axisBorderShow": false,
@@ -334,17 +327,17 @@
                     "axisPlacement": "auto",
                     "barAlignment": 0,
                     "barWidthFactor": 0.6,
-                    "drawStyle": "bars",
-                    "fillOpacity": 100,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
                     "gradientMode": "none",
                     "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
+                      "legend": true,
+                      "tooltip": true,
                       "viz": false
                     },
                     "insertNulls": false,
                     "lineInterpolation": "linear",
-                    "lineWidth": 1,
+                    "lineWidth": 6,
                     "pointSize": 5,
                     "scaleDistribution": {
                       "type": "linear"
@@ -360,7 +353,7 @@
                     }
                   },
                   "decimals": 0,
-                  "displayName": "GOE Pricing",
+                  "displayName": "GOE Pricing (Regression)",
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
@@ -379,6 +372,36 @@
                 "overrides": [
                   {
                     "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "GOE Pricing"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "palette-classic"
+                        }
+                      },
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "bars"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 100
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
                       "id": "byName",
                       "options": "time"
                     },
@@ -386,41 +409,6 @@
                       {
                         "id": "unit",
                         "value": "time: yyyy-MM"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "goe_grid_consumption_price predicted"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "dark-red",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 6
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": true,
-                          "viz": false
-                        }
                       }
                     ]
                   }
