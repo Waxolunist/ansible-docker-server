@@ -314,7 +314,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- 11:11 is a placeholder value for null\nSELECT day_of_week, coalesce(journey_start, '11:11') as journey_start, load_to_full FROM settings_charging_plan order by day_of_week",
+                        "rawSql": "SELECT day_of_week, to_char(journey_start, 'HH24:MI') as journey_start, load_to_full FROM settings_charging_plan order by day_of_week",
                         "sql": {
                           "columns": [
                             {
@@ -365,18 +365,6 @@
               ],
               "queryOptions": {},
               "transformations": [
-                {
-                  "group": "formatTime",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "outputFormat": "HH:mm",
-                      "timeField": "journey_start",
-                      "timezone": "utc",
-                      "useTimezone": true
-                    }
-                  }
-                },
                 {
                   "group": "organize",
                   "kind": "Transformation",
@@ -551,13 +539,13 @@
                         "value": [
                           {
                             "options": {
-                              "\"11:11:00\"": {
-                                "color": "transparent",
+                              "match": "null",
+                              "result": {
                                 "index": 0,
                                 "text": "-"
                               }
                             },
-                            "type": "value"
+                            "type": "special"
                           }
                         ]
                       }
