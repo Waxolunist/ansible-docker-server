@@ -3603,7 +3603,7 @@
                                                 "editorMode": "code",
                                                 "format": "table",
                                                 "rawQuery": true,
-                                                "rawSql": "with m as materialized (select * from agg_1month_what_if),\npv as (select * from m where month >= (select date_trunc('month', min(date)) from master_pv_investition)),\nroi as (select cumulative_pv_investment as cumulative_cost,\n               cumulative_pv_investment - cumulative_saved_pv as open_sum,\n               (select avg(saved_pv) from pv) as average_saved,\n               (now() + interval '1 month' * ((cumulative_pv_investment - cumulative_saved_pv) / nullif((select avg(saved_pv) from pv), 0)))::date as time_of_roi\n        from m order by month desc limit 1),\nmetered as (select * from m where price_actual is not null),\nsince as (select to_char(min(month), 'YYYY-MM') as car, (select to_char(min(month), 'YYYY-MM') from pv) as pv,\n                 to_char(max(month) filter (where estimated), 'YYYY-MM') as estimated_until from m)\nselect 1 as nr, '1. Energy without PV' as item, (select sum(price_without_pv) from pv) as eur,\n       'every kWh the household used bought at the hour''s price, since ' || since.pv || ' (energy only, no standing charges)' as note from since\nunion all select 2, '   Energy actually paid', (select sum(price_actual) from pv), 'grid import minus feed-in' from since\nunion all select 3, '   PV saved', (select sum(saved_pv) from pv), '' from since\nunion all select 4, '2. Fuel for the reference car', (select sum(price_fuel) from m),\n       'since ' || since.car || ', until ' || since.estimated_until || ' estimated from the odometer' from since\nunion all select 5, '   EV''s grid energy', (select sum(price_car) from m), 'home charging, the house takes the PV first, PV energy into the car free' from since\nunion all select 6, '   EV saved', (select sum(saved_ev) from m),\n       (select round(sum(saved_ev) filter (where estimated)::numeric) || ' € of it estimated' from m) from since\nunion all select 7, '3. PV investment', roi.cumulative_cost, 'master_pv_investition' from roi\nunion all select 8, '   PV still open', roi.open_sum,\n       'paid back around ' || to_char(roi.time_of_roi, 'YYYY-MM') || ' at the average saving so far (' || round(roi.average_saved::numeric) || ' € per month)' from roi\nunion all select 9, '4. No PV and a combustion car', (select sum(price_house_without_pv + price_fuel) from metered) + (select coalesce(sum(price_fuel), 0) from m where price_actual is null),\n       'the house without the car from the grid, plus fuel' from since\nunion all select 10, '   Actually paid, car included', (select sum(price_actual) from metered) + (select coalesce(sum(price_car), 0) from m where price_actual is null), '' from since\nunion all select 11, '   PV and EV saved', (select sum(saved_both) from m), 'the car''s PV energy counted once' from since\norder by nr;"
+                                                "rawSql": "select item, eur, note from (\nwith m as materialized (select * from agg_1month_what_if),\npv as (select * from m where month >= (select date_trunc('month', min(date)) from master_pv_investition)),\nroi as (select cumulative_pv_investment as cumulative_cost,\n               cumulative_pv_investment - cumulative_saved_pv as open_sum,\n               (select avg(saved_pv) from pv) as average_saved,\n               (now() + interval '1 month' * ((cumulative_pv_investment - cumulative_saved_pv) / nullif((select avg(saved_pv) from pv), 0)))::date as time_of_roi\n        from m order by month desc limit 1),\nmetered as (select * from m where price_actual is not null),\nsince as (select to_char(min(month), 'YYYY-MM') as car, (select to_char(min(month), 'YYYY-MM') from pv) as pv,\n                 to_char(max(month) filter (where estimated), 'YYYY-MM') as estimated_until from m)\nselect 1 as nr, '1. Energy without PV' as item, (select sum(price_without_pv) from pv) as eur,\n       'every kWh the household used bought at the hour''s price, since ' || since.pv || ' (energy only, no standing charges)' as note from since\nunion all select 2, '   Energy actually paid', (select sum(price_actual) from pv), 'grid import minus feed-in' from since\nunion all select 3, '   PV saved', (select sum(saved_pv) from pv), '' from since\nunion all select 4, '2. Fuel for the reference car', (select sum(price_fuel) from m),\n       'since ' || since.car || ', until ' || since.estimated_until || ' estimated from the odometer' from since\nunion all select 5, '   EV''s grid energy', (select sum(price_car) from m), 'home charging, the house takes the PV first, PV energy into the car free' from since\nunion all select 6, '   EV saved', (select sum(saved_ev) from m),\n       (select round(sum(saved_ev) filter (where estimated)::numeric) || ' € of it estimated' from m) from since\nunion all select 7, '3. PV investment', roi.cumulative_cost, 'master_pv_investition' from roi\nunion all select 8, '   PV still open', roi.open_sum,\n       'paid back around ' || to_char(roi.time_of_roi, 'YYYY-MM') || ' at the average saving so far (' || round(roi.average_saved::numeric) || ' € per month)' from roi\nunion all select 9, '4. No PV and a combustion car', (select sum(price_house_without_pv + price_fuel) from metered) + (select coalesce(sum(price_fuel), 0) from m where price_actual is null),\n       'the house without the car from the grid, plus fuel' from since\nunion all select 10, '   Actually paid, car included', (select sum(price_actual) from metered) + (select coalesce(sum(price_car), 0) from m where price_actual is null), '' from since\nunion all select 11, '   PV and EV saved', (select sum(saved_both) from m), 'the car''s PV energy counted once' from since\n) t\norder by nr;"
                                             },
                                             "version": "v0"
                                         },
@@ -3635,23 +3635,11 @@
                                         "properties": [
                                             {
                                                 "id": "unit",
-                                                "value": "currencyEUR"
+                                                "value": "suffix: €"
                                             },
                                             {
                                                 "id": "decimals",
                                                 "value": 0
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "matcher": {
-                                            "id": "byName",
-                                            "options": "nr"
-                                        },
-                                        "properties": [
-                                            {
-                                                "id": "custom.hidden",
-                                                "value": true
                                             }
                                         ]
                                     }
@@ -3709,10 +3697,23 @@
                         "spec": {
                             "fieldConfig": {
                                 "defaults": {
-                                    "unit": "currencyEUR",
+                                    "unit": "suffix: €",
                                     "decimals": 0
                                 },
-                                "overrides": []
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byRegexp",
+                                            "options": "^(month|year)$"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "none"
+                                            }
+                                        ]
+                                    }
+                                ]
                             },
                             "options": {
                                 "xField": "month",
@@ -3772,10 +3773,23 @@
                         "spec": {
                             "fieldConfig": {
                                 "defaults": {
-                                    "unit": "currencyEUR",
+                                    "unit": "suffix: €",
                                     "decimals": 0
                                 },
-                                "overrides": []
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byRegexp",
+                                            "options": "^(month|year)$"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "none"
+                                            }
+                                        ]
+                                    }
+                                ]
                             },
                             "options": {
                                 "xField": "year",
@@ -3835,7 +3849,7 @@
                         "spec": {
                             "fieldConfig": {
                                 "defaults": {
-                                    "unit": "currencyEUR",
+                                    "unit": "suffix: €",
                                     "decimals": 0,
                                     "custom": {
                                         "lineInterpolation": "stepAfter",
@@ -3933,7 +3947,7 @@
                                         "properties": [
                                             {
                                                 "id": "unit",
-                                                "value": "currencyEUR"
+                                                "value": "suffix: €"
                                             },
                                             {
                                                 "id": "decimals",
