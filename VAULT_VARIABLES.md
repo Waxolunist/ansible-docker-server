@@ -84,7 +84,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_matrix_alerts_user` | `matrix_receiver/config_yml.j2` | — | Matrix ID of the bot that posts the alerts, e.g. `@alerts:<conduit domain>` |
 | `vault_matrix_alerts_token` | `matrix_receiver/config_yml.j2` | — | Access token of that bot, from its login on Conduit |
 | `vault_matrix_alerts_receiver_password` | `matrix_receiver/config_yml.j2`, `tasks/matrix_receiver.yml` | `matrix_receiver_password` | Basic auth password Alertmanager uses for the bridge (user `alertmanager`). Generate with `openssl rand -hex 24` |
-| `vault_matrix_room_infra`, `vault_matrix_room_data`, `vault_matrix_room_energy`, `vault_matrix_room_car`, `vault_matrix_room_security` | `matrix_receiver/config_yml.j2` | — | Room ID (`!…:<conduit domain>`) of each area's alert room. Areas may share a room |
+| `vault_matrix_room_infra`, `vault_matrix_room_data`, `vault_matrix_room_energy`, `vault_matrix_room_car`, `vault_matrix_room_security` | `matrix_receiver/config_yml.j2` | — | Room ID of each area's alert room (`!` plus a hash in room version 12, Conduit's default), quoted in the vault because YAML reads a leading `!` as a tag. Areas may share a room. Setup: home_docs how-to "Set up the Matrix bot and the alert rooms" |
 | `vault_matrix_alerts_mention_users` | `matrix_receiver/config_yml.j2` | — | Optional list of Matrix IDs mentioned in every critical message, so their phones ring. Defaults to none |
 | `vault_psa_url` | `prometheus/alerts_yml.j2` | — | Also linked in the `PsaLoginLost` description as the controller's config page |
 
