@@ -23,9 +23,10 @@ Not allowed from the internet, although something listens on all interfaces:
 | 5355 | LLMNR (systemd-resolved) | Local name resolution only |
 | 9641 | coturn metrics | Scraped by Prometheus over `docker.host` |
 
-TimescaleDB is not in either table: it is published only on the WireGuard
-address (`10.8.0.1:5432`), so it is unreachable from the internet whatever
-the provider's policy says. A laptop reaches it through an SSH tunnel
+TimescaleDB, Alertmanager and the Matrix alert bridge are not in either
+table: they are published only on the WireGuard address (`10.8.0.1:5432`,
+`10.8.0.1:9093`, `10.8.0.1:12345`), so they are unreachable from the internet
+whatever the provider's policy says. A laptop reaches it through an SSH tunnel
 (`ssh -N -L 5432:10.8.0.1:5432 v-collaborate.com`).
 
 Check from a machine outside the VPS:
