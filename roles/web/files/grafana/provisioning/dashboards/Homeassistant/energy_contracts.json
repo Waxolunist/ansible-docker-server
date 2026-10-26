@@ -3792,7 +3792,7 @@
                                                 "editorMode": "code",
                                                 "format": "time_series",
                                                 "rawQuery": true,
-                                                "rawSql": "select time, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by time;"
+                                                "rawSql": "select year::timestamp at time zone 'Europe/Vienna' as time, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by time;"
                                             },
                                             "version": "v0"
                                         },
