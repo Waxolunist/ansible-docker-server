@@ -7853,6 +7853,85 @@
                         }
                     }
                 }
+            },
+            "panel-24": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "time_series",
+                                                "rawQuery": true,
+                                                "rawSql": "select time,\n       max(price) filter (where fuel_type = 'DIE') as \"Diesel\",\n       max(price) filter (where fuel_type = 'SUP') as \"Super 95\"\nfrom data_gasprices\nwhere $__timeFilter(time)\ngroup by time\norder by time;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {
+                                "hideTimeOverride": true,
+                                "timeFrom": "4y"
+                            },
+                            "transformations": []
+                        }
+                    },
+                    "description": "data_gasprices, € per litre including taxes. Weekly Austrian prices from the EU Weekly Oil Bulletin until E-Control takes over (diesel from 2025-05-05, Super 95 from 2026-10-25), then the daily mean of the stations in district 308 from E-Control's Spritpreisrechner. The reference car of the Savings tab is priced with these (TASK-138).",
+                    "id": 24,
+                    "links": [],
+                    "title": "Fuel prices",
+                    "vizConfig": {
+                        "group": "timeseries",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "currencyEUR",
+                                    "decimals": 3,
+                                    "custom": {
+                                        "spanNulls": true,
+                                        "lineWidth": 2,
+                                        "fillOpacity": 0,
+                                        "showPoints": "never",
+                                        "lineInterpolation": "stepAfter"
+                                    }
+                                },
+                                "overrides": []
+                            },
+                            "options": {
+                                "legend": {
+                                    "displayMode": "table",
+                                    "placement": "bottom",
+                                    "showLegend": true,
+                                    "calcs": [
+                                        "min",
+                                        "max",
+                                        "lastNotNull"
+                                    ]
+                                },
+                                "tooltip": {
+                                    "mode": "multi",
+                                    "sort": "none"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "layout": {
@@ -8074,11 +8153,20 @@
                                                     "name": "panel-20"
                                                 }
                                             }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-24"
+                                                }
+                                            }
                                         }
                                     ]
                                 }
                             },
-                            "title": "Spot prices"
+                            "title": "Market prices"
                         }
                     },
                     {
