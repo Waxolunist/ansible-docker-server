@@ -7624,7 +7624,8 @@
                                         "stacking": {
                                             "mode": "normal",
                                             "group": "A"
-                                        }
+                                        },
+                                        "axisSoftMin": 0
                                     }
                                 },
                                 "overrides": [
