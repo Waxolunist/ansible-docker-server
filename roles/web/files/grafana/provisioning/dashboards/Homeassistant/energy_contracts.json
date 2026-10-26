@@ -7234,8 +7234,7 @@
                             ],
                             "queryOptions": {
                                 "hideTimeOverride": true,
-                                "timeFrom": "now/w",
-                                "timeShift": "0d/d+1d"
+                                "timeFrom": "now/w"
                             },
                             "transformations": []
                         }
@@ -8202,15 +8201,6 @@
                                             "spec": {
                                                 "element": {
                                                     "kind": "ElementReference",
-                                                    "name": "panel-4"
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "kind": "AutoGridLayoutItem",
-                                            "spec": {
-                                                "element": {
-                                                    "kind": "ElementReference",
                                                     "name": "panel-1"
                                                 }
                                             }
@@ -8230,6 +8220,15 @@
                                                 "element": {
                                                     "kind": "ElementReference",
                                                     "name": "panel-3"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-4"
                                                 }
                                             }
                                         }
