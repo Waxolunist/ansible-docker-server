@@ -3672,9 +3672,9 @@
                                             "kind": "DataQuery",
                                             "spec": {
                                                 "editorMode": "code",
-                                                "format": "table",
+                                                "format": "time_series",
                                                 "rawQuery": true,
-                                                "rawSql": "select to_char(month, 'YYYY-MM') as month, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1month_what_if\norder by month;"
+                                                "rawSql": "select time, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1month_what_if\norder by time;"
                                             },
                                             "version": "v0"
                                         },
@@ -3682,48 +3682,90 @@
                                     }
                                 }
                             ],
-                            "queryOptions": {},
+                            "queryOptions": {
+                                "hideTimeOverride": true,
+                                "timeFrom": "4y"
+                            },
                             "transformations": []
                         }
                     },
-                    "description": "agg_1month_what_if: PV = self-consumption at the consumption price plus feed-in; EV = fuel for the reference car minus the car's grid energy at the hour's price (house first, PV energy into the car free); PV and EV = no PV and a combustion car against the actual bill, the overlap counted once. Months up to February 2024 are estimated for the EV.",
+                    "description": "agg_1month_what_if: PV = self-consumption at the consumption price plus feed-in; EV = fuel for the reference car minus the car's grid energy at the hour's price (house first, PV energy into the car free); PV and EV = no PV and a combustion car against the actual bill, the overlap counted once. Months up to February 2024 are estimated for the EV. PV and EV are stacked bars; the line is the combined saving, which counts the car's PV energy once, so it lies a little below the top of the stack.",
                     "id": 6,
                     "links": [],
                     "title": "Savings per month",
                     "vizConfig": {
-                        "group": "barchart",
+                        "group": "timeseries",
                         "kind": "VizConfig",
                         "version": "13.2.4",
                         "spec": {
                             "fieldConfig": {
                                 "defaults": {
                                     "unit": "suffix: €",
-                                    "decimals": 0
+                                    "decimals": 0,
+                                    "custom": {
+                                        "drawStyle": "bars",
+                                        "fillOpacity": 80,
+                                        "lineWidth": 1,
+                                        "barAlignment": 0,
+                                        "barWidthFactor": 0.8,
+                                        "showPoints": "never",
+                                        "stacking": {
+                                            "mode": "normal",
+                                            "group": "A"
+                                        }
+                                    }
                                 },
                                 "overrides": [
                                     {
                                         "matcher": {
-                                            "id": "byRegexp",
-                                            "options": "^(month|year)$"
+                                            "id": "byName",
+                                            "options": "PV and EV"
                                         },
                                         "properties": [
                                             {
-                                                "id": "unit",
-                                                "value": "none"
+                                                "id": "custom.drawStyle",
+                                                "value": "line"
+                                            },
+                                            {
+                                                "id": "custom.stacking",
+                                                "value": {
+                                                    "mode": "none",
+                                                    "group": "B"
+                                                }
+                                            },
+                                            {
+                                                "id": "custom.lineWidth",
+                                                "value": 2
+                                            },
+                                            {
+                                                "id": "custom.fillOpacity",
+                                                "value": 0
+                                            },
+                                            {
+                                                "id": "custom.showPoints",
+                                                "value": "always"
+                                            },
+                                            {
+                                                "id": "color",
+                                                "value": {
+                                                    "mode": "fixed",
+                                                    "fixedColor": "blue"
+                                                }
                                             }
                                         ]
                                     }
                                 ]
                             },
                             "options": {
-                                "xField": "month",
                                 "legend": {
                                     "displayMode": "list",
                                     "placement": "bottom",
                                     "showLegend": true
                                 },
-                                "xTickLabelRotation": -45,
-                                "xTickLabelSpacing": 0
+                                "tooltip": {
+                                    "mode": "multi",
+                                    "sort": "none"
+                                }
                             }
                         }
                     }
@@ -3748,9 +3790,9 @@
                                             "kind": "DataQuery",
                                             "spec": {
                                                 "editorMode": "code",
-                                                "format": "table",
+                                                "format": "time_series",
                                                 "rawQuery": true,
-                                                "rawSql": "select to_char(year, 'YYYY') as year, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by year;"
+                                                "rawSql": "select time, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by time;"
                                             },
                                             "version": "v0"
                                         },
@@ -3758,45 +3800,89 @@
                                     }
                                 }
                             ],
-                            "queryOptions": {},
+                            "queryOptions": {
+                                "hideTimeOverride": true,
+                                "timeFrom": "5y"
+                            },
                             "transformations": []
                         }
                     },
-                    "description": "agg_1year_what_if, the same as per month. 2022 is only December.",
+                    "description": "agg_1year_what_if, the same as per month. 2022 is only December. PV and EV are stacked bars; the line is the combined saving, which counts the car's PV energy once, so it lies a little below the top of the stack.",
                     "id": 7,
                     "links": [],
                     "title": "Savings per year",
                     "vizConfig": {
-                        "group": "barchart",
+                        "group": "timeseries",
                         "kind": "VizConfig",
                         "version": "13.2.4",
                         "spec": {
                             "fieldConfig": {
                                 "defaults": {
                                     "unit": "suffix: €",
-                                    "decimals": 0
+                                    "decimals": 0,
+                                    "custom": {
+                                        "drawStyle": "bars",
+                                        "fillOpacity": 80,
+                                        "lineWidth": 1,
+                                        "barAlignment": 0,
+                                        "barWidthFactor": 0.8,
+                                        "showPoints": "never",
+                                        "stacking": {
+                                            "mode": "normal",
+                                            "group": "A"
+                                        }
+                                    }
                                 },
                                 "overrides": [
                                     {
                                         "matcher": {
-                                            "id": "byRegexp",
-                                            "options": "^(month|year)$"
+                                            "id": "byName",
+                                            "options": "PV and EV"
                                         },
                                         "properties": [
                                             {
-                                                "id": "unit",
-                                                "value": "none"
+                                                "id": "custom.drawStyle",
+                                                "value": "line"
+                                            },
+                                            {
+                                                "id": "custom.stacking",
+                                                "value": {
+                                                    "mode": "none",
+                                                    "group": "B"
+                                                }
+                                            },
+                                            {
+                                                "id": "custom.lineWidth",
+                                                "value": 2
+                                            },
+                                            {
+                                                "id": "custom.fillOpacity",
+                                                "value": 0
+                                            },
+                                            {
+                                                "id": "custom.showPoints",
+                                                "value": "always"
+                                            },
+                                            {
+                                                "id": "color",
+                                                "value": {
+                                                    "mode": "fixed",
+                                                    "fixedColor": "blue"
+                                                }
                                             }
                                         ]
                                     }
                                 ]
                             },
                             "options": {
-                                "xField": "year",
                                 "legend": {
                                     "displayMode": "list",
                                     "placement": "bottom",
                                     "showLegend": true
+                                },
+                                "tooltip": {
+                                    "mode": "multi",
+                                    "sort": "none"
                                 }
                             }
                         }
