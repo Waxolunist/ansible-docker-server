@@ -1,0 +1,10 @@
+[
+  {"labels": {"alertname": "PsaLoginLost", "severity": "critical", "area": "car", "job": "collector", "instance": "10.8.0.2:9105"},
+   "annotations": {"summary": "The car controller has lost its PSA login", "description": "psa_car_controller answers but has not been logged in for 15 minutes.", "dashboard": "https://graph.v-collaborate.com/d/ch6qwwl", "runbook": "https://github.com/Waxolunist/home_docs/blob/main/how-to/refresh-psa-tokens.md"}},
+  {"labels": {"alertname": "ContainerRestartingFrequently", "severity": "warning", "area": "infra", "name": "web_grafana", "instance": "cadvisor:8080", "job": "cadvisor"},
+   "annotations": {"summary": "Container web_grafana is restarting repeatedly", "description": "web_grafana restarted 5 times in the last 15 minutes.", "dashboard": "https://graph.v-collaborate.com/d/container-status-page?var-container=web_grafana", "runbook": "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#containerrestartingfrequently"}},
+  {"labels": {"alertname": "CarStarted", "severity": "info", "area": "car", "job": "collector", "instance": "10.8.0.2:9105"},
+   "annotations": {"summary": "The car has started", "description": "The ignition status is StartUp.", "dashboard": "https://graph.v-collaborate.com/d/ch6qwwl", "runbook": "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carstarted"}},
+  {"labels": {"alertname": "Watchdog", "severity": "info", "area": "infra"},
+   "annotations": {"summary": "Watchdog", "description": "Always firing.", "dashboard": "https://graph.v-collaborate.com/d/container-status-page", "runbook": "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#watchdog"}}
+]

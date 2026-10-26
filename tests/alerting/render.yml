@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  vars_files:
+    - ../../group_vars/all.yml
+    - ../../group_vars/web/vars.yml
+    - ../../roles/docker/vars/main.yml
+    - ../../roles/web/vars/main.yml
+    - test_vars.yml
+  vars:
+    out: "{{ playbook_dir }}/rendered"
+    templates: "{{ playbook_dir }}/../../roles/web/templates"
+    bracket_templates:
+      - { src: prometheus/alerts_yml.j2, dest: prometheus/rules/alerts.yml }
+      - { src: matrix_receiver/config_yml.j2, dest: matrix_receiver/config.yml }
+    plain_templates:
+      - { src: prometheus/prometheus_yml.j2, dest: prometheus/prometheus.yml }
+      - { src: alertmanager/alertmanager_yml.j2, dest: alertmanager/alertmanager.yml }
+      - { src: sql_exporter/sql_exporter_yml.j2, dest: sql_exporter/sql_exporter.yml }
+      - { src: timescale/sql_exporter_role_sql.j2, dest: timescale/sql_exporter_role.sql }
+      - { src: grafana/provisioning/datasources/alertmanager.yml.j2, dest: grafana/alertmanager.yml }
+  tasks:
+    - file:
+        path: "{{ out }}/{{ item }}"
+        state: directory
+      loop: [prometheus/rules, matrix_receiver, alertmanager, sql_exporter, timescale, grafana]
+    - copy:
+        src: ../../roles/web/files/prometheus/rules/container_uptime.yml
+        dest: "{{ out }}/prometheus/rules/container_uptime.yml"
+    - template:
+        src: "{{ templates }}/{{ item.src }}"
+        dest: "{{ out }}/{{ item.dest }}"
+        variable_start_string: "[["
+        variable_end_string: "]]"
+      loop: "{{ bracket_templates }}"
+    - template:
+        src: "{{ templates }}/{{ item.src }}"
+        dest: "{{ out }}/{{ item.dest }}"
+      loop: "{{ plain_templates }}"
+    - command: "{{ ansible_playbook_python }} {{ playbook_dir }}/../../scripts/check_alert_rules.py {{ out }}/prometheus/rules/alerts.yml"
+      changed_when: false
+      register: rule_check
+    - debug:
+        msg: "{{ rule_check.stdout }}"
