@@ -8153,7 +8153,24 @@
                                                     "name": "panel-20"
                                                 }
                                             }
-                                        },
+                                        }
+                                    ]
+                                }
+                            },
+                            "title": "Spot prices"
+                        }
+                    },
+                    {
+                        "kind": "TabsLayoutTab",
+                        "spec": {
+                            "layout": {
+                                "kind": "AutoGridLayout",
+                                "spec": {
+                                    "columnWidthMode": "standard",
+                                    "fillScreen": false,
+                                    "maxColumnCount": 1,
+                                    "rowHeightMode": "tall",
+                                    "items": [
                                         {
                                             "kind": "AutoGridLayoutItem",
                                             "spec": {
@@ -8166,7 +8183,7 @@
                                     ]
                                 }
                             },
-                            "title": "Market prices"
+                            "title": "Fuel prices"
                         }
                     },
                     {
