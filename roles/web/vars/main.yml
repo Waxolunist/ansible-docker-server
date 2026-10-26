@@ -164,8 +164,7 @@
       - car
       - security
     group_by:
-      - alertname
-      - area
+      - "..."
     repeat_interval:
       critical: 1h
       warning: 12h
