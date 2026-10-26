@@ -7200,11 +7200,15 @@
                                     }
                                 }
                             ],
-                            "queryOptions": {},
+                            "queryOptions": {
+                                "hideTimeOverride": true,
+                                "timeFrom": "1y",
+                                "timeShift": "0d+2d"
+                            },
                             "transformations": []
                         }
                     },
-                    "description": "data_spotdata: hourly market price in € per kWh (without the contract adder), the last year and the published prices for today and tomorrow. The dashboard range is the last year to two days ahead; this panel follows it.",
+                    "description": "data_spotdata: hourly market price in € per kWh (without the contract adder), the last year and the published prices for today and tomorrow (range: one year, shifted two days ahead).",
                     "id": 25,
                     "links": [],
                     "title": "Spot prices",
@@ -7698,10 +7702,10 @@
                 "1d"
             ],
             "fiscalYearStartMonth": 0,
-            "from": "now-1y",
+            "from": "now-6h",
             "hideTimepicker": true,
             "timezone": "browser",
-            "to": "now+2d"
+            "to": "now"
         },
         "title": "Energy - Monetary Analysis",
         "variables": []
