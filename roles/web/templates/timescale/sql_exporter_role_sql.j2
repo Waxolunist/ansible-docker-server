@@ -1,0 +1,25 @@
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'sql_exporter') THEN
+    CREATE ROLE sql_exporter WITH LOGIN CONNECTION LIMIT 2 PASSWORD '{{ vault_timescale_sql_exporter_password | replace("'", "''") }}';
+  ELSE
+    ALTER ROLE sql_exporter WITH LOGIN CONNECTION LIMIT 2 PASSWORD '{{ vault_timescale_sql_exporter_password | replace("'", "''") }}';
+  END IF;
+END
+$$;
+
+ALTER ROLE sql_exporter SET default_transaction_read_only = on;
+GRANT CONNECT ON DATABASE timescale_home TO sql_exporter;
+GRANT USAGE ON SCHEMA public TO sql_exporter;
+
+DO $$
+DECLARE
+  t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY[{{ alerting.data_tables | map(attribute='table') | map('regex_replace', '^(.*)$', "'\\1'") | join(', ') }}] LOOP
+    IF to_regclass('public.' || t) IS NOT NULL THEN
+      EXECUTE format('GRANT SELECT ON public.%I TO sql_exporter', t);
+    END IF;
+  END LOOP;
+END
+$$;

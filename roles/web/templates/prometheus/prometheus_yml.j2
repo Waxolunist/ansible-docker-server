@@ -13,13 +13,11 @@ global:
 rule_files:
   - '/etc/prometheus/rules/*.yml'
 
-# alert
-# alerting:
-#   alertmanagers:
-#   - scheme: http
-#     static_configs:
-#     - targets:
-#       - "alertmanager:9093"
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets: ['alertmanager:{{ alertmanager.port }}']
 
 # A scrape configuration containing exactly one endpoint to scrape:
 # Here it's Prometheus itself.
@@ -68,3 +66,25 @@ scrape_configs:
     fallback_scrape_protocol: PrometheusText0.0.4
     static_configs:
       - targets: ['docker.host:9641']
+
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:{{ alertmanager.port }}']
+
+  - job_name: 'matrix_receiver'
+    static_configs:
+      - targets: ['matrix-receiver:{{ matrix_receiver.port }}']
+
+  - job_name: 'sql_exporter'
+    scrape_interval: 1m
+    static_configs:
+      - targets: ['sql-exporter:{{ sql_exporter.port }}']
+
+  - job_name: 'collector'
+    static_configs:
+      - targets: ['{{ alerting.collector_target }}']
+    metric_relabel_configs:
+      - source_labels: [exported_job]
+        target_label: collector_job
+      - regex: exported_job
+        action: labeldrop

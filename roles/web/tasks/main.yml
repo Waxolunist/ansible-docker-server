@@ -178,9 +178,25 @@
     when: >-
       (grafana_config is defined and grafana_config.changed) or
       (grafana_goe_datasource is defined and grafana_goe_datasource.changed) or
+      (grafana_alertmanager_datasource is defined and grafana_alertmanager_datasource.changed) or
       (grafana_dashboard_provider is defined and grafana_dashboard_provider.changed) or
       (grafana_alerting is defined and grafana_alerting.changed)
     tags: grafana_dashboards
+
+  - name: SQL exporter - Create its read-only database role
+    command: >-
+      docker exec -i web_timescaledb
+      psql -v ON_ERROR_STOP=1 -q -U {{ vault_timescale_pg_user }} -d timescale_home
+    args:
+      stdin: "{{ lookup('template', 'timescale/sql_exporter_role_sql.j2') }}"
+    become: yes
+    no_log: yes
+    register: sql_exporter_role
+    changed_when: false
+    until: sql_exporter_role.rc == 0
+    retries: 6
+    delay: 10
+    when: "'sql_exporter' in web_containers"
 
   # Authelia reads its configuration once at startup. compose runs with
   # recreate: never, so access rule changes would otherwise sit on disk

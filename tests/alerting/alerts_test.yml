@@ -1,0 +1,323 @@
+rule_files:
+  - rendered/prometheus/rules/alerts.yml
+  - rendered/prometheus/rules/container_uptime.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: Watchdog always fires and nothing else fires without data
+    interval: 1m
+    input_series:
+      - series: 'up{job="traefik",instance="reverse-proxy:8080"}'
+        values: '1x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: Watchdog
+        exp_alerts:
+          - exp_labels: {severity: info, area: infra}
+            exp_annotations:
+              summary: "Watchdog: Prometheus evaluates rules and Alertmanager receives them"
+              description: "Always firing. The Pi's watchdog checks that Alertmanager holds it. It is routed to no room."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#watchdog"
+      - eval_time: 5m
+        alertname: TargetDown
+        exp_alerts: []
+
+  - name: A scrape target down fires TargetDown, the collector fires PiUnreachable instead
+    interval: 1m
+    input_series:
+      - series: 'up{job="traefik",instance="reverse-proxy:8080"}'
+        values: '0x10'
+      - series: 'up{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x10'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: TargetDown
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: TargetDown
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: traefik, instance: "reverse-proxy:8080"}
+            exp_annotations:
+              summary: "Prometheus cannot scrape traefik"
+              description: "reverse-proxy:8080 has not answered a scrape for 5 minutes. Alerts on its metrics are held back."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#targetdown"
+      - eval_time: 6m
+        alertname: PiUnreachable
+        exp_alerts:
+          - exp_labels: {severity: critical, area: infra, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The Pi's collector cannot be reached"
+              description: "Prometheus has not scraped 10.8.0.2:9105 over WireGuard for 5 minutes. Data, car and collector alerts are held back until it is back."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#piunreachable"
+
+  - name: MemoryLow fires below 10 % available memory
+    interval: 1m
+    input_series:
+      - series: 'node_memory_MemTotal_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '8000000000x20'
+      - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '2000000000x5 600000000x15'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: MemoryLow
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: MemoryLow
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: "node-exporter:9100"}
+            exp_annotations:
+              summary: "The VPS is running out of memory"
+              description: "Only 7.5% of the memory is available. The OOM killer is next."
+              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#memorylow"
+
+  - name: ContainerRestartingFrequently links the container's status page
+    interval: 1m
+    input_series:
+      - series: 'container_start_time_seconds{job="cadvisor",instance="cadvisor:8080",name="web_grafana",id="/docker/abc"}'
+        values: '0 60 120 180 240 300 360 420 480 540 600 660'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ContainerRestartingFrequently
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: cadvisor, instance: "cadvisor:8080", name: web_grafana, id: /docker/abc}
+            exp_annotations:
+              summary: "Container web_grafana is restarting repeatedly"
+              description: "web_grafana restarted 10 times in the last 15 minutes."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page?var-container=web_grafana"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#containerrestartingfrequently"
+
+  - name: PsaLoginLost fires only while the controller answers
+    interval: 1m
+    input_series:
+      - series: 'psa_api_authenticated{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x40'
+      - series: 'psa_health_up{job="collector",instance="10.8.0.2:9105"}'
+        values: '1x20 0x20'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: PsaLoginLost
+        exp_alerts: []
+      - eval_time: 18m
+        alertname: PsaLoginLost
+        exp_alerts:
+          - exp_labels: {severity: critical, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car controller has lost its PSA login"
+              description: "psa_car_controller answers but has not been logged in to the PSA API for 15 minutes, so no car data arrives. Log in again on the User config tab of the controller's config page: https://psa.example.org/"
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/refresh-psa-tokens.md"
+      - eval_time: 38m
+        alertname: PsaLoginLost
+        exp_alerts: []
+      - eval_time: 38m
+        alertname: PsaControllerUnreachable
+        exp_alerts:
+          - exp_labels: {severity: warning, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car controller does not answer"
+              description: "psa_car_controller's /health has not answered the collector for 15 minutes."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/refresh-psa-tokens.md#recognise-which-one-it-is"
+
+  - name: GridImportHigh fires above the limit, GridReadingStale on NaN
+    interval: 1m
+    input_series:
+      - series: 'power_grid_watts{job="collector",instance="10.8.0.2:9105"}'
+        values: '7000x3 9000x5 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: GridImportHigh
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: GridImportHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, area: energy, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The house draws more than 8000 W from the grid"
+              description: "9kW imported from the grid for 2 minutes."
+              dashboard: "https://graph.v-collaborate.com/d/cekyf6g8gyupse"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#gridimporthigh"
+      - eval_time: 12m
+        alertname: GridImportHigh
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: GridReadingStale
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: GridReadingStale
+        exp_alerts:
+          - exp_labels: {severity: warning, area: energy, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "No live grid reading from the inverter"
+              description: "The collector has had no grid power reading younger than 60 s for 10 minutes, so GridImportHigh cannot fire."
+              dashboard: "https://graph.v-collaborate.com/d/cekyf6g8gyupse"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#gridreadingstale"
+
+  - name: CarStarted fires while the ignition runs and resolves when it stops
+    interval: 1m
+    input_series:
+      - series: 'vehicle_ignition_running{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x2 1x5 0x5'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: CarStarted
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: CarStarted
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car has started"
+              description: "The ignition status is StartUp."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carstarted"
+      - eval_time: 10m
+        alertname: CarStarted
+        exp_alerts: []
+
+  - name: CollectorJobStale per job threshold, and for a job that never succeeded
+    interval: 1m
+    input_series:
+      - series: 'collector_job_last_success_timestamp_seconds{job="collector",instance="10.8.0.2:9105",collector_job="VehicleInfoJob"}'
+        values: '0x50'
+      - series: 'collector_job_last_success_timestamp_seconds{job="collector",instance="10.8.0.2:9105",collector_job="SpotDataJob"}'
+        values: '0x50'
+      - series: 'collector_job_failures_total{job="collector",instance="10.8.0.2:9105",collector_job="GoEEnergyJob"}'
+        values: '0x50'
+      - series: 'process_start_time_seconds{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x50'
+    alert_rule_test:
+      - eval_time: 33m
+        alertname: CollectorJobStale
+        exp_alerts: []
+      - eval_time: 40m
+        alertname: CollectorJobStale
+        exp_alerts:
+          - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: VehicleInfoJob}
+            exp_annotations:
+              summary: "Collector job VehicleInfoJob has not succeeded for 30m"
+              description: "The last successful run of VehicleInfoJob was 40m 0s ago, or it has not succeeded since the collector started that long ago."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#2-read-the-logs-for-that-job"
+          - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: GoEEnergyJob}
+            exp_annotations:
+              summary: "Collector job GoEEnergyJob has not succeeded for 30m"
+              description: "The last successful run of GoEEnergyJob was 40m 0s ago, or it has not succeeded since the collector started that long ago."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#2-read-the-logs-for-that-job"
+
+  - name: CollectorJobFailing on repeated errors
+    interval: 1m
+    input_series:
+      - series: 'collector_job_failures_total{job="collector",instance="10.8.0.2:9105",collector_job="GoEEnergyJob"}'
+        values: '0+0x10 0+1x10'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CollectorJobFailing
+        exp_alerts: []
+      - eval_time: 18m
+        alertname: CollectorJobFailing
+        exp_alerts:
+          - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: GoEEnergyJob}
+            exp_annotations:
+              summary: "Collector job GoEEnergyJob keeps failing"
+              description: "GoEEnergyJob raised 7 errors in the last hour."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#2-read-the-logs-for-that-job"
+
+  - name: DataStale uses each table's limit, spot prices look ahead
+    interval: 1m
+    input_series:
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_power_live"}'
+        values: '0x40'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_solar_power"}'
+        values: '0x40'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_spotdata"}'
+        values: '15000x40'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: DataStale
+        exp_alerts: []
+      - eval_time: 25m
+        alertname: DataStale
+        exp_alerts:
+          - exp_labels: {severity: warning, area: data, job: sql_exporter, instance: "sql-exporter:9399", table: data_power_live}
+            exp_annotations:
+              summary: "No new rows in data_power_live"
+              description: "The newest row of data_power_live is 25m 0s old, the limit is 10m."
+              dashboard: "https://graph.v-collaborate.com/d/cekyf6g8gyupse"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#1-find-out-how-stale-and-which-sources"
+          - exp_labels: {severity: warning, area: data, job: sql_exporter, instance: "sql-exporter:9399", table: data_spotdata}
+            exp_annotations:
+              summary: "No new rows in data_spotdata"
+              description: "The spot prices run out in less than 4 hours, so tomorrow's prices have not arrived."
+              dashboard: "https://graph.v-collaborate.com/d/energy-contract-prices"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#1-find-out-how-stale-and-which-sources"
+
+  - name: A metric missing while its target is up fires MetricMissing with the target's job
+    interval: 1m
+    input_series:
+      - series: 'traefik_tls_certs_not_after{job="traefik",instance="reverse-proxy:8080",cn="x"}'
+        values: '99999999999x20'
+      - series: 'container_start_time_seconds{job="cadvisor",instance="cadvisor:8080",name="web_grafana"}'
+        values: '0x20'
+      - series: 'node_filesystem_avail_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '1x20'
+      - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '1x20'
+      - series: 'collector_job_failures_total{job="collector",instance="10.8.0.2:9105",collector_job="GoEEnergyJob"}'
+        values: '0x20'
+      - series: 'power_grid_watts{job="collector",instance="10.8.0.2:9105"}'
+        values: '100x20'
+      - series: 'psa_health_up{job="collector",instance="10.8.0.2:9105"}'
+        values: '1x20'
+      - series: 'vehicle_ignition_running{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_power_live"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_solar_power"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_solar_energy"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_battery_stats"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_goe_status_eto"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_vehicle_energy_level"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_vehicle_battery_soh"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_smartmeter_energy"}'
+        values: '99999999999x20'
+      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_spotdata"}'
+        values: '99999999999x20'
+    alert_rule_test:
+      - eval_time: 14m
+        alertname: MetricMissing
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: MetricMissing
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, metric: node_vmstat_oom_kill}
+            exp_annotations:
+              summary: "Metric node_vmstat_oom_kill is missing"
+              description: "node-metrics is scraped but no longer reports node_vmstat_oom_kill, so the alerts on it cannot fire."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"
+          - exp_labels: {severity: warning, area: car, job: collector, metric: psa_api_authenticated}
+            exp_annotations:
+              summary: "Metric psa_api_authenticated is missing"
+              description: "The collector is scraped but no longer reports psa_api_authenticated, so the alerts on it cannot fire."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"
+          - exp_labels: {severity: warning, area: data, job: sql_exporter, metric: data_newest_row_timestamp_seconds, table: data_gasprices}
+            exp_annotations:
+              summary: "Metric data_newest_row_timestamp_seconds is missing for data_gasprices"
+              description: "sql_exporter does not report the newest row of data_gasprices, so DataStale cannot fire for it."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"

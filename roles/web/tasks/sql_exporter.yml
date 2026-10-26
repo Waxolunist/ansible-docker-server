@@ -1,0 +1,17 @@
+---
+  - name: SQL exporter - Write configuration
+    template:
+      src: sql_exporter/sql_exporter_yml.j2
+      dest: "{{ docker.paths.configs }}sql_exporter/sql_exporter.yml"
+      mode: '0600'
+      owner: "65534"
+      group: "65534"
+    become: yes
+    diff: no
+    register: sql_exporter_config
+  - name: SQL exporter - Restart when its configuration changed
+    command: docker restart web_sql-exporter
+    become: yes
+    register: sql_exporter_restart
+    failed_when: sql_exporter_restart.rc != 0 and 'No such container' not in sql_exporter_restart.stderr
+    when: sql_exporter_config.changed

@@ -67,6 +67,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_timescale_pg_password` | `tasks/timescale.yml` | `timescale_superuser_password` | Superuser password for TimescaleDB |
 | `vault_timescale_app_rw_password` | `timescale/init_roles_sql.j2` | — | Password for the `app_rw` role (datacollector on the Raspberry Pi) |
 | `vault_timescale_grafana_ro_password` | `timescale/init_roles_sql.j2`, `tasks/postgres_exporter.yml` | `timescale_grafana_ro_password` | Password for the `grafana_ro` role — used by Grafana as a data source and by `postgres-exporter` to read `pg_stat_activity` |
+| `vault_timescale_sql_exporter_password` | `timescale/sql_exporter_role_sql.j2`, `sql_exporter/sql_exporter_yml.j2` | — | Password for the read-only `sql_exporter` role, used by `sql-exporter` to read the newest row of each watched `data_*` table. Generate with `openssl rand -hex 24` |
 
 ### PhotoPrism
 
@@ -75,6 +76,17 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | `vault_photoprism_admin_password` | `docker-compose_yml.j2` | — | PhotoPrism web UI admin password (no `_FILE` support in PhotoPrism) |
 | `vault_photoprism_db_password` | `tasks/photoprism.yml`, `docker-compose_yml.j2` | `photoprism_db_password` | MariaDB user password — secret used by MariaDB; PhotoPrism side still uses env var |
 | `vault_photoprism_db_root_password` | `tasks/photoprism.yml`, `backup_databases.j2.sh` | `photoprism_db_root_password` | MariaDB root password (used for backups) |
+
+### Alerting (Alertmanager → Matrix)
+
+| Variable | Used in | Docker secret | Description |
+|---|---|---|---|
+| `vault_matrix_alerts_user` | `matrix_receiver/config_yml.j2` | — | Matrix ID of the bot that posts the alerts, e.g. `@alerts:<conduit domain>` |
+| `vault_matrix_alerts_token` | `matrix_receiver/config_yml.j2` | — | Access token of that bot, from its login on Conduit |
+| `vault_matrix_alerts_receiver_password` | `matrix_receiver/config_yml.j2`, `tasks/matrix_receiver.yml` | `matrix_receiver_password` | Basic auth password Alertmanager uses for the bridge (user `alertmanager`). Generate with `openssl rand -hex 24` |
+| `vault_matrix_room_infra`, `vault_matrix_room_data`, `vault_matrix_room_energy`, `vault_matrix_room_car`, `vault_matrix_room_security` | `matrix_receiver/config_yml.j2` | — | Room ID of each area's alert room (`!` plus a hash in room version 12, Conduit's default), quoted in the vault because YAML reads a leading `!` as a tag. Areas may share a room. Setup: home_docs how-to "Set up the Matrix bot and the alert rooms" |
+| `vault_matrix_alerts_mention_users` | `matrix_receiver/config_yml.j2` | — | Optional list of Matrix IDs mentioned in every critical message, so their phones ring. Defaults to none |
+| `vault_psa_url` | `prometheus/alerts_yml.j2` | — | Also linked in the `PsaLoginLost` description as the controller's config page |
 
 ### PicoClaw (AI assistant)
 

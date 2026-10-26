@@ -1,0 +1,39 @@
+services:
+  conduit:
+    image: python:3.13-alpine
+    command: ["python", "/fake_matrix.py"]
+    volumes:
+      - ./fake_matrix.py:/fake_matrix.py:ro
+    ports:
+      - "127.0.0.1:16167:6167"
+
+  matrix-receiver:
+    image: metio/matrix-alertmanager-receiver:2026.9.23
+    command: ["--config-path=/etc/matrix-receiver/config.yml", "--log-level=debug"]
+    environment:
+      - TZ=Europe/Vienna
+    volumes:
+      - ../rendered/matrix_receiver/config.yml:/etc/matrix-receiver/config.yml:ro
+    depends_on:
+      - conduit
+    restart: on-failure
+    ports:
+      - "127.0.0.1:12345:12345"
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=https://alerts.v-collaborate.com'
+      - '--cluster.listen-address='
+    volumes:
+      - ../rendered/alertmanager:/etc/alertmanager:ro
+    secrets:
+      - matrix_receiver_password
+    ports:
+      - "127.0.0.1:19093:9093"
+
+secrets:
+  matrix_receiver_password:
+    file: ./receiver_password

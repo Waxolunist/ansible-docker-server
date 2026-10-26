@@ -1,0 +1,22 @@
+---
+  - name: Alertmanager - Own the data directory
+    file:
+      path: "{{ docker.paths.data }}alertmanager"
+      state: directory
+      owner: "65534"
+      group: "65534"
+      recurse: yes
+    become: yes
+  - name: Alertmanager - Write configuration
+    template:
+      src: alertmanager/alertmanager_yml.j2
+      dest: "{{ docker.paths.configs }}alertmanager/alertmanager.yml"
+      mode: 0644
+      backup: yes
+    register: alertmanager_config
+  - name: Alertmanager - Reload when its configuration changed
+    command: docker kill --signal HUP web_alertmanager
+    become: yes
+    register: alertmanager_reload
+    failed_when: alertmanager_reload.rc != 0 and 'No such container' not in alertmanager_reload.stderr
+    when: alertmanager_config.changed

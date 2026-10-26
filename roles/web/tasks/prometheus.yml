@@ -30,6 +30,8 @@
     template:
       src: prometheus/alerts_yml.j2
       dest: "{{ docker.paths.configs }}prometheus/rules/alerts.yml"
+      variable_start_string: "[["
+      variable_end_string: "]]"
       mode: 0644
       backup: yes
     register: prometheus_alert_rules

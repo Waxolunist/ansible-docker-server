@@ -1,0 +1,51 @@
+route:
+  receiver: "null"
+  group_by: {{ alerting.group_by | to_json }}
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: {{ alerting.repeat_interval.warning }}
+  routes:
+    - matchers:
+        - alertname="Watchdog"
+      receiver: "null"
+{% for area in alerting.areas %}
+    - matchers:
+        - area="{{ area }}"
+      receiver: {{ area }}
+      routes:
+{% for severity, interval in alerting.repeat_interval.items() %}
+        - matchers:
+            - severity="{{ severity }}"
+          repeat_interval: {{ interval }}
+{% endfor %}
+{% endfor %}
+    - receiver: {{ alerting.areas[0] }}
+
+inhibit_rules:
+  - source_matchers:
+      - alertname="PiUnreachable"
+    target_matchers:
+      - area=~"data|car"
+  - source_matchers:
+      - alertname=~"TargetDown|PiUnreachable"
+    target_matchers:
+      - alertname!~"TargetDown|PiUnreachable"
+    equal:
+      - job
+  - source_matchers:
+      - alertname="PsaControllerUnreachable"
+    target_matchers:
+      - alertname="PsaLoginLost"
+
+receivers:
+  - name: "null"
+{% for area in alerting.areas %}
+  - name: {{ area }}
+    webhook_configs:
+      - url: "http://matrix-receiver:{{ matrix_receiver.port }}/alerts/{{ area }}"
+        send_resolved: true
+        http_config:
+          basic_auth:
+            username: alertmanager
+            password_file: /run/secrets/matrix_receiver_password
+{% endfor %}

@@ -168,7 +168,7 @@ The [`system`](roles/system/tasks/main.yml) role performs initial server hardeni
 
 ## Docker Services
 
-All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates/docker-compose_yml.j2) template and deployed to `/var/docker/docker-compose.yml`.
+All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates/docker-compose_yml.j2) template and deployed to `/var/docker/docker-compose.yml`.
 
 | # | Service | Image | Purpose | Exposed Ports | Networks | Domain |
 |---|---|---|---|---|---|---|
@@ -194,6 +194,9 @@ All 21 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 20 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
 | 21 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
 | 22 | `otterwiki` | `redimp/otterwiki:2.25.2` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
+| 23 | `alertmanager` | `prom/alertmanager:v0.34.1` | Groups, routes and silences the Prometheus alerts | `10.8.0.1:9093` (WireGuard only) | `proxy`, `prometheus` | `alerts.v-collaborate.com` |
+| 24 | `matrix-receiver` | `metio/matrix-alertmanager-receiver:2026.9.23` | Posts the alerts to the Matrix rooms on Conduit | `10.8.0.1:12345` (WireGuard only) | `proxy`, `prometheus` | — |
+| 25 | `sql-exporter` | `burningalchemist/sql_exporter:0.24.11` | Age of the newest row of the `data_*` tables as metrics | — | `grafana`, `prometheus` | — |
 
 ### Service Dependencies
 
@@ -277,20 +280,21 @@ graph TB
     INTERNET -->|3478, 5349, 49152-49200| CT[coturn]
     INTERNET -->|51820/udp| WG0[wg0]
     WG0 -->|10.8.0.1:5432| TS
+    WG0 -->|10.8.0.1:9093, :12345| AMX[alertmanager, matrix-receiver]
 ```
 
 | Network | Name | Purpose | Connected Services |
 |---|---|---|---|
-| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, photoprism, conduit, picoclaw, code-server |
-| `prometheus` | auto-generated | Metrics collection | prometheus, node-exporter, cadvisor, postgres-exporter |
-| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, promtail, postgres-exporter |
+| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, photoprism, conduit, picoclaw, code-server, alertmanager, matrix-receiver (reaches Conduit as `http://conduit:6167`) |
+| `prometheus` | auto-generated | Metrics collection and alerting | prometheus, node-exporter, cadvisor, postgres-exporter, sql-exporter, alertmanager, matrix-receiver |
+| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, promtail, postgres-exporter, sql-exporter |
 | `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
 | `photoprism` | auto-generated | PhotoPrism database access | photoprism-mariadb, photoprism |
 | `wiki` | `web_wiki` | Isolates Otterwiki, which trusts auth headers blindly, so only Traefik can reach it | reverse-proxy, otterwiki |
 
 ### Directly Exposed Ports
 
-Traefik, Minecraft, TimescaleDB and coturn bind ports to the host. Which of them the internet can reach is set in the provider's firewall, see [FIREWALL.md](FIREWALL.md):
+Traefik, Minecraft, TimescaleDB, Alertmanager, the Matrix receiver and coturn bind ports to the host. Which of them the internet can reach is set in the provider's firewall, see [FIREWALL.md](FIREWALL.md):
 
 | Port | Service | Protocol |
 |---|---|---|
@@ -298,6 +302,8 @@ Traefik, Minecraft, TimescaleDB and coturn bind ports to the host. Which of them
 | `443` | reverse-proxy | HTTPS — all web traffic, plus SSH wrapped in TLS for `ssh.v-collaborate.com` |
 | `25565` | minecraft | Minecraft server protocol |
 | `10.8.0.1:5432` | timescaledb | PostgreSQL wire protocol, on the WireGuard address only. Docker starts after `wg-quick@wg0` (drop-in in `docker.service.d`) so the address exists. `pg_hba.conf` allows password logins from `samenet` (the Docker networks) and `10.8.0.0/24` only (`tasks/timescale.yml`). A laptop uses `ssh -N -L 5432:10.8.0.1:5432 v-collaborate.com` |
+| `10.8.0.1:9093` | alertmanager | Alertmanager API and UI, on the WireGuard address only, without authentication. The Pi's watchdog reads `/api/v2/alerts?filter=alertname="Watchdog"` |
+| `10.8.0.1:12345` | matrix-receiver | The bridge's `/metrics` (the Pi's watchdog checks it answers) and `/alerts/<area>`, which needs basic auth |
 | `51820/udp` | WireGuard (host, not a container) | The Pi's tunnel; peer `10.8.0.2` |
 | `3478` | coturn | STUN/TURN (UDP + TCP) |
 | `5349` | coturn | TURN over TLS/DTLS |
@@ -514,6 +520,12 @@ graph LR
     T[Traefik :8080] -->|request metrics| P
     R[Registry :5001] -->|registry metrics| P
     PE[postgres-exporter :9187] -->|pg_stat_activity| P
+    SE[sql-exporter :9399] -->|newest row per data table| P
+    C[collector on the Pi 10.8.0.2:9105] -->|over WireGuard| P
+    P -->|alerts| AM[Alertmanager]
+    AM -->|webhook per area| MR[matrix-receiver]
+    MR -->|messages| CO[Conduit]
+    AM -->|alert data source| G
     TS[timescaledb] -->|connection logs stdout| PT[Promtail]
     PT -->|push logs| L[Loki]
     P -->|metrics data source| G[Grafana]
@@ -539,12 +551,41 @@ graph LR
 | `cadvisor` | `cadvisor:8080` | Container resource metrics |
 | `postgres_exporter` | `postgres-exporter:9187` | TimescaleDB connection metrics via `pg_stat_activity` |
 | `coturn` | `docker.host:9641` | TURN server metrics. coturn sends no `Content-Type`, so the job sets `fallback_scrape_protocol: PrometheusText0.0.4`; without it Prometheus 3 rejects every scrape |
+| `alertmanager` | `alertmanager:9093` | Alertmanager's own metrics, including failed notifications |
+| `matrix_receiver` | `matrix-receiver:12345` | The bridge's counters of sent and failed Matrix messages |
+| `sql_exporter` | `sql-exporter:9399` | `data_newest_row_timestamp_seconds{table}`, every minute |
+| `collector` | `10.8.0.2:9105` | The collector's `/metrics` on the Pi, over WireGuard: job results, live grid power, PSA login and health, ignition. The collector's own `job` label becomes `collector_job` (`metric_relabel_configs`), so `job` stays `collector` |
 
 The `docker.host` target resolves to the Docker bridge IP via the `extra_hosts` directive in the compose file.
 
 - **Recording rules** in [`container_uptime.yml`](roles/web/files/prometheus/rules/container_uptime.yml), evaluated every minute, one series per container `name`: `name:container_last_seen:max`, `name:container_start_time_seconds:max` (restarts = `changes()` of it), and `container_up_bool`, which is `1` while cAdvisor has seen the container in the last 90 seconds and `0` for a container seen in the last 24 hours that is gone now. The "Service Status" dashboard reads only these.
 - **Avoid raw cAdvisor series over long ranges**: a crash-looping container creates a new series on every restart (pgadmin left about 20,600 in October 2026, kept for the 100-day retention), and a 7-day range query over them got Prometheus OOM-killed at its 2 GB limit. `container_up_bool` series recorded before 2026-10-25 18:05 carry all cAdvisor labels, so select the clean ones with `container_up_bool{id=""}`.
+- **Alertmanager**: `alerting.alertmanagers` points at `alertmanager:9093`. See [Alerting](#alerting).
 - **Rules deploy**: The Prometheus tasks have no tag. To ship only the config and rules, copy them with ad-hoc `template`/`copy` and send `SIGHUP` (`docker kill --signal HUP web_prometheus`); `include_role` would also run the `docker` role dependency.
+
+### Alerting
+
+All alert rules are Prometheus rules in [`alerts_yml.j2`](roles/web/templates/prometheus/alerts_yml.j2). Alertmanager routes them to Matrix rooms through the bridge [matrix-alertmanager-receiver](https://github.com/metio/matrix-alertmanager-receiver), which posts to Conduit. The concept is in the docs repository, `explanation/alerting.md`.
+
+- **Template delimiters**: `alerts_yml.j2` and `matrix_receiver/config_yml.j2` are full of Prometheus and Go templates (`{{ $labels.name }}`), so their tasks set the Jinja variable delimiters to `[[ ]]`. Jinja blocks (`{% %}`) are unchanged.
+- **Settings**: `alerting` in [`roles/web/vars/main.yml`](roles/web/vars/main.yml): the areas, the repeat interval per severity, the Grafana and runbook base URLs, the collector target, the grid import limit (8000 W), the memory threshold, the staleness limit of each collector job, and the tables `DataStale` watches with their limits and dashboards.
+- **Labels and annotations**: every rule has `severity` (`critical`, `warning`, `info`) and `area` (`infra`, `data`, `energy`, `car`, `security`), and the annotations `summary`, `description`, `dashboard` (a Grafana URL) and `runbook` (a section in the docs repository's `how-to/`, on GitHub).
+- **Rules**: `Watchdog` (always firing), `TargetDown` (`up == 0` for 5 minutes, every job but the collector), `AlertDeliveryFailing`, `TlsCertificateExpiringSoon`, `ContainerRestartingFrequently`, `FilesystemUsageHigh`, `MemoryLow` (less than 10 % of the memory available for 5 minutes; replaces the Grafana UI rule "Memory alert"), `OomKill`, `BackupStale`, `BackupMetricMissing`; on the collector `PiUnreachable` (`up{job="collector"} == 0` for 5 minutes, critical), `CollectorJobFailing` (more than 3 errors of a job in an hour), `CollectorJobStale` (a job has not succeeded within its limit, also when it has not succeeded since the collector started; `LivePowerJob` is left out because it swallows its errors), `PsaLoginLost` (not logged in for 15 minutes while the controller answers, critical), `PsaControllerUnreachable`, `GridImportHigh`, `GridReadingStale` (the live grid reading is NaN for 10 minutes) and `CarStarted` (`info`; replaces the Grafana UI rule "e208 Startup"); on the database `DataStale{table}`. Each metric an alert depends on has a `MetricMissing` companion (`absent()` with the scrape job as label), so a missing metric never looks like a healthy value.
+- **Routing** ([`alertmanager_yml.j2`](roles/web/templates/alertmanager/alertmanager_yml.j2)): one group per alert (`group_by: ["..."]`), because the bridge posts every alert as its own message anyway and a larger group would re-post all its alerts on each change; one child route and one receiver per area, each a webhook to `http://matrix-receiver:12345/alerts/<area>` with `send_resolved`. Repeats: critical every hour, warning every 12 hours, info once (8760 h). `Watchdog` goes to the receiver `null`, so it is never sent. Alerts without an `area` go to `infra`.
+- **Inhibition**: `PiUnreachable` holds back every `data` and `car` alert. `TargetDown` and `PiUnreachable` hold back the other alerts with the same `job`, which includes the `MetricMissing` companions. `PsaControllerUnreachable` holds back `PsaLoginLost`.
+- **Bridge** ([`config_yml.j2`](roles/web/templates/matrix_receiver/config_yml.j2)): maps each area to a room ID from the vault (`vault_matrix_room_<area>`) and logs in as `vault_matrix_alerts_user` with `vault_matrix_alerts_token`. Alertmanager authenticates with basic auth (user `alertmanager`, `vault_matrix_alerts_receiver_password`, read from the Docker secret `matrix_receiver_password` through `password_file`). The firing message shows status and severity, summary, description, since when, the container (`name`) or host (`instance`), and links to the dashboard, the runbook and a prefilled silence. Critical messages start with `@room` and a mention of each user in `vault_matrix_alerts_mention_users`. The resolved message repeats the summary and says how long the alert fired. `CarStarted` reads "🚗 Car has started" and, resolved, "🅿️ Car has stopped" with the time and how long the drive took. The bridge sends one message per alert, also within a group. Its image is distroless, so it has no healthcheck; Prometheus scrapes its `/metrics` (`TargetDown`), and the Pi's watchdog checks it. It exits when it cannot reach Conduit at startup and is restarted by Docker.
+- **UI**: `https://alerts.v-collaborate.com` behind Authelia, for silences. The silence links in the messages point there (`--web.external-url`).
+- **Reload**: Alertmanager gets `SIGHUP` when its configuration changes, the bridge and sql-exporter are restarted when theirs change.
+- **Watched from the Pi**: Alertmanager and the bridge are also published on the WireGuard address. The Pi's watchdog checks `http://10.8.0.1:9093/api/v2/alerts?filter=alertname="Watchdog"` (a non-empty list), `http://10.8.0.1:12345/metrics` (HTTP 200) and Conduit's public `/_matrix/client/versions`.
+- **Checks**: `scripts/check_alerting.sh` renders the templates with [`tests/alerting/render.yml`](tests/alerting/render.yml) and dummy vault values, checks every rule's labels and annotations ([`scripts/check_alert_rules.py`](scripts/check_alert_rules.py)), runs `promtool check config` (with `--lint=all`), the unit tests in [`tests/alerting/alerts_test.yml`](tests/alerting/alerts_test.yml), `amtool check-config` and a few route tests, all in the pinned Prometheus and Alertmanager images. [`tests/alerting/smoke/smoke.sh`](tests/alerting/smoke/smoke.sh) runs Alertmanager and the bridge locally against a fake Matrix server, posts test alerts, and prints the messages the bridge sent.
+
+### sql-exporter
+
+[sql_exporter 0.24.11](roles/web/templates/sql_exporter/sql_exporter_yml.j2) turns the age of the data into metrics, which Prometheus cannot read from TimescaleDB itself:
+
+- One collector per table in `alerting.data_tables`, each running `max(<time column>)` and exposing it as `data_newest_row_timestamp_seconds{table}` (0 for an empty table). A failing query, e.g. for a missing table, only drops that table's series, which fires its `MetricMissing`.
+- Results are cached for 30 seconds (`min_interval`); Prometheus scrapes every minute.
+- Connects as `sql_exporter`, a login role with `default_transaction_read_only`, a connection limit of 2 and `SELECT` on the watched tables only. [`sql_exporter_role_sql.j2`](roles/web/templates/timescale/sql_exporter_role_sql.j2) creates it, and `main.yml` applies it to the running database after `docker compose` on every run (idempotent, so the grants follow new tables in the list and a rebuilt database). The password is `vault_timescale_sql_exporter_password`; the DSN with it is in the config file, which only the container's user can read.
 
 ### Node Exporter
 
@@ -584,7 +625,8 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 - **Default role**: `Editor` for auto-assigned users
 - **Sign-out**: Redirects to Authelia logout endpoint
 - **SMTP**: Gmail SMTP for alert notifications
-- **Provisioned alert rules**: The files in [`files/grafana/provisioning/alerting/`](roles/web/files/grafana/provisioning/alerting/), deployed with `--tags grafana_dashboards`; Grafana reads them only at startup, so it restarts when one changes. They are read-only in the UI. The rule "Collector data stale" (group Collector, folder General Alerting) queries TimescaleDB every 5 minutes and fires when `data_solar_energy` or `data_power_live` has had no new row for 30 minutes (for 10 minutes); a failed query fires `DatasourceError`. Notifications go to the default contact point (Gmail). With `collector_solar_source: cloud` on the Pi the live power job is off, so the `data_power_live` series would fire. Rules created in the UI ("Memory alert", "e208 Startup") are not in this repository.
+- **Alertmanager data source**: provisioned from [`alertmanager.yml.j2`](roles/web/templates/grafana/provisioning/datasources/alertmanager.yml.j2) (uid `alertmanager`, `handleGrafanaManagedAlerts: false`), so Grafana shows the Prometheus alerts. Grafana restarts when it changes.
+- **Provisioned alert rules**: The files in [`files/grafana/provisioning/alerting/`](roles/web/files/grafana/provisioning/alerting/), deployed with `--tags grafana_dashboards`; Grafana reads them only at startup, so it restarts when one changes. They are read-only in the UI. The rule "Collector data stale" (group Collector, folder General Alerting) queries TimescaleDB every 5 minutes and fires when `data_solar_energy` or `data_power_live` has had no new row for 30 minutes (for 10 minutes); a failed query fires `DatasourceError`. Notifications go to the default contact point (Gmail). With `collector_solar_source: cloud` on the Pi the live power job is off, so the `data_power_live` series would fire. Rules created in the UI ("Memory alert", "e208 Startup") are not in this repository. All three are replaced by Prometheus rules (`DataStale`, `MemoryLow`, `CarStarted`, see [Alerting](#alerting)); they are deleted once the new rules have fired a test in Matrix.
 - **Root URL**: `https://graph.v-collaborate.com/`
 - **Provisioned dashboards**: The JSON files in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), rescanned every 30 seconds. Deploy them alone with `--tags grafana_dashboards` (see [Partial Deploys](#partial-deploys)). Details:
   - **Folders**: `foldersFromFilesStructure` is on. A subdirectory becomes the Grafana folder with the same title. Grafana matches it by title, so `Homeassistant/` reuses the existing folder (uid `cekag6n00voxsd`). Files at the top level go to General.
@@ -613,6 +655,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 │   └── registry/     # config.yml, secrets/
 ├── data/             # Persistent application data
 │   ├── prometheus/   # Prometheus TSDB
+│   ├── alertmanager/ # Alertmanager silences and notification log
 │   ├── grafana/      # Grafana data + postgres/ (PostgreSQL 18) + pgdata/ (PostgreSQL 13, pre-upgrade copy)
 │   ├── minecraft/    # Minecraft world data
 │   ├── timescale/    # TimescaleDB pgdata/
@@ -651,6 +694,9 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | loki | `configs/loki/loki.yml` → `/etc/loki/loki.yml` | `data/loki` → `/var/loki` | — | — |
 | promtail | `configs/promtail/promtail.yml` → `/etc/promtail/promtail.yml` | — | `work/promtail` → `/tmp` (positions file) | — |
 | postgres-exporter | `configs/postgres_exporter/queries.yml` → `/etc/postgres_exporter/queries.yml` | — | — | — |
+| alertmanager | `configs/alertmanager` → `/etc/alertmanager` | `data/alertmanager` → `/alertmanager` (silences, notification log) | — | — |
+| matrix-receiver | `configs/matrix_receiver/config.yml` → `/etc/matrix-receiver/config.yml` (holds the access token, mode 0600, owner 65532) | — | — | — |
+| sql-exporter | `configs/sql_exporter/sql_exporter.yml` → `/etc/sql_exporter/sql_exporter.yml` (holds the DSN, mode 0600, owner 65534) | — | — | — |
 | photoprism-mariadb | — | `data/photoprism/database` → `/var/lib/mysql` | — | — |
 | photoprism | — | `data/photoprism/storage` → `/photoprism/storage` | `work/photoprism/originals` → `/photoprism/originals`, `work/photoprism/import` → `/photoprism/import` | — |
 | code-server | `configs/code-server/config.yaml` → `/config/.config/code-server/config.yaml` | `data/code-server` → `/config` (workspace, extensions, settings) | — | — |
@@ -835,7 +881,7 @@ The current VPS has 7.9 GB RAM and no swap. Most containers have a `mem_limit` i
 - **Grafana**: capped at 1G (it used about 0.5 GB on 2026-10-22).
 - **Prometheus**: capped at 2G. With about 25–35k head series it sits at 0.7–0.95 GB, and block compaction comes on top; under the old 1G cap a compaction got it OOM-killed on 2026-10-23.
 - The compose module runs with `recreate: never`, and `timescaledb` isn't in `recreate_when_changed`, so a change to its service only takes effect after `docker compose up -d --no-deps timescaledb` on the host. That restarts the database, and Grafana and the collector lose it for about 20 s.
-- The Prometheus rule `OomKill` fires when the kernel's OOM killer runs anywhere on the host (`node_vmstat_oom_kill`). The alert has no receiver yet, see TASK-038.
+- The Prometheus rule `OomKill` fires when the kernel's OOM killer runs anywhere on the host (`node_vmstat_oom_kill`). It is delivered to the `#alerts-infra` Matrix room, see [Alerting](#alerting).
 
 **OpenVZ or LXC-based VPS will not work** — Docker requires full KVM virtualization.
 
