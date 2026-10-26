@@ -1,70 +1,309 @@
-{% raw %}
+{% set dash = alerting.grafana_url ~ '/d/' %}
+{% set status_page = dash ~ 'container-status-page' %}
+{% set node_page = dash ~ 'rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100' %}
+{% set runbook = alerting.runbook_url ~ '/' %}
+{% set respond = runbook ~ 'respond-to-alerts.md#' %}
 groups:
+  - name: alerting
+    interval: 1m
+    rules:
+      - alert: Watchdog
+        expr: vector(1)
+        labels:
+          severity: info
+          area: infra
+        annotations:
+          summary: "Watchdog: Prometheus evaluates rules and Alertmanager receives them"
+          description: "Always firing. The Pi's watchdog checks that Alertmanager holds it. It is routed to no room."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]watchdog"
+
+      - alert: TargetDown
+        expr: up{job!="collector"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "Prometheus cannot scrape {{ $labels.job }}"
+          description: "{{ $labels.instance }} has not answered a scrape for 5 minutes. Alerts on its metrics are held back."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]targetdown"
+
+      - alert: AlertDeliveryFailing
+        expr: increase(alertmanager_notifications_failed_total[15m]) > 0 or increase(matrix_alertmanager_receiver_send_failure_total[15m]) > 0 or increase(matrix_alertmanager_receiver_templating_failure_total[15m]) > 0
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "Alerts are not reaching Matrix ({{ $labels.job }})"
+          description: "{{ $value | humanize }} failed deliveries in the last 15 minutes. Messages may be missing from the alert rooms."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]alertdeliveryfailing"
+
   - name: infrastructure_alerts
     interval: 1m
     rules:
-      # TLS certificate expires in less than 14 days.
-      # Traefik exposes traefik_tls_certs_not_after as a Unix timestamp.
       - alert: TlsCertificateExpiringSoon
         expr: (traefik_tls_certs_not_after - time()) / 86400 < 14
         for: 5m
         labels:
           severity: warning
+          area: infra
         annotations:
           summary: "TLS certificate {{ $labels.cn }} expires in less than 14 days"
           description: "Certificate CN={{ $labels.cn }} SANs={{ $labels.sans }} expires in {{ printf \"%.1f\" $value }} days."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]tlscertificateexpiringsoon"
 
-      # Container restarted more than 3 times in 15 minutes.
-      # changes() on container_start_time_seconds counts restarts (cAdvisor).
       - alert: ContainerRestartingFrequently
         expr: changes(container_start_time_seconds{name!="",name!="/"}[15m]) > 3
         for: 5m
         labels:
           severity: warning
+          area: infra
         annotations:
           summary: "Container {{ $labels.name }} is restarting repeatedly"
           description: "{{ $labels.name }} restarted {{ $value }} times in the last 15 minutes."
+          dashboard: "[[ status_page ]]?var-container={{ $labels.name }}"
+          runbook: "[[ respond ]]containerrestartingfrequently"
 
-      # Filesystem usage above 85%.
       - alert: FilesystemUsageHigh
         expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs"} * 100) > 85
         for: 15m
         labels:
           severity: warning
+          area: infra
         annotations:
           summary: "Filesystem {{ $labels.mountpoint }} above 85% usage"
           description: "{{ $labels.mountpoint }} on {{ $labels.instance }} is at {{ printf \"%.1f\" $value }}% usage."
+          dashboard: "[[ node_page ]]"
+          runbook: "[[ respond ]]filesystemusagehigh"
 
-      # The kernel OOM killer ran. Host-wide, so it also catches a process
-      # killed inside a container that keeps running (PostgreSQL restarts its
-      # backends itself, so the container never restarts). cAdvisor's
-      # container_oom_events_total missed the 2026-10-22 kill.
+      - alert: MemoryLow
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < [[ alerting.memory_available_min_ratio ]]
+        for: 5m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "The VPS is running out of memory"
+          description: "Only {{ $value | humanizePercentage }} of the memory is available. The OOM killer is next."
+          dashboard: "[[ node_page ]]"
+          runbook: "[[ respond ]]memorylow"
+
       - alert: OomKill
         expr: increase(node_vmstat_oom_kill[10m]) > 0
         labels:
           severity: critical
+          area: infra
         annotations:
           summary: "The OOM killer ran on {{ $labels.instance }}"
           description: "{{ $value }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
+          dashboard: "[[ node_page ]]"
+          runbook: "[[ respond ]]oomkill"
 
-      # No successful database backup in the last 36 hours.
-      # Metric is emitted by backup_databases.sh via the node_exporter textfile collector.
       - alert: BackupStale
         expr: time() - backup_last_success_timestamp_seconds > 36 * 3600
         for: 15m
         labels:
           severity: critical
+          area: infra
         annotations:
           summary: "Database backup has not succeeded in over 36 hours"
           description: "Last successful backup was {{ $value | humanizeDuration }} ago."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]backupstale"
 
-      # Backup metric missing entirely (e.g. textfile collector broken or backup never ran).
       - alert: BackupMetricMissing
-        expr: absent(backup_last_success_timestamp_seconds)
+        expr: absent(backup_last_success_timestamp_seconds{job="node-metrics"})
         for: 30m
         labels:
           severity: warning
+          area: infra
         annotations:
           summary: "Backup freshness metric is missing"
-          description: "backup_last_success_timestamp_seconds is not being reported — check node_exporter textfile collector and backup cron."
-{% endraw %}
+          description: "backup_last_success_timestamp_seconds is not being reported. Check the node_exporter textfile collector and the backup cron job."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]backupmetricmissing"
+{% for metric, job in [
+  ('traefik_tls_certs_not_after', 'traefik'),
+  ('container_start_time_seconds', 'cadvisor'),
+  ('node_filesystem_avail_bytes', 'node-metrics'),
+  ('node_memory_MemAvailable_bytes', 'node-metrics'),
+  ('node_vmstat_oom_kill', 'node-metrics'),
+] %}
+
+      - alert: MetricMissing
+        expr: absent([[ metric ]]{job="[[ job ]]"})
+        for: 15m
+        labels:
+          severity: warning
+          area: infra
+          metric: [[ metric ]]
+        annotations:
+          summary: "Metric [[ metric ]] is missing"
+          description: "{{ $labels.job }} is scraped but no longer reports [[ metric ]], so the alerts on it cannot fire."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]metricmissing"
+{% endfor %}
+
+  - name: collector_alerts
+    interval: 1m
+    rules:
+      - alert: PiUnreachable
+        expr: up{job="collector"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          area: infra
+        annotations:
+          summary: "The Pi's collector cannot be reached"
+          description: "Prometheus has not scraped {{ $labels.instance }} over WireGuard for 5 minutes. Data, car and collector alerts are held back until it is back."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]piunreachable"
+
+      - alert: CollectorJobFailing
+        expr: increase(collector_job_failures_total[1h]) > 3
+        labels:
+          severity: warning
+          area: data
+        annotations:
+          summary: "Collector job {{ $labels.collector_job }} keeps failing"
+          description: "{{ $labels.collector_job }} raised {{ $value | humanize }} errors in the last hour."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ runbook ]]diagnose-missing-data.md#2-read-the-logs-for-that-job"
+{% for job, stale_after in alerting.collector_job_stale_after.items() %}
+
+      - alert: CollectorJobStale
+        expr: |
+          (time() - collector_job_last_success_timestamp_seconds{collector_job="[[ job ]]"} > [[ stale_after ]])
+          or
+          (
+            (collector_job_failures_total{collector_job="[[ job ]]"} * 0 + on(job, instance) group_left() (time() - process_start_time_seconds{job="collector"}) > [[ stale_after ]])
+            unless on(collector_job) collector_job_last_success_timestamp_seconds
+          )
+        for: 5m
+        labels:
+          severity: warning
+          area: data
+          collector_job: [[ job ]]
+        annotations:
+          summary: "Collector job {{ $labels.collector_job }} has not succeeded for [[ stale_after ]]"
+          description: "The last successful run of {{ $labels.collector_job }} was {{ $value | humanizeDuration }} ago, or it has not succeeded since the collector started that long ago."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ runbook ]]diagnose-missing-data.md#2-read-the-logs-for-that-job"
+{% endfor %}
+
+      - alert: PsaLoginLost
+        expr: psa_api_authenticated == 0 and on() psa_health_up == 1
+        for: 15m
+        labels:
+          severity: critical
+          area: car
+        annotations:
+          summary: "The car controller has lost its PSA login"
+          description: "psa_car_controller answers but has not been logged in to the PSA API for 15 minutes, so no car data arrives. Log in again on the User config tab of the controller's config page: [[ vault_psa_url ]]/"
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ runbook ]]refresh-psa-tokens.md"
+
+      - alert: PsaControllerUnreachable
+        expr: psa_health_up == 0
+        for: 15m
+        labels:
+          severity: warning
+          area: car
+        annotations:
+          summary: "The car controller does not answer"
+          description: "psa_car_controller's /health has not answered the collector for 15 minutes."
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ runbook ]]refresh-psa-tokens.md#recognise-which-one-it-is"
+
+      - alert: GridImportHigh
+        expr: power_grid_watts > [[ alerting.grid_import_limit_watts ]]
+        for: 2m
+        labels:
+          severity: warning
+          area: energy
+        annotations:
+          summary: "The house draws more than [[ alerting.grid_import_limit_watts ]] W from the grid"
+          description: "{{ $value | humanize }}W imported from the grid for 2 minutes."
+          dashboard: "[[ dash ]]cekyf6g8gyupse"
+          runbook: "[[ respond ]]gridimporthigh"
+
+      - alert: GridReadingStale
+        expr: power_grid_watts != power_grid_watts
+        for: 10m
+        labels:
+          severity: warning
+          area: energy
+        annotations:
+          summary: "No live grid reading from the inverter"
+          description: "The collector has had no grid power reading younger than 60 s for 10 minutes, so GridImportHigh cannot fire."
+          dashboard: "[[ dash ]]cekyf6g8gyupse"
+          runbook: "[[ respond ]]gridreadingstale"
+
+      - alert: CarStarted
+        expr: vehicle_ignition_running == 1
+        labels:
+          severity: info
+          area: car
+        annotations:
+          summary: "The car has started"
+          description: "The ignition status is StartUp."
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ respond ]]carstarted"
+{% for metric, area in [
+  ('collector_job_failures_total', 'data'),
+  ('power_grid_watts', 'energy'),
+  ('psa_health_up', 'car'),
+  ('psa_api_authenticated', 'car'),
+  ('vehicle_ignition_running', 'car'),
+] %}
+
+      - alert: MetricMissing
+        expr: absent([[ metric ]]{job="collector"})
+        for: 15m
+        labels:
+          severity: warning
+          area: [[ area ]]
+          metric: [[ metric ]]
+        annotations:
+          summary: "Metric [[ metric ]] is missing"
+          description: "The collector is scraped but no longer reports [[ metric ]], so the alerts on it cannot fire."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]metricmissing"
+{% endfor %}
+
+  - name: data_alerts
+    interval: 1m
+    rules:
+{% for t in alerting.data_tables %}
+      - alert: DataStale
+        expr: time() - data_newest_row_timestamp_seconds{table="[[ t.table ]]"} > [[ t.stale_after ]]
+        for: 10m
+        labels:
+          severity: warning
+          area: data
+          table: [[ t.table ]]
+        annotations:
+          summary: "No new rows in {{ $labels.table }}"
+          description: "[[ t.description | default('The newest row of {{ $labels.table }} is {{ $value | humanizeDuration }} old, the limit is ' ~ t.stale_after ~ '.') ]]"
+          dashboard: "[[ dash ~ t.dashboard ]]"
+          runbook: "[[ runbook ]]diagnose-missing-data.md#1-find-out-how-stale-and-which-sources"
+
+      - alert: MetricMissing
+        expr: absent(data_newest_row_timestamp_seconds{job="sql_exporter",table="[[ t.table ]]"})
+        for: 15m
+        labels:
+          severity: warning
+          area: data
+          metric: data_newest_row_timestamp_seconds
+          table: [[ t.table ]]
+        annotations:
+          summary: "Metric data_newest_row_timestamp_seconds is missing for {{ $labels.table }}"
+          description: "sql_exporter does not report the newest row of {{ $labels.table }}, so DataStale cannot fire for it."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]metricmissing"
+
+{% endfor %}
