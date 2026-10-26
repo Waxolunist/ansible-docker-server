@@ -7460,6 +7460,209 @@
                         "version": "12.0.0"
                     }
                 }
+            },
+            "panel-26": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select bill_to_date as \"So far\",\n       bill_forecast as \"Forecast\",\n       bill_forecast_low as \"Forecast low\",\n       bill_forecast_high as \"Forecast high\",\n       feed_credit_forecast as \"Feed-in credit\",\n       to_char(last_measured_day, 'DD.MM.YYYY') as \"Measured until\"\nfrom agg_1month_bill\nwhere month = date_trunc('month', (now() at time zone 'Europe/Vienna')::date)::date;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_bill: the electricity bill of the current month (go green consumption invoice: energy, network fees, levies, VAT). So far = grid energy at the hour's price plus standing charges over the days with complete smart meter data (the meter is about a day behind). Forecast = so far + average daily energy cost of the measured days × remaining days + the standing charges of the remaining days; low/high use the cheapest and the most expensive measured day. With fewer than 3 measured days the previous month's average is used. Feed-in credit is a separate statement. Against the invoices Sep 2025 to Sep 2026 the model is within €0.10 in 11 of 13 months; a forecast on the 10th was off by 15 % on average, on the 20th by 9 %.",
+                    "id": 26,
+                    "links": [],
+                    "title": "Electricity bill this month",
+                    "vizConfig": {
+                        "group": "stat",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "currencyEUR",
+                                    "decimals": 2,
+                                    "color": {
+                                        "mode": "fixed",
+                                        "fixedColor": "text"
+                                    }
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "Forecast"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "color",
+                                                "value": {
+                                                    "mode": "fixed",
+                                                    "fixedColor": "orange"
+                                                }
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "Feed-in credit"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "color",
+                                                "value": {
+                                                    "mode": "fixed",
+                                                    "fixedColor": "green"
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "reduceOptions": {
+                                    "calcs": [
+                                        "lastNotNull"
+                                    ],
+                                    "fields": "/.*/",
+                                    "values": false
+                                },
+                                "textMode": "value_and_name",
+                                "colorMode": "value",
+                                "graphMode": "none",
+                                "justifyMode": "auto",
+                                "orientation": "auto",
+                                "wideLayout": true,
+                                "showPercentChange": false
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-27": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "time_series",
+                                                "rawQuery": true,
+                                                "rawSql": "select (month + interval '14 days')::timestamp at time zone 'Europe/Vienna' as time,\n       bill_to_date as \"Bill\",\n       bill_forecast - bill_to_date as \"Forecast rest of month\"\nfrom agg_1month_bill\nwhere $__timeFilter((month + interval '14 days')::timestamp at time zone 'Europe/Vienna')\norder by 1;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {
+                                "hideTimeOverride": true,
+                                "timeFrom": "13M"
+                            },
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_bill: the bill of each month (energy and standing charges, VAT included), and for the current month the forecast rest on top. See \"Electricity bill this month\".",
+                    "id": 27,
+                    "links": [],
+                    "title": "Bill per month",
+                    "vizConfig": {
+                        "group": "timeseries",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "suffix: €",
+                                    "decimals": 0,
+                                    "custom": {
+                                        "drawStyle": "bars",
+                                        "fillOpacity": 80,
+                                        "lineWidth": 1,
+                                        "barAlignment": 0,
+                                        "barWidthFactor": 0.8,
+                                        "showPoints": "never",
+                                        "stacking": {
+                                            "mode": "normal",
+                                            "group": "A"
+                                        }
+                                    }
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "Forecast rest of month"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "color",
+                                                "value": {
+                                                    "mode": "fixed",
+                                                    "fixedColor": "orange"
+                                                }
+                                            },
+                                            {
+                                                "id": "custom.fillOpacity",
+                                                "value": 30
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "legend": {
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "tooltip": {
+                                    "mode": "multi",
+                                    "sort": "none"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         },
         "layout": {
@@ -7557,6 +7760,24 @@
                                     "maxColumnCount": 1,
                                     "rowHeightMode": "tall",
                                     "items": [
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-26"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-27"
+                                                }
+                                            }
+                                        },
                                         {
                                             "kind": "AutoGridLayoutItem",
                                             "spec": {
