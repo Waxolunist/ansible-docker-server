@@ -1,0 +1,27 @@
+---
+  - name: Matrix receiver - Write the basic auth password secret for Alertmanager
+    copy:
+      content: "{{ vault_matrix_alerts_receiver_password }}"
+      dest: "{{ docker_base_path }}/secrets/matrix_receiver_password"
+      mode: '0644'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    diff: no
+  - name: Matrix receiver - Write configuration
+    template:
+      src: matrix_receiver/config_yml.j2
+      dest: "{{ docker.paths.configs }}matrix_receiver/config.yml"
+      variable_start_string: "[["
+      variable_end_string: "]]"
+      mode: '0600'
+      owner: "65532"
+      group: "65532"
+    become: yes
+    diff: no
+    register: matrix_receiver_config
+  - name: Matrix receiver - Restart when its configuration changed
+    command: docker restart web_matrix-receiver
+    become: yes
+    register: matrix_receiver_restart
+    failed_when: matrix_receiver_restart.rc != 0 and 'No such container' not in matrix_receiver_restart.stderr
+    when: matrix_receiver_config.changed

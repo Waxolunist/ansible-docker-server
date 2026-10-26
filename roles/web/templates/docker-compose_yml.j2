@@ -263,6 +263,80 @@ services:
       - prometheus
     restart: unless-stopped
 
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    container_name: web_alertmanager
+    read_only: true
+    mem_limit: 128M
+    cpus: 0.25
+    depends_on:
+      - reverse-proxy
+    expose:
+      - {{ alertmanager.port }}
+    ports:
+      - "{{ wireguard.address }}:{{ alertmanager.port }}:{{ alertmanager.port }}"
+    volumes:
+      - "{{ docker.paths.configs }}alertmanager:/etc/alertmanager:ro"
+      - "{{ docker.paths.data }}alertmanager:/alertmanager"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=https://{{ alertmanager.domain }}'
+      - '--cluster.listen-address='
+    secrets:
+      - matrix_receiver_password
+    environment:
+      - TZ=Europe/Vienna
+    networks:
+      - proxy
+      - prometheus
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.http.middlewares.alerts-https-redirect.redirectscheme.scheme=https
+      - traefik.http.services.alerts.loadbalancer.server.port={{ alertmanager.port }}
+      - traefik.http.routers.alerts-secure.entrypoints=websecure
+      - traefik.http.routers.alerts-secure.rule=Host(`{{ alertmanager.domain }}`)
+      - traefik.http.routers.alerts-secure.service=alerts
+      - traefik.http.routers.alerts-secure.tls=true
+      - traefik.http.routers.alerts-secure.tls.certresolver=myresolver
+      - traefik.http.routers.alerts-secure.middlewares=auth@docker,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.alerts.entrypoints=web
+      - traefik.http.routers.alerts.middlewares=alerts-https-redirect
+      - traefik.http.routers.alerts.rule=Host(`{{ alertmanager.domain }}`)
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:{{ alertmanager.port }}/-/healthy || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  matrix-receiver:
+    image: metio/matrix-alertmanager-receiver:2026.9.23
+    container_name: web_matrix-receiver
+    read_only: true
+    mem_limit: 64M
+    cpus: 0.25
+    depends_on:
+      - conduit
+    expose:
+      - {{ matrix_receiver.port }}
+    ports:
+      - "{{ wireguard.address }}:{{ matrix_receiver.port }}:{{ matrix_receiver.port }}"
+    volumes:
+      - "{{ docker.paths.configs }}matrix_receiver/config.yml:/etc/matrix-receiver/config.yml:ro"
+    command:
+      - '--config-path=/etc/matrix-receiver/config.yml'
+    environment:
+      - TZ=Europe/Vienna
+    networks:
+      - proxy
+      - prometheus
+    labels:
+      - traefik.enable=false
+    restart: unless-stopped
+
   authelia:
     image: {{ authelia.image }}
     container_name: authelia
@@ -975,3 +1049,5 @@ secrets:
     file: "{{ docker_base_path }}/secrets/authelia_storage_encryption_key"
   timescale_grafana_ro_password:
     file: "{{ docker_base_path }}/secrets/timescale_grafana_ro_password"
+  matrix_receiver_password:
+    file: "{{ docker_base_path }}/secrets/matrix_receiver_password"

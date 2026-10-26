@@ -47,6 +47,15 @@
       owner: '472'
       group: '0'
     become: yes
+  - name: Grafana - Write Alertmanager datasource provisioning
+    template:
+      src: grafana/provisioning/datasources/alertmanager.yml.j2
+      dest: "{{ docker.paths.configs }}grafana/provisioning/datasources/alertmanager.yml"
+      mode: '0644'
+      owner: '472'
+      group: '0'
+    become: yes
+    register: grafana_alertmanager_datasource
   # The dashboard provider and files, and the go-e datasource of the vehicle
   # control dashboard, are written by grafana_dashboards.yml, imported from
   # main.yml so they can be deployed on their own.

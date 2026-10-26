@@ -17,6 +17,8 @@
     - coturn
     - rendezvous
     - otterwiki
+    - alertmanager
+    - matrix_receiver
   conduit:
     domain: "matrix.{{ topleveldomain }}"
     port: 6167
@@ -25,6 +27,11 @@
     port: 5000
   prometheus:
     domain: "metrics.{{ topleveldomain }}"
+  alertmanager:
+    domain: "alerts.{{ topleveldomain }}"
+    port: 9093
+  matrix_receiver:
+    port: 12345
   authelia:
     image: authelia/authelia:4.39.28
     domain: "auth.{{ topleveldomain }}"
@@ -140,5 +147,82 @@
     - otterwiki
     - grafana-pg
     - grafana
+    - alertmanager
+    - matrix-receiver
 
   restart_container: no
+
+  alerting:
+    areas:
+      - infra
+      - data
+      - energy
+      - car
+      - security
+    group_by:
+      - alertname
+      - area
+    repeat_interval:
+      critical: 1h
+      warning: 12h
+      info: 8760h
+    grafana_url: "https://{{ grafana.domain }}"
+    runbook_url: "https://github.com/Waxolunist/home_docs/blob/main/how-to"
+    collector_target: "10.8.0.2:9105"
+    grid_import_limit_watts: 8000
+    memory_available_min_ratio: 0.1
+    collector_job_stale_after:
+      PsaHealthJob: 15m
+      VehicleInfoJob: 30m
+      GoEEnergyJob: 30m
+      ChargingControlJob: 30m
+      ChargingModeJob: 30m
+      SohInfoJob: 30m
+      SolarInfoJob: 30m
+      GoeSignaller: 1h
+      SmartmeterInfoJob: 3h
+      SpotDataJob: 3h
+      GasolineJob: 3h
+      VehicleTripsJob: 3h
+    data_tables:
+      - table: data_power_live
+        column: time
+        stale_after: 10m
+        dashboard: cekyf6g8gyupse
+      - table: data_solar_power
+        column: time
+        stale_after: 30m
+        dashboard: cekyf6g8gyupse
+      - table: data_solar_energy
+        column: time
+        stale_after: 30m
+        dashboard: cekyf6g8gyupse
+      - table: data_battery_stats
+        column: time
+        stale_after: 30m
+        dashboard: cekyf6g8gyupse
+      - table: data_goe_status_eto
+        column: time
+        stale_after: 30m
+        dashboard: chw95zv
+      - table: data_vehicle_energy_level
+        column: time
+        stale_after: 30m
+        dashboard: ch6qwwl
+      - table: data_vehicle_battery_soh
+        column: time
+        stale_after: 30m
+        dashboard: ch6qwwl
+      - table: data_smartmeter_energy
+        column: time
+        stale_after: 48h
+        dashboard: energy-contract-prices
+      - table: data_gasprices
+        column: time
+        stale_after: 48h
+        dashboard: energy-contract-prices
+      - table: data_spotdata
+        column: start_timestamp
+        stale_after: -4h
+        dashboard: energy-contract-prices
+        description: "The spot prices run out in less than 4 hours, so tomorrow's prices have not arrived."
