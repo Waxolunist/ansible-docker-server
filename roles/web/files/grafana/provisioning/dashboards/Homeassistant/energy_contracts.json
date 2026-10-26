@@ -6814,806 +6814,6 @@
                     }
                 }
             },
-            "panel-18": {
-                "kind": "Panel",
-                "spec": {
-                    "data": {
-                        "kind": "QueryGroup",
-                        "spec": {
-                            "queries": [
-                                {
-                                    "kind": "PanelQuery",
-                                    "spec": {
-                                        "hidden": false,
-                                        "query": {
-                                            "datasource": {
-                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                                            },
-                                            "group": "grafana-postgresql-datasource",
-                                            "kind": "DataQuery",
-                                            "spec": {
-                                                "editorMode": "code",
-                                                "format": "table",
-                                                "rawQuery": true,
-                                                "rawSql": "SELECT start_timestamp as time, marketprice / 1000.0 as marketprice_kwh FROM data_spotdata where \n(start_timestamp + '2h'::interval) >= $__timeFrom()",
-                                                "sql": {
-                                                    "columns": [
-                                                        {
-                                                            "parameters": [
-                                                                {
-                                                                    "name": "start_timestamp",
-                                                                    "type": "functionParameter"
-                                                                }
-                                                            ],
-                                                            "type": "function"
-                                                        },
-                                                        {
-                                                            "parameters": [
-                                                                {
-                                                                    "name": "marketprice_kwh",
-                                                                    "type": "functionParameter"
-                                                                }
-                                                            ],
-                                                            "type": "function"
-                                                        }
-                                                    ],
-                                                    "groupBy": [
-                                                        {
-                                                            "property": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": "groupBy"
-                                                        }
-                                                    ],
-                                                    "orderBy": {
-                                                        "property": {
-                                                            "name": "start_timestamp",
-                                                            "type": "string"
-                                                        },
-                                                        "type": "property"
-                                                    },
-                                                    "orderByDirection": "DESC",
-                                                    "whereJsonTree": {
-                                                        "children1": [
-                                                            {
-                                                                "id": "ab8a8b9b-89ab-4cde-b012-31962e21eed2",
-                                                                "properties": {
-                                                                    "fieldSrc": "field",
-                                                                    "value": [],
-                                                                    "valueSrc": []
-                                                                },
-                                                                "type": "rule"
-                                                            }
-                                                        ],
-                                                        "id": "ab8a88bb-0123-4456-b89a-b1962d95f58c",
-                                                        "type": "group"
-                                                    }
-                                                },
-                                                "table": "spotdata_kwhtzadjusted"
-                                            },
-                                            "version": "v0"
-                                        },
-                                        "refId": "A"
-                                    }
-                                },
-                                {
-                                    "kind": "PanelQuery",
-                                    "spec": {
-                                        "hidden": false,
-                                        "query": {
-                                            "datasource": {
-                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                                            },
-                                            "group": "grafana-postgresql-datasource",
-                                            "kind": "DataQuery",
-                                            "spec": {
-                                                "editorMode": "code",
-                                                "format": "table",
-                                                "rawQuery": true,
-                                                "rawSql": "SELECT now(), 1 as V",
-                                                "sql": {
-                                                    "columns": [
-                                                        {
-                                                            "parameters": [],
-                                                            "type": "function"
-                                                        }
-                                                    ],
-                                                    "groupBy": [
-                                                        {
-                                                            "property": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": "groupBy"
-                                                        }
-                                                    ],
-                                                    "limit": 50
-                                                }
-                                            },
-                                            "version": "v0"
-                                        },
-                                        "refId": "B"
-                                    }
-                                }
-                            ],
-                            "queryOptions": {
-                                "hideTimeOverride": true,
-                                "timeFrom": "now/d",
-                                "timeShift": "0d/d"
-                            },
-                            "transformations": []
-                        }
-                    },
-                    "description": "",
-                    "id": 18,
-                    "links": [],
-                    "title": "Price with Forecast",
-                    "vizConfig": {
-                        "group": "timeseries",
-                        "kind": "VizConfig",
-                        "spec": {
-                            "fieldConfig": {
-                                "defaults": {
-                                    "color": {
-                                        "mode": "thresholds",
-                                        "seriesBy": "last"
-                                    },
-                                    "custom": {
-                                        "axisBorderShow": false,
-                                        "axisCenteredZero": false,
-                                        "axisColorMode": "text",
-                                        "axisGridShow": true,
-                                        "axisLabel": "",
-                                        "axisPlacement": "left",
-                                        "barAlignment": 0,
-                                        "barWidthFactor": 0.6,
-                                        "drawStyle": "line",
-                                        "fillOpacity": 69,
-                                        "gradientMode": "scheme",
-                                        "hideFrom": {
-                                            "legend": false,
-                                            "tooltip": false,
-                                            "viz": false
-                                        },
-                                        "insertNulls": false,
-                                        "lineInterpolation": "linear",
-                                        "lineStyle": {
-                                            "fill": "solid"
-                                        },
-                                        "lineWidth": 1,
-                                        "pointSize": 5,
-                                        "scaleDistribution": {
-                                            "type": "linear"
-                                        },
-                                        "showPoints": "auto",
-                                        "spanNulls": false,
-                                        "stacking": {
-                                            "group": "A",
-                                            "mode": "normal"
-                                        },
-                                        "thresholdsStyle": {
-                                            "mode": "line+area"
-                                        }
-                                    },
-                                    "decimals": 2,
-                                    "thresholds": {
-                                        "mode": "absolute",
-                                        "steps": [
-                                            {
-                                                "color": "red",
-                                                "value": 0
-                                            },
-                                            {
-                                                "color": "green",
-                                                "value": 0
-                                            },
-                                            {
-                                                "color": "#EAB839",
-                                                "value": 0.1
-                                            },
-                                            {
-                                                "color": "#6ED0E0",
-                                                "value": 0.15
-                                            },
-                                            {
-                                                "color": "purple",
-                                                "value": 0.2
-                                            }
-                                        ]
-                                    },
-                                    "unit": "currencyEUR"
-                                },
-                                "overrides": [
-                                    {
-                                        "matcher": {
-                                            "id": "byName",
-                                            "options": "v"
-                                        },
-                                        "properties": [
-                                            {
-                                                "id": "custom.axisPlacement",
-                                                "value": "hidden"
-                                            },
-                                            {
-                                                "id": "custom.drawStyle",
-                                                "value": "bars"
-                                            },
-                                            {
-                                                "id": "custom.barWidthFactor",
-                                                "value": 0.1
-                                            },
-                                            {
-                                                "id": "custom.barAlignment",
-                                                "value": 1
-                                            },
-                                            {
-                                                "id": "custom.insertNulls",
-                                                "value": 3600000
-                                            },
-                                            {
-                                                "id": "custom.stacking",
-                                                "value": {
-                                                    "group": "A",
-                                                    "mode": "percent"
-                                                }
-                                            },
-                                            {
-                                                "id": "color",
-                                                "value": {
-                                                    "fixedColor": "dark-red",
-                                                    "mode": "fixed"
-                                                }
-                                            },
-                                            {
-                                                "id": "custom.hideFrom",
-                                                "value": {
-                                                    "legend": true,
-                                                    "tooltip": false,
-                                                    "viz": false
-                                                }
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "matcher": {
-                                            "id": "byName",
-                                            "options": "marketprice_kwh"
-                                        },
-                                        "properties": [
-                                            {
-                                                "id": "displayName",
-                                                "value": "Spotprice"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            "options": {
-                                "legend": {
-                                    "calcs": [
-                                        "max",
-                                        "min",
-                                        "mean",
-                                        "median"
-                                    ],
-                                    "displayMode": "table",
-                                    "placement": "bottom",
-                                    "showLegend": true
-                                },
-                                "tooltip": {
-                                    "hideZeros": false,
-                                    "hoverProximity": 500,
-                                    "mode": "single",
-                                    "sort": "none"
-                                }
-                            }
-                        },
-                        "version": "12.0.0"
-                    }
-                }
-            },
-            "panel-19": {
-                "kind": "Panel",
-                "spec": {
-                    "data": {
-                        "kind": "QueryGroup",
-                        "spec": {
-                            "queries": [
-                                {
-                                    "kind": "PanelQuery",
-                                    "spec": {
-                                        "hidden": false,
-                                        "query": {
-                                            "datasource": {
-                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                                            },
-                                            "group": "grafana-postgresql-datasource",
-                                            "kind": "DataQuery",
-                                            "spec": {
-                                                "editorMode": "code",
-                                                "format": "table",
-                                                "rawQuery": true,
-                                                "rawSql": "SELECT start_timestamp, marketprice / 1000.0 as marketprice_kwh FROM data_spotdata where $__timeFilter(start_timestamp) ",
-                                                "sql": {
-                                                    "columns": [
-                                                        {
-                                                            "parameters": [
-                                                                {
-                                                                    "name": "start_timestamp",
-                                                                    "type": "functionParameter"
-                                                                }
-                                                            ],
-                                                            "type": "function"
-                                                        },
-                                                        {
-                                                            "parameters": [
-                                                                {
-                                                                    "name": "marketprice_kwh",
-                                                                    "type": "functionParameter"
-                                                                }
-                                                            ],
-                                                            "type": "function"
-                                                        }
-                                                    ],
-                                                    "groupBy": [
-                                                        {
-                                                            "property": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": "groupBy"
-                                                        }
-                                                    ],
-                                                    "orderBy": {
-                                                        "property": {
-                                                            "name": "start_timestamp",
-                                                            "type": "string"
-                                                        },
-                                                        "type": "property"
-                                                    },
-                                                    "orderByDirection": "DESC",
-                                                    "whereJsonTree": {
-                                                        "children1": [
-                                                            {
-                                                                "id": "ab8a8b9b-89ab-4cde-b012-31962e21eed2",
-                                                                "properties": {
-                                                                    "fieldSrc": "field",
-                                                                    "value": [],
-                                                                    "valueSrc": []
-                                                                },
-                                                                "type": "rule"
-                                                            }
-                                                        ],
-                                                        "id": "ab8a88bb-0123-4456-b89a-b1962d95f58c",
-                                                        "type": "group"
-                                                    }
-                                                },
-                                                "table": "spotdata_kwhtzadjusted"
-                                            },
-                                            "version": "v0"
-                                        },
-                                        "refId": "A"
-                                    }
-                                },
-                                {
-                                    "kind": "PanelQuery",
-                                    "spec": {
-                                        "hidden": false,
-                                        "query": {
-                                            "datasource": {
-                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                                            },
-                                            "group": "grafana-postgresql-datasource",
-                                            "kind": "DataQuery",
-                                            "spec": {
-                                                "editorMode": "code",
-                                                "format": "table",
-                                                "rawQuery": true,
-                                                "rawSql": "SELECT now(), 1 as V",
-                                                "sql": {
-                                                    "columns": [
-                                                        {
-                                                            "parameters": [],
-                                                            "type": "function"
-                                                        }
-                                                    ],
-                                                    "groupBy": [
-                                                        {
-                                                            "property": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": "groupBy"
-                                                        }
-                                                    ],
-                                                    "limit": 50
-                                                }
-                                            },
-                                            "version": "v0"
-                                        },
-                                        "refId": "B"
-                                    }
-                                }
-                            ],
-                            "queryOptions": {
-                                "hideTimeOverride": true,
-                                "timeFrom": "now/w"
-                            },
-                            "transformations": []
-                        }
-                    },
-                    "description": "",
-                    "id": 19,
-                    "links": [],
-                    "title": "Spot prices this week",
-                    "vizConfig": {
-                        "group": "timeseries",
-                        "kind": "VizConfig",
-                        "spec": {
-                            "fieldConfig": {
-                                "defaults": {
-                                    "color": {
-                                        "mode": "thresholds",
-                                        "seriesBy": "last"
-                                    },
-                                    "custom": {
-                                        "axisBorderShow": false,
-                                        "axisCenteredZero": false,
-                                        "axisColorMode": "text",
-                                        "axisGridShow": true,
-                                        "axisLabel": "",
-                                        "axisPlacement": "left",
-                                        "barAlignment": 0,
-                                        "barWidthFactor": 0.6,
-                                        "drawStyle": "line",
-                                        "fillOpacity": 69,
-                                        "gradientMode": "scheme",
-                                        "hideFrom": {
-                                            "legend": false,
-                                            "tooltip": false,
-                                            "viz": false
-                                        },
-                                        "insertNulls": false,
-                                        "lineInterpolation": "linear",
-                                        "lineStyle": {
-                                            "fill": "solid"
-                                        },
-                                        "lineWidth": 1,
-                                        "pointSize": 5,
-                                        "scaleDistribution": {
-                                            "type": "linear"
-                                        },
-                                        "showPoints": "auto",
-                                        "spanNulls": false,
-                                        "stacking": {
-                                            "group": "A",
-                                            "mode": "normal"
-                                        },
-                                        "thresholdsStyle": {
-                                            "mode": "line+area"
-                                        }
-                                    },
-                                    "decimals": 2,
-                                    "thresholds": {
-                                        "mode": "absolute",
-                                        "steps": [
-                                            {
-                                                "color": "red",
-                                                "value": 0
-                                            },
-                                            {
-                                                "color": "green",
-                                                "value": 0
-                                            },
-                                            {
-                                                "color": "#EAB839",
-                                                "value": 0.1
-                                            },
-                                            {
-                                                "color": "#6ED0E0",
-                                                "value": 0.15
-                                            },
-                                            {
-                                                "color": "purple",
-                                                "value": 0.2
-                                            }
-                                        ]
-                                    },
-                                    "unit": "currencyEUR"
-                                },
-                                "overrides": [
-                                    {
-                                        "matcher": {
-                                            "id": "byName",
-                                            "options": "marketprice_kwh"
-                                        },
-                                        "properties": [
-                                            {
-                                                "id": "displayName",
-                                                "value": "Spotprice"
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "matcher": {
-                                            "id": "byName",
-                                            "options": "v"
-                                        },
-                                        "properties": [
-                                            {
-                                                "id": "custom.barWidthFactor",
-                                                "value": 0.1
-                                            },
-                                            {
-                                                "id": "custom.drawStyle",
-                                                "value": "bars"
-                                            },
-                                            {
-                                                "id": "custom.axisPlacement",
-                                                "value": "hidden"
-                                            },
-                                            {
-                                                "id": "custom.stacking",
-                                                "value": {
-                                                    "group": "A",
-                                                    "mode": "percent"
-                                                }
-                                            },
-                                            {
-                                                "id": "color",
-                                                "value": {
-                                                    "fixedColor": "red",
-                                                    "mode": "fixed"
-                                                }
-                                            },
-                                            {
-                                                "id": "custom.barAlignment",
-                                                "value": 1
-                                            },
-                                            {
-                                                "id": "custom.insertNulls",
-                                                "value": 3600000
-                                            },
-                                            {
-                                                "id": "custom.hideFrom",
-                                                "value": {
-                                                    "legend": true,
-                                                    "tooltip": false,
-                                                    "viz": false
-                                                }
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            "options": {
-                                "legend": {
-                                    "calcs": [
-                                        "min",
-                                        "max",
-                                        "mean"
-                                    ],
-                                    "displayMode": "table",
-                                    "placement": "bottom",
-                                    "showLegend": true
-                                },
-                                "tooltip": {
-                                    "hideZeros": false,
-                                    "hoverProximity": 500,
-                                    "mode": "single",
-                                    "sort": "none"
-                                }
-                            }
-                        },
-                        "version": "12.0.0"
-                    }
-                }
-            },
-            "panel-20": {
-                "kind": "Panel",
-                "spec": {
-                    "data": {
-                        "kind": "QueryGroup",
-                        "spec": {
-                            "queries": [
-                                {
-                                    "kind": "PanelQuery",
-                                    "spec": {
-                                        "hidden": false,
-                                        "query": {
-                                            "datasource": {
-                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                                            },
-                                            "group": "grafana-postgresql-datasource",
-                                            "kind": "DataQuery",
-                                            "spec": {
-                                                "editorMode": "code",
-                                                "format": "table",
-                                                "rawQuery": true,
-                                                "rawSql": "SELECT start_timestamp, marketprice / 1000.0 as marketprice_kwh FROM data_spotdata where $__timeFilter(start_timestamp) ",
-                                                "sql": {
-                                                    "columns": [
-                                                        {
-                                                            "parameters": [
-                                                                {
-                                                                    "name": "start_timestamp",
-                                                                    "type": "functionParameter"
-                                                                }
-                                                            ],
-                                                            "type": "function"
-                                                        },
-                                                        {
-                                                            "parameters": [
-                                                                {
-                                                                    "name": "marketprice_kwh",
-                                                                    "type": "functionParameter"
-                                                                }
-                                                            ],
-                                                            "type": "function"
-                                                        }
-                                                    ],
-                                                    "groupBy": [
-                                                        {
-                                                            "property": {
-                                                                "type": "string"
-                                                            },
-                                                            "type": "groupBy"
-                                                        }
-                                                    ],
-                                                    "orderBy": {
-                                                        "property": {
-                                                            "name": "start_timestamp",
-                                                            "type": "string"
-                                                        },
-                                                        "type": "property"
-                                                    },
-                                                    "orderByDirection": "DESC",
-                                                    "whereJsonTree": {
-                                                        "children1": [
-                                                            {
-                                                                "id": "ab8a8b9b-89ab-4cde-b012-31962e21eed2",
-                                                                "properties": {
-                                                                    "fieldSrc": "field",
-                                                                    "value": [],
-                                                                    "valueSrc": []
-                                                                },
-                                                                "type": "rule"
-                                                            }
-                                                        ],
-                                                        "id": "ab8a88bb-0123-4456-b89a-b1962d95f58c",
-                                                        "type": "group"
-                                                    }
-                                                },
-                                                "table": "spotdata_kwhtzadjusted"
-                                            },
-                                            "version": "v0"
-                                        },
-                                        "refId": "A"
-                                    }
-                                }
-                            ],
-                            "queryOptions": {
-                                "hideTimeOverride": true,
-                                "timeFrom": "now/d",
-                                "timeShift": "1d/d"
-                            },
-                            "transformations": []
-                        }
-                    },
-                    "description": "",
-                    "id": 20,
-                    "links": [],
-                    "title": "Spot prices yesterday",
-                    "vizConfig": {
-                        "group": "timeseries",
-                        "kind": "VizConfig",
-                        "spec": {
-                            "fieldConfig": {
-                                "defaults": {
-                                    "color": {
-                                        "mode": "thresholds",
-                                        "seriesBy": "last"
-                                    },
-                                    "custom": {
-                                        "axisBorderShow": false,
-                                        "axisCenteredZero": false,
-                                        "axisColorMode": "text",
-                                        "axisGridShow": true,
-                                        "axisLabel": "",
-                                        "axisPlacement": "left",
-                                        "barAlignment": 0,
-                                        "barWidthFactor": 0.6,
-                                        "drawStyle": "line",
-                                        "fillOpacity": 69,
-                                        "gradientMode": "scheme",
-                                        "hideFrom": {
-                                            "legend": false,
-                                            "tooltip": false,
-                                            "viz": false
-                                        },
-                                        "insertNulls": false,
-                                        "lineInterpolation": "linear",
-                                        "lineStyle": {
-                                            "fill": "solid"
-                                        },
-                                        "lineWidth": 1,
-                                        "pointSize": 5,
-                                        "scaleDistribution": {
-                                            "type": "linear"
-                                        },
-                                        "showPoints": "auto",
-                                        "spanNulls": false,
-                                        "stacking": {
-                                            "group": "A",
-                                            "mode": "normal"
-                                        },
-                                        "thresholdsStyle": {
-                                            "mode": "line+area"
-                                        }
-                                    },
-                                    "decimals": 2,
-                                    "thresholds": {
-                                        "mode": "absolute",
-                                        "steps": [
-                                            {
-                                                "color": "red",
-                                                "value": 0
-                                            },
-                                            {
-                                                "color": "green",
-                                                "value": 0
-                                            },
-                                            {
-                                                "color": "#EAB839",
-                                                "value": 0.1
-                                            },
-                                            {
-                                                "color": "#6ED0E0",
-                                                "value": 0.15
-                                            },
-                                            {
-                                                "color": "purple",
-                                                "value": 0.2
-                                            }
-                                        ]
-                                    },
-                                    "unit": "currencyEUR"
-                                },
-                                "overrides": [
-                                    {
-                                        "matcher": {
-                                            "id": "byName",
-                                            "options": "marketprice_kwh"
-                                        },
-                                        "properties": [
-                                            {
-                                                "id": "displayName",
-                                                "value": "Spotprice"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            "options": {
-                                "legend": {
-                                    "calcs": [
-                                        "min",
-                                        "max",
-                                        "mean"
-                                    ],
-                                    "displayMode": "table",
-                                    "placement": "bottom",
-                                    "showLegend": true
-                                },
-                                "tooltip": {
-                                    "hideZeros": false,
-                                    "hoverProximity": 500,
-                                    "mode": "single",
-                                    "sort": "none"
-                                }
-                            }
-                        },
-                        "version": "12.0.0"
-                    }
-                }
-            },
             "panel-21": {
                 "kind": "Panel",
                 "spec": {
@@ -7931,6 +7131,245 @@
                         }
                     }
                 }
+            },
+            "panel-25": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select start_timestamp as time, marketprice / 1000.0 as marketprice_kwh\nfrom data_spotdata\nwhere $__timeFilter(start_timestamp)\norder by 1;",
+                                                "table": "spotdata_kwhtzadjusted"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                },
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "SELECT now(), 1 as V",
+                                                "sql": {
+                                                    "columns": [
+                                                        {
+                                                            "parameters": [],
+                                                            "type": "function"
+                                                        }
+                                                    ],
+                                                    "groupBy": [
+                                                        {
+                                                            "property": {
+                                                                "type": "string"
+                                                            },
+                                                            "type": "groupBy"
+                                                        }
+                                                    ],
+                                                    "limit": 50
+                                                }
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "B"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "data_spotdata: hourly market price in € per kWh (without the contract adder), the last year and the published prices for today and tomorrow. The dashboard range is the last year to two days ahead; this panel follows it.",
+                    "id": 25,
+                    "links": [],
+                    "title": "Spot prices",
+                    "vizConfig": {
+                        "group": "timeseries",
+                        "kind": "VizConfig",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "color": {
+                                        "mode": "thresholds",
+                                        "seriesBy": "last"
+                                    },
+                                    "custom": {
+                                        "axisBorderShow": false,
+                                        "axisCenteredZero": false,
+                                        "axisColorMode": "text",
+                                        "axisGridShow": true,
+                                        "axisLabel": "",
+                                        "axisPlacement": "left",
+                                        "barAlignment": 0,
+                                        "barWidthFactor": 0.6,
+                                        "drawStyle": "line",
+                                        "fillOpacity": 15,
+                                        "gradientMode": "scheme",
+                                        "hideFrom": {
+                                            "legend": false,
+                                            "tooltip": false,
+                                            "viz": false
+                                        },
+                                        "insertNulls": false,
+                                        "lineInterpolation": "linear",
+                                        "lineStyle": {
+                                            "fill": "solid"
+                                        },
+                                        "lineWidth": 1,
+                                        "pointSize": 5,
+                                        "scaleDistribution": {
+                                            "type": "linear"
+                                        },
+                                        "showPoints": "never",
+                                        "spanNulls": false,
+                                        "stacking": {
+                                            "group": "A",
+                                            "mode": "normal"
+                                        },
+                                        "thresholdsStyle": {
+                                            "mode": "line+area"
+                                        }
+                                    },
+                                    "decimals": 2,
+                                    "thresholds": {
+                                        "mode": "absolute",
+                                        "steps": [
+                                            {
+                                                "color": "red",
+                                                "value": 0
+                                            },
+                                            {
+                                                "color": "green",
+                                                "value": 0
+                                            },
+                                            {
+                                                "color": "#EAB839",
+                                                "value": 0.1
+                                            },
+                                            {
+                                                "color": "#6ED0E0",
+                                                "value": 0.15
+                                            },
+                                            {
+                                                "color": "purple",
+                                                "value": 0.2
+                                            }
+                                        ]
+                                    },
+                                    "unit": "currencyEUR"
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "marketprice_kwh"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "displayName",
+                                                "value": "Spotprice"
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "v"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "custom.barWidthFactor",
+                                                "value": 0.1
+                                            },
+                                            {
+                                                "id": "custom.drawStyle",
+                                                "value": "bars"
+                                            },
+                                            {
+                                                "id": "custom.axisPlacement",
+                                                "value": "hidden"
+                                            },
+                                            {
+                                                "id": "custom.stacking",
+                                                "value": {
+                                                    "group": "A",
+                                                    "mode": "percent"
+                                                }
+                                            },
+                                            {
+                                                "id": "color",
+                                                "value": {
+                                                    "fixedColor": "red",
+                                                    "mode": "fixed"
+                                                }
+                                            },
+                                            {
+                                                "id": "custom.barAlignment",
+                                                "value": 1
+                                            },
+                                            {
+                                                "id": "custom.insertNulls",
+                                                "value": 3600000
+                                            },
+                                            {
+                                                "id": "custom.hideFrom",
+                                                "value": {
+                                                    "legend": true,
+                                                    "tooltip": false,
+                                                    "viz": false
+                                                }
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "legend": {
+                                    "calcs": [
+                                        "min",
+                                        "max",
+                                        "mean"
+                                    ],
+                                    "displayMode": "table",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "tooltip": {
+                                    "hideZeros": false,
+                                    "hoverProximity": 500,
+                                    "mode": "single",
+                                    "sort": "none"
+                                }
+                            }
+                        },
+                        "version": "12.0.0"
+                    }
+                }
             }
         },
         "layout": {
@@ -8131,25 +7570,7 @@
                                             "spec": {
                                                 "element": {
                                                     "kind": "ElementReference",
-                                                    "name": "panel-18"
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "kind": "AutoGridLayoutItem",
-                                            "spec": {
-                                                "element": {
-                                                    "kind": "ElementReference",
-                                                    "name": "panel-19"
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "kind": "AutoGridLayoutItem",
-                                            "spec": {
-                                                "element": {
-                                                    "kind": "ElementReference",
-                                                    "name": "panel-20"
+                                                    "name": "panel-25"
                                                 }
                                             }
                                         }
@@ -8277,10 +7698,10 @@
                 "1d"
             ],
             "fiscalYearStartMonth": 0,
-            "from": "now-6h",
+            "from": "now-1y",
             "hideTimepicker": true,
             "timezone": "browser",
-            "to": "now"
+            "to": "now+2d"
         },
         "title": "Energy - Monetary Analysis",
         "variables": []
