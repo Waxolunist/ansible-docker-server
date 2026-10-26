@@ -19,6 +19,7 @@
     - otterwiki
     - alertmanager
     - matrix_receiver
+    - sql_exporter
   conduit:
     domain: "matrix.{{ topleveldomain }}"
     port: 6167
@@ -32,6 +33,8 @@
     port: 9093
   matrix_receiver:
     port: 12345
+  sql_exporter:
+    port: 9399
   authelia:
     image: authelia/authelia:4.39.28
     domain: "auth.{{ topleveldomain }}"
@@ -149,6 +152,7 @@
     - grafana
     - alertmanager
     - matrix-receiver
+    - sql-exporter
 
   restart_container: no
 

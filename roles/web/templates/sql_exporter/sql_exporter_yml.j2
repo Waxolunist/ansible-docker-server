@@ -1,0 +1,25 @@
+global:
+  scrape_timeout_offset: 500ms
+  min_interval: 30s
+  max_connections: 1
+  max_idle_connections: 1
+  max_connection_lifetime: 10m
+
+target:
+  data_source_name: "postgres://sql_exporter:{{ vault_timescale_sql_exporter_password | urlencode | replace('/', '%2F') }}@timescaledb:5432/timescale_home?sslmode=disable"
+  collectors:
+    - freshness_*
+
+collectors:
+{% for t in alerting.data_tables %}
+  - collector_name: freshness_{{ t.table }}
+    metrics:
+      - metric_name: data_newest_row_timestamp_seconds
+        type: gauge
+        help: "Unix time of the newest row in the table, 0 when the table is empty"
+        key_labels:
+          - table
+        values:
+          - newest
+        query: SELECT '{{ t.table }}' AS "table", coalesce(extract(epoch FROM max({{ t.column }})), 0) AS newest FROM {{ t.table }}
+{% endfor %}

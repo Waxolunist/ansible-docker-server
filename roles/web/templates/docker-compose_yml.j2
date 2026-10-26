@@ -718,6 +718,38 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  sql-exporter:
+    image: burningalchemist/sql_exporter:0.24.11
+    container_name: web_sql-exporter
+    read_only: true
+    mem_limit: 64M
+    cpus: 0.25
+    command:
+      - '--config.file=/etc/sql_exporter/sql_exporter.yml'
+      - '--web.listen-address=:{{ sql_exporter.port }}'
+    expose:
+      - {{ sql_exporter.port }}
+    volumes:
+      - "{{ docker.paths.configs }}sql_exporter/sql_exporter.yml:/etc/sql_exporter/sql_exporter.yml:ro"
+    environment:
+      - TZ=Europe/Vienna
+    networks:
+      - grafana
+      - prometheus
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    labels:
+      - autoheal=true
+      - traefik.enable=false
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:{{ sql_exporter.port }}/healthz || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   photoprism-mariadb:
     image: mariadb:10.11.16
     container_name: photoprism-mariadb
