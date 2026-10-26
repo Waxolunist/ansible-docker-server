@@ -7614,6 +7614,245 @@
                         "version": "12.0.0"
                     }
                 }
+            },
+            "panel-21": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select to_char(month, 'YYYY-MM') as month, energy_import_car as \"Car\", energy_import_house as \"House\"\nfrom agg_1month_grid_split\norder by month;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_grid_split: the grid import split per hour, the house first: the house load takes the PV and battery energy first, the car gets the rest, and the car's grid share is at most the hour's import (0 is the floor for the house). Days without smart meter data are left out.",
+                    "id": 21,
+                    "links": [],
+                    "title": "Grid import: car and house",
+                    "vizConfig": {
+                        "group": "barchart",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "kwatth",
+                                    "decimals": 0
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "month"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "none"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "xField": "month",
+                                "stacking": "normal",
+                                "legend": {
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "xTickLabelRotation": -45,
+                                "xTickLabelSpacing": 0
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-22": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select to_char(month, 'YYYY-MM') as month, price_car as \"Car\", price_house as \"House\"\nfrom agg_1month_grid_split\norder by month;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1month_grid_split: the grid import split per hour, the house first: the house load takes the PV and battery energy first, the car gets the rest, and the car's grid share is at most the hour's import (0 is the floor for the house). Days without smart meter data are left out. Cost = energy at the hour's price plus the standing charges, split by each side's share of the day's import.",
+                    "id": 22,
+                    "links": [],
+                    "title": "Grid cost: car and house",
+                    "vizConfig": {
+                        "group": "barchart",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "suffix: €",
+                                    "decimals": 0
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "month"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "none"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "xField": "month",
+                                "stacking": "normal",
+                                "legend": {
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "xTickLabelRotation": -45,
+                                "xTickLabelSpacing": 0
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-23": {
+                "kind": "Panel",
+                "spec": {
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "hidden": false,
+                                        "query": {
+                                            "datasource": {
+                                                "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                                            },
+                                            "group": "grafana-postgresql-datasource",
+                                            "kind": "DataQuery",
+                                            "spec": {
+                                                "editorMode": "code",
+                                                "format": "table",
+                                                "rawQuery": true,
+                                                "rawSql": "select to_char(year, 'YYYY') as year,\n       energy_import_car as \"Car kWh\",\n       energy_import_house as \"House kWh\",\n       100 * energy_import_car / nullif(energy_import, 0) as \"Car share\",\n       price_import_car as \"Car energy\",\n       price_standing_car as \"Car standing\",\n       price_car as \"Car total\",\n       price_import_house as \"House energy\",\n       price_standing_house as \"House standing\",\n       price_house as \"House total\"\nfrom agg_1year_grid_split\norder by year desc;"
+                                            },
+                                            "version": "v0"
+                                        },
+                                        "refId": "A"
+                                    }
+                                }
+                            ],
+                            "queryOptions": {},
+                            "transformations": []
+                        }
+                    },
+                    "description": "agg_1year_grid_split. Energy at the hour's price; standing charges split by each side's share of the day's import. 2024 starts in March (smart meter).",
+                    "id": 23,
+                    "links": [],
+                    "title": "Grid import and cost per year: car and house",
+                    "vizConfig": {
+                        "group": "table",
+                        "kind": "VizConfig",
+                        "version": "13.2.4",
+                        "spec": {
+                            "fieldConfig": {
+                                "defaults": {
+                                    "decimals": 0
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byRegexp",
+                                            "options": "^(Car|House) (energy|standing|total)$"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "suffix: €"
+                                            },
+                                            {
+                                                "id": "decimals",
+                                                "value": 2
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "Car share"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "percent"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            "options": {
+                                "showHeader": true,
+                                "cellHeight": "sm"
+                            }
+                        }
+                    }
+                }
             }
         },
         "layout": {
@@ -7717,6 +7956,33 @@
                                                 "element": {
                                                     "kind": "ElementReference",
                                                     "name": "panel-12"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-21"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-22"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "kind": "AutoGridLayoutItem",
+                                            "spec": {
+                                                "element": {
+                                                    "kind": "ElementReference",
+                                                    "name": "panel-23"
                                                 }
                                             }
                                         },
