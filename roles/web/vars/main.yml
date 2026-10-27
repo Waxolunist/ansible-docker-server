@@ -154,6 +154,7 @@
     - matrix-receiver
     - sql-exporter
     - cadvisor
+    - node-exporter
 
   restart_container: no
 

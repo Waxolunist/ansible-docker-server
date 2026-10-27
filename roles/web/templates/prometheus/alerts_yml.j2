@@ -72,7 +72,7 @@ groups:
           runbook: "[[ respond ]]containerrestartingfrequently"
 
       - alert: FilesystemUsageHigh
-        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs"} * 100) > 85
+        expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs",mountpoint!~"/etc/.+"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs",mountpoint!~"/etc/.+"} * 100) > 85
         for: 15m
         labels:
           severity: warning
