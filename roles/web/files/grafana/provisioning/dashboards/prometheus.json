@@ -6373,18 +6373,6 @@
         "tooltip": "",
         "type": "link",
         "url": "/d/container-status-page"
-      },
-      {
-        "asDropdown": false,
-        "icon": "dashboard",
-        "includeVars": false,
-        "keepTime": true,
-        "tags": [],
-        "targetBlank": false,
-        "title": "Host Health",
-        "tooltip": "",
-        "type": "link",
-        "url": "/d/cER-yhhMk"
       }
     ],
     "liveNow": false,

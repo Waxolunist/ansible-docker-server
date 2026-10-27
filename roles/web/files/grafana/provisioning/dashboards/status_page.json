@@ -2803,18 +2803,6 @@
         "keepTime": true,
         "tags": [],
         "targetBlank": false,
-        "title": "Host Health",
-        "tooltip": "",
-        "type": "link",
-        "url": "/d/cER-yhhMk"
-      },
-      {
-        "asDropdown": false,
-        "icon": "dashboard",
-        "includeVars": false,
-        "keepTime": true,
-        "tags": [],
-        "targetBlank": false,
         "title": "Node Exporter",
         "tooltip": "",
         "type": "link",
