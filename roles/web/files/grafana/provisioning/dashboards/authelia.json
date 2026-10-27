@@ -4869,15 +4869,15 @@
       },
       {
         "asDropdown": false,
-        "icon": "doc",
+        "icon": "dashboard",
         "includeVars": false,
         "keepTime": true,
         "tags": [],
         "targetBlank": false,
-        "title": "Logs",
+        "title": "Prometheus",
         "tooltip": "",
         "type": "link",
-        "url": "/d/jXbCo7CGz"
+        "url": "/d/rzsTonCGk"
       }
     ],
     "liveNow": false,
