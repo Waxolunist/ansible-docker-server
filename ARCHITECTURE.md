@@ -74,7 +74,7 @@ A run without `--tags` deploys everything. Tagged task files can also be deploye
 
 | Tag | Task file | Deploys |
 |---|---|---|
-| `grafana_dashboards` | [`grafana_dashboards.yml`](roles/web/tasks/grafana_dashboards.yml) | Everything in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), including subdirectories, the dashboard provider and the alert rules in [`files/grafana/provisioning/alerting/`](roles/web/files/grafana/provisioning/alerting/). Restarts Grafana only when the provider, the go-e datasource or an alert rule changed. |
+| `grafana_dashboards` | [`grafana_dashboards.yml`](roles/web/tasks/grafana_dashboards.yml) | Everything in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), including subdirectories and the dashboard provider. Restarts Grafana only when the provider or the go-e datasource changed. |
 
 ```bash
 ansible-playbook web.yml --tags grafana_dashboards
@@ -626,7 +626,7 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 - **Sign-out**: Redirects to Authelia logout endpoint
 - **SMTP**: Gmail SMTP for alert notifications
 - **Alertmanager data source**: provisioned from [`alertmanager.yml.j2`](roles/web/templates/grafana/provisioning/datasources/alertmanager.yml.j2) (uid `alertmanager`, `handleGrafanaManagedAlerts: false`), so Grafana shows the Prometheus alerts. Grafana restarts when it changes.
-- **Provisioned alert rules**: The files in [`files/grafana/provisioning/alerting/`](roles/web/files/grafana/provisioning/alerting/), deployed with `--tags grafana_dashboards`; Grafana reads them only at startup, so it restarts when one changes. They are read-only in the UI. The rule "Collector data stale" (group Collector, folder General Alerting) queries TimescaleDB every 5 minutes and fires when `data_solar_energy` or `data_power_live` has had no new row for 30 minutes (for 10 minutes); a failed query fires `DatasourceError`. Notifications go to the default contact point (Gmail). With `collector_solar_source: cloud` on the Pi the live power job is off, so the `data_power_live` series would fire. Rules created in the UI ("Memory alert", "e208 Startup") are not in this repository. All three are replaced by Prometheus rules (`DataStale_<table>`, `MemoryLow`, `CarStarted`, see [Alerting](#alerting)); they are deleted once the new rules have fired a test in Matrix.
+- **Alert rules**: none in Grafana; all rules are Prometheus rules (see [Alerting](#alerting)). The former "Collector data stale" rule is replaced by `DataStale_<table>`.
 - **Root URL**: `https://graph.v-collaborate.com/`
 - **Provisioned dashboards**: The JSON files in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), rescanned every 30 seconds. Deploy them alone with `--tags grafana_dashboards` (see [Partial Deploys](#partial-deploys)). Details:
   - **Folders**: `foldersFromFilesStructure` is on. A subdirectory becomes the Grafana folder with the same title. Grafana matches it by title, so `Homeassistant/` reuses the existing folder (uid `cekag6n00voxsd`). Files at the top level go to General.

@@ -62,13 +62,3 @@
     loop: "{{ query('community.general.filetree', 'grafana/provisioning/dashboards/') | selectattr('state', 'eq', 'file') }}"
     loop_control:
       label: "{{ item.path }}"
-  - name: Grafana - Write alert rules
-    copy:
-      src: "{{ item }}"
-      dest: "{{ docker.paths.configs }}grafana/provisioning/alerting/{{ item | basename }}"
-      mode: '0644'
-      owner: '472'
-      group: '0'
-    become: yes
-    with_fileglob: grafana/provisioning/alerting/*.yml
-    register: grafana_alerting
