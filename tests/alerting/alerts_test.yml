@@ -124,6 +124,28 @@ tests:
               dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/refresh-psa-tokens.md#recognise-which-one-it-is"
 
+  - name: PsaControllerFlapping fires when autoheal keeps restarting the controller
+    interval: 1m
+    input_series:
+      - series: 'psa_health_up{job="collector",instance="10.8.0.2:9105"}'
+        values: '1x5 0 1 0 1 0 1 1x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: PsaControllerFlapping
+        exp_alerts: []
+      - eval_time: 11m
+        alertname: PsaControllerFlapping
+        exp_alerts:
+          - exp_labels: {severity: warning, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car controller keeps going down and coming back"
+              description: "psa_car_controller's /health changed state 6 times in 30 minutes. Autoheal restarts it on a 503, which means the MQTT broker keeps refusing it and the remote-control activation is probably gone."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#psacontrollerflapping"
+      - eval_time: 45m
+        alertname: PsaControllerFlapping
+        exp_alerts: []
+
   - name: GridImportHigh fires above the limit, GridReadingStale on NaN
     interval: 1m
     input_series:

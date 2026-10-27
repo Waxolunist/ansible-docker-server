@@ -219,6 +219,17 @@ groups:
           dashboard: "[[ dash ]]ch6qwwl"
           runbook: "[[ runbook ]]refresh-psa-tokens.md#recognise-which-one-it-is"
 
+      - alert: PsaControllerFlapping
+        expr: changes(psa_health_up[30m]) >= 6
+        labels:
+          severity: warning
+          area: car
+        annotations:
+          summary: "The car controller keeps going down and coming back"
+          description: "psa_car_controller's /health changed state {{ $value | printf \"%.0f\" }} times in 30 minutes. Autoheal restarts it on a 503, which means the MQTT broker keeps refusing it and the remote-control activation is probably gone."
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ respond ]]psacontrollerflapping"
+
       - alert: GridImportHigh
         expr: power_grid_watts > [[ alerting.grid_import_limit_watts ]]
         for: 2m

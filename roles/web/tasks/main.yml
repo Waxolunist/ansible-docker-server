@@ -40,6 +40,9 @@
   - import_tasks: grafana_dashboards.yml
     when: "'grafana' in web_containers"
     tags: grafana_dashboards
+  - import_tasks: prometheus_rules.yml
+    when: "'prometheus' in web_containers"
+    tags: prometheus_rules
   - name: Write docker compose file
     template:
       src: docker-compose_yml.j2
