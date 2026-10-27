@@ -99,7 +99,7 @@ groups:
           area: infra
         annotations:
           summary: "The OOM killer ran on {{ $labels.instance }}"
-          description: "{{ $value | printf "%.0f" }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
+          description: "{{ $value | printf \"%.0f\" }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
           dashboard: "[[ node_page ]]"
           runbook: "[[ respond ]]oomkill"
 
@@ -227,7 +227,7 @@ groups:
           area: energy
         annotations:
           summary: "The house draws more than [[ alerting.grid_import_limit_watts ]] W from the grid"
-          description: "{{ $value | humanize }}W imported from the grid for 2 minutes."
+          description: "{{ $value | humanize }}W imported from the grid for 2 minutes. House {{ with query \"power_house_watts\" }}{{ . | first | value | humanize }}W{{ else }}unknown{{ end }}, go-e charging {{ with query \"power_goe_watts\" }}{{ . | first | value | humanize }}W{{ else }}unknown{{ end }}."
           dashboard: "[[ dash ]]cekyf6g8gyupse"
           runbook: "[[ respond ]]gridimporthigh"
 

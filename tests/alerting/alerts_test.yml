@@ -129,6 +129,10 @@ tests:
     input_series:
       - series: 'power_grid_watts{job="collector",instance="10.8.0.2:9105"}'
         values: '7000x3 9000x5 NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN'
+      - series: 'power_house_watts{job="collector",instance="10.8.0.2:9105"}'
+        values: '9500x20'
+      - series: 'power_goe_watts{job="collector",instance="10.8.0.2:9105"}'
+        values: '7400x20'
     alert_rule_test:
       - eval_time: 3m
         alertname: GridImportHigh
@@ -139,7 +143,7 @@ tests:
           - exp_labels: {severity: warning, area: energy, job: collector, instance: "10.8.0.2:9105"}
             exp_annotations:
               summary: "The house draws more than 8000 W from the grid"
-              description: "9kW imported from the grid for 2 minutes."
+              description: "9kW imported from the grid for 2 minutes. House 9.5kW, go-e charging 7.4kW."
               dashboard: "https://graph.v-collaborate.com/d/cekyf6g8gyupse"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#gridimporthigh"
       - eval_time: 12m
