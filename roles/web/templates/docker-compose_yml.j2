@@ -231,7 +231,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-    mem_limit: 256M
+    command:
+      - --docker_only=true
+      - --housekeeping_interval=30s
+      - --store_container_labels=false
+      - --disable_metrics=percpu,sched,tcp,udp,advtcp,hugetlb,referenced_memory,cpu_topology,resctrl,process,disk,diskIO
+    mem_limit: 512M
     cpus: 0.5
     devices:
       - /dev/kmsg

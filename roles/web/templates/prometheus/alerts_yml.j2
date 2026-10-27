@@ -99,7 +99,7 @@ groups:
           area: infra
         annotations:
           summary: "The OOM killer ran on {{ $labels.instance }}"
-          description: "{{ $value }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
+          description: "{{ $value | printf "%.0f" }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
           dashboard: "[[ node_page ]]"
           runbook: "[[ respond ]]oomkill"
 

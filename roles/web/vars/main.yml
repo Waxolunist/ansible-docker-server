@@ -153,6 +153,7 @@
     - alertmanager
     - matrix-receiver
     - sql-exporter
+    - cadvisor
 
   restart_container: no
 
