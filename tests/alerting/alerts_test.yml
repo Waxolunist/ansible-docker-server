@@ -21,7 +21,7 @@ tests:
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#watchdog"
       - eval_time: 5m
-        alertname: TargetDown
+        alertname: TargetDown_traefik
         exp_alerts: []
 
   - name: A scrape target down fires TargetDown, the collector fires PiUnreachable instead
@@ -33,10 +33,10 @@ tests:
         values: '0x10'
     alert_rule_test:
       - eval_time: 4m
-        alertname: TargetDown
+        alertname: TargetDown_traefik
         exp_alerts: []
       - eval_time: 6m
-        alertname: TargetDown
+        alertname: TargetDown_traefik
         exp_alerts:
           - exp_labels: {severity: warning, area: infra, job: traefik, instance: "reverse-proxy:8080"}
             exp_annotations:
@@ -219,10 +219,13 @@ tests:
         values: '0x50'
     alert_rule_test:
       - eval_time: 33m
-        alertname: CollectorJobStale
+        alertname: CollectorJobStale_VehicleInfoJob
+        exp_alerts: []
+      - eval_time: 33m
+        alertname: CollectorJobStale_GoEEnergyJob
         exp_alerts: []
       - eval_time: 40m
-        alertname: CollectorJobStale
+        alertname: CollectorJobStale_VehicleInfoJob
         exp_alerts:
           - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: VehicleInfoJob}
             exp_annotations:
@@ -230,6 +233,9 @@ tests:
               description: "The last successful run of VehicleInfoJob was 40m 0s ago, or it has not succeeded since the collector started that long ago."
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#2-read-the-logs-for-that-job"
+      - eval_time: 40m
+        alertname: CollectorJobStale_GoEEnergyJob
+        exp_alerts:
           - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: GoEEnergyJob}
             exp_annotations:
               summary: "Collector job GoEEnergyJob has not succeeded for 30m"
@@ -244,10 +250,10 @@ tests:
         values: '0+0x10 0+1x10'
     alert_rule_test:
       - eval_time: 10m
-        alertname: CollectorJobFailing
+        alertname: CollectorJobFailing_GoEEnergyJob
         exp_alerts: []
       - eval_time: 18m
-        alertname: CollectorJobFailing
+        alertname: CollectorJobFailing_GoEEnergyJob
         exp_alerts:
           - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: GoEEnergyJob}
             exp_annotations:
@@ -267,10 +273,13 @@ tests:
         values: '15000x40'
     alert_rule_test:
       - eval_time: 15m
-        alertname: DataStale
+        alertname: DataStale_data_power_live
+        exp_alerts: []
+      - eval_time: 15m
+        alertname: DataStale_data_spotdata
         exp_alerts: []
       - eval_time: 25m
-        alertname: DataStale
+        alertname: DataStale_data_power_live
         exp_alerts:
           - exp_labels: {severity: warning, area: data, job: sql_exporter, instance: "sql-exporter:9399", table: data_power_live}
             exp_annotations:
@@ -278,6 +287,9 @@ tests:
               description: "The newest row of data_power_live is 25m 0s old, the limit is 10m."
               dashboard: "https://graph.v-collaborate.com/d/cekyf6g8gyupse"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#1-find-out-how-stale-and-which-sources"
+      - eval_time: 25m
+        alertname: DataStale_data_spotdata
+        exp_alerts:
           - exp_labels: {severity: warning, area: data, job: sql_exporter, instance: "sql-exporter:9399", table: data_spotdata}
             exp_annotations:
               summary: "No new rows in data_spotdata"
@@ -324,10 +336,16 @@ tests:
         values: '99999999999x20'
     alert_rule_test:
       - eval_time: 14m
-        alertname: MetricMissing
+        alertname: MetricMissing_node_vmstat_oom_kill
+        exp_alerts: []
+      - eval_time: 14m
+        alertname: MetricMissing_psa_api_authenticated
+        exp_alerts: []
+      - eval_time: 14m
+        alertname: DataTableMetricMissing_data_gasprices
         exp_alerts: []
       - eval_time: 16m
-        alertname: MetricMissing
+        alertname: MetricMissing_node_vmstat_oom_kill
         exp_alerts:
           - exp_labels: {severity: warning, area: infra, job: node-metrics, metric: node_vmstat_oom_kill}
             exp_annotations:
@@ -335,12 +353,18 @@ tests:
               description: "node-metrics is scraped but no longer reports node_vmstat_oom_kill, so the alerts on it cannot fire."
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"
+      - eval_time: 16m
+        alertname: MetricMissing_psa_api_authenticated
+        exp_alerts:
           - exp_labels: {severity: warning, area: car, job: collector, metric: psa_api_authenticated}
             exp_annotations:
               summary: "Metric psa_api_authenticated is missing"
               description: "The collector is scraped but no longer reports psa_api_authenticated, so the alerts on it cannot fire."
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"
+      - eval_time: 16m
+        alertname: DataTableMetricMissing_data_gasprices
+        exp_alerts:
           - exp_labels: {severity: warning, area: data, job: sql_exporter, metric: data_newest_row_timestamp_seconds, table: data_gasprices}
             exp_annotations:
               summary: "Metric data_newest_row_timestamp_seconds is missing for data_gasprices"

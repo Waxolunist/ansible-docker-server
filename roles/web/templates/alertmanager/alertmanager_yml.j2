@@ -27,9 +27,9 @@ inhibit_rules:
     target_matchers:
       - area=~"data|car"
   - source_matchers:
-      - alertname=~"TargetDown|PiUnreachable"
+      - alertname=~"TargetDown_.+|PiUnreachable"
     target_matchers:
-      - alertname!~"TargetDown|PiUnreachable"
+      - alertname!~"TargetDown_.+|PiUnreachable"
     equal:
       - job
   - source_matchers:

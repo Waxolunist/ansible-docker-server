@@ -18,8 +18,10 @@ groups:
           dashboard: "[[ status_page ]]"
           runbook: "[[ respond ]]watchdog"
 
-      - alert: TargetDown
-        expr: up{job!="collector"} == 0
+{% for job in alerting.scrape_jobs %}
+
+      - alert: TargetDown_[[ job ]]
+        expr: up{job="[[ job ]]"} == 0
         for: 5m
         labels:
           severity: warning
@@ -29,6 +31,7 @@ groups:
           description: "{{ $labels.instance }} has not answered a scrape for 5 minutes. Alerts on its metrics are held back."
           dashboard: "[[ status_page ]]"
           runbook: "[[ respond ]]targetdown"
+{% endfor %}
 
       - alert: AlertDeliveryFailing
         expr: increase(alertmanager_notifications_failed_total[15m]) > 0 or increase(matrix_alertmanager_receiver_send_failure_total[15m]) > 0 or increase(matrix_alertmanager_receiver_templating_failure_total[15m]) > 0
@@ -134,7 +137,7 @@ groups:
   ('node_vmstat_oom_kill', 'node-metrics'),
 ] %}
 
-      - alert: MetricMissing
+      - alert: MetricMissing_[[ metric ]]
         expr: absent([[ metric ]]{job="[[ job ]]"})
         for: 15m
         labels:
@@ -162,9 +165,10 @@ groups:
           description: "Prometheus has not scraped {{ $labels.instance }} over WireGuard for 5 minutes. Data, car and collector alerts are held back until it is back."
           dashboard: "[[ status_page ]]"
           runbook: "[[ respond ]]piunreachable"
+{% for job in alerting.collector_job_stale_after %}
 
-      - alert: CollectorJobFailing
-        expr: increase(collector_job_failures_total[1h]) > 3
+      - alert: CollectorJobFailing_[[ job ]]
+        expr: increase(collector_job_failures_total{collector_job="[[ job ]]"}[1h]) > 3
         labels:
           severity: warning
           area: data
@@ -173,9 +177,10 @@ groups:
           description: "{{ $labels.collector_job }} raised {{ $value | humanize }} errors in the last hour."
           dashboard: "[[ status_page ]]"
           runbook: "[[ runbook ]]diagnose-missing-data.md#2-read-the-logs-for-that-job"
+{% endfor %}
 {% for job, stale_after in alerting.collector_job_stale_after.items() %}
 
-      - alert: CollectorJobStale
+      - alert: CollectorJobStale_[[ job ]]
         expr: |
           (time() - collector_job_last_success_timestamp_seconds{collector_job="[[ job ]]"} > [[ stale_after ]])
           or
@@ -272,7 +277,7 @@ groups:
   ('vehicle_ignition_running', 'car'),
 ] %}
 
-      - alert: MetricMissing
+      - alert: MetricMissing_[[ metric ]]
         expr: absent([[ metric ]]{job="collector"})
         for: 15m
         labels:
@@ -290,7 +295,7 @@ groups:
     interval: 1m
     rules:
 {% for t in alerting.data_tables %}
-      - alert: DataStale
+      - alert: DataStale_[[ t.table ]]
         expr: time() - data_newest_row_timestamp_seconds{table="[[ t.table ]]"} > [[ t.stale_after ]]
         for: 10m
         labels:
@@ -303,7 +308,7 @@ groups:
           dashboard: "[[ dash ~ t.dashboard ]]"
           runbook: "[[ runbook ]]diagnose-missing-data.md#1-find-out-how-stale-and-which-sources"
 
-      - alert: MetricMissing
+      - alert: DataTableMetricMissing_[[ t.table ]]
         expr: absent(data_newest_row_timestamp_seconds{job="sql_exporter",table="[[ t.table ]]"})
         for: 15m
         labels:
