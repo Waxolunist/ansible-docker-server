@@ -54,6 +54,7 @@
       - "me.{{ topleveldomain }}"
       - "christian.sterzl.info"
     target: "https://www.linkedin.com/in/christian-sterzl-59b282182/"
+    apex_target: "https://christian.sterzl.info"
 
   picoclaw:
     domain: "picoclaw.{{ topleveldomain }}"
@@ -146,6 +147,7 @@
   # services are recreated whenever their compose definition changed;
   # unchanged ones are left alone.
   recreate_when_changed:
+    - reverse-proxy
     - authelia
     - otterwiki
     - grafana-pg
