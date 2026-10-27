@@ -136,6 +136,17 @@ services:
       - traefik.http.routers.mepage-secure.service=noop@internal
       - traefik.http.middlewares.me-redirectregex.redirectregex.regex=^https://({{ redirect.domains | join('|') }})(/.*)?
       - traefik.http.middlewares.me-redirectregex.redirectregex.replacement={{ redirect.target }}
+      - traefik.http.routers.apex.rule=Host(`{{ topleveldomain }}`)
+      - traefik.http.routers.apex.entrypoints=web
+      - traefik.http.routers.apex.middlewares=proxy-https-redirect
+      - traefik.http.routers.apex-secure.middlewares=apex-redirectregex,security-headers@docker
+      - traefik.http.routers.apex-secure.entrypoints=websecure
+      - traefik.http.routers.apex-secure.rule=Host(`{{ topleveldomain }}`)
+      - traefik.http.routers.apex-secure.tls=true
+      - traefik.http.routers.apex-secure.tls.certresolver=myresolver
+      - traefik.http.routers.apex-secure.service=noop@internal
+      - traefik.http.middlewares.apex-redirectregex.redirectregex.regex=^https://{{ topleveldomain | regex_escape }}(/.*)?
+      - traefik.http.middlewares.apex-redirectregex.redirectregex.replacement={{ redirect.apex_target }}
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 30s
