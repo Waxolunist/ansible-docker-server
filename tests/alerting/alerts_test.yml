@@ -75,6 +75,27 @@ tests:
               dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#memorylow"
 
+  - name: SwapUsageHigh fires above 2 GiB of swap in use
+    interval: 1m
+    input_series:
+      - series: 'node_memory_SwapTotal_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '4294967296x30'
+      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '4000000000x5 1500000000x25'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: SwapUsageHigh
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: SwapUsageHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: "node-exporter:9100"}
+            exp_annotations:
+              summary: "The VPS is using a lot of swap"
+              description: "2.603GiB of swap are in use. Memory is under sustained pressure; the OOM killer may be next."
+              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#swapusagehigh"
+
   - name: ContainerRestartingFrequently links the container's status page
     interval: 1m
     input_series:
@@ -307,6 +328,8 @@ tests:
       - series: 'node_filesystem_avail_bytes{job="node-metrics",instance="node-exporter:9100"}'
         values: '1x20'
       - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="node-exporter:9100"}'
+        values: '1x20'
+      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="node-exporter:9100"}'
         values: '1x20'
       - series: 'collector_job_failures_total{job="collector",instance="10.8.0.2:9105",collector_job="GoEEnergyJob"}'
         values: '0x20'

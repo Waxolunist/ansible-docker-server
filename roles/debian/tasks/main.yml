@@ -62,6 +62,38 @@
       apt:
         autoremove: yes
         update_cache: no
+    - name: Check swap file
+      stat:
+        path: "{{ swap_file }}"
+      register: swap_file_stat
+    - name: Create swap file
+      command: "fallocate -l {{ swap_size }} {{ swap_file }}"
+      when: not swap_file_stat.stat.exists
+    - name: Restrict swap file permissions
+      file:
+        path: "{{ swap_file }}"
+        owner: root
+        group: root
+        mode: 0600
+    - name: Format swap file
+      command: "mkswap {{ swap_file }}"
+      when: not swap_file_stat.stat.exists
+    - name: Register swap file in fstab
+      ansible.posix.mount:
+        src: "{{ swap_file }}"
+        path: none
+        fstype: swap
+        opts: sw,pri=-2
+        state: present
+    - name: Enable swap
+      command: "swapon {{ swap_file }}"
+      when: ansible_facts['swaptotal_mb'] == 0
+    - name: Set swappiness
+      ansible.posix.sysctl:
+        name: vm.swappiness
+        value: "{{ swap_swappiness }}"
+        sysctl_file: /etc/sysctl.d/99-swap.conf
+        state: present
     - name: Create backup folder
       file:
         path: "/backup"

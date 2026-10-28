@@ -95,6 +95,18 @@ groups:
           dashboard: "[[ node_page ]]"
           runbook: "[[ respond ]]memorylow"
 
+      - alert: SwapUsageHigh
+        expr: node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes > [[ alerting.swap_used_max_bytes ]]
+        for: 10m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "The VPS is using a lot of swap"
+          description: "{{ $value | humanize1024 }}B of swap are in use. Memory is under sustained pressure; the OOM killer may be next."
+          dashboard: "[[ node_page ]]"
+          runbook: "[[ respond ]]swapusagehigh"
+
       - alert: OomKill
         expr: increase(node_vmstat_oom_kill[10m]) > 0
         labels:
@@ -134,6 +146,7 @@ groups:
   ('container_start_time_seconds', 'cadvisor'),
   ('node_filesystem_avail_bytes', 'node-metrics'),
   ('node_memory_MemAvailable_bytes', 'node-metrics'),
+  ('node_memory_SwapFree_bytes', 'node-metrics'),
   ('node_vmstat_oom_kill', 'node-metrics'),
 ] %}
 

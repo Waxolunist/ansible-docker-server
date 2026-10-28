@@ -1,2 +1,5 @@
 ---
   codename: trixie
+  swap_file: /swapfile
+  swap_size: 4G
+  swap_swappiness: 10
