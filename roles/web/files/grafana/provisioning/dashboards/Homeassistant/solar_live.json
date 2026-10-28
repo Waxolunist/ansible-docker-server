@@ -213,107 +213,7 @@
           }
         }
       },
-      "panel-30": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                      },
-                      "group": "grafana-postgresql-datasource",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "format": "table",
-                        "rawQuery": true,
-                        "rawSql": "-- One row for the flow picture: the newest 15 s row of data_power_live.\n-- The car's power is split by priority, not proportionally: PV covers the\n-- household first, then battery charging; only the PV surplus goes to the\n-- go-e. The rest comes from battery discharge (after the household), then\n-- from the grid. Household = house_kw - goe_kw (house_kw includes the car).\nwith l as (\n  select * from data_power_live order by time desc limit 1\n), v as (\n  select time,\n         coalesce(pv_kw, 0) as pv,\n         coalesce(grid_kw, 0) as grid,\n         coalesce(battery_kw, 0) as bat,\n         battery_soc as bat_soc,\n         greatest(coalesce(house_kw, 0) - coalesce(goe_kw, 0), 0) as home,\n         coalesce(goe_kw, 0) as goe\n  from l\n), s as (\n  select v.*,\n         least(goe, greatest(pv - home - greatest(bat, 0), 0)) as goe_pv\n  from v\n), s2 as (\n  select s.*,\n         least(goe - goe_pv,\n               greatest(greatest(-bat, 0) - greatest(home - pv, 0), 0)) as goe_bat\n  from s\n), f as (\n  select s2.*, greatest(goe - goe_pv - goe_bat, 0) as goe_grid,\n         (select level from data_vehicle_energy_level order by time desc limit 1) as car_soc\n  from s2\n)\n-- Today's highest 15-minute average grid import (local day, finished clock quarters only).\n, m as (\n  select max(kw) as grid_max\n  from (\n    select avg(greatest(grid_kw, 0)) as kw\n    from data_power_live\n    where time >= date_trunc('day', now() at time zone 'Europe/Vienna') at time zone 'Europe/Vienna'\n      and time < time_bucket('15 minutes', now())\n    group by time_bucket('15 minutes', time)\n  ) q\n)\nselect\n  to_char(time at time zone 'Europe/Vienna', 'HH24:MI:SS') as updated,\n  case when time < now() - interval '2 minutes' then 'stale' else '' end as stale,\n  to_char(pv, 'FM990.0') as pv_txt,\n  to_char(abs(grid), 'FM990.0') as grid_txt,\n  case when grid >= 0.05 then 'Import' when grid <= -0.05 then 'Export' else 'Grid' end as grid_name,\n  coalesce(' (max ' || to_char(grid_max, 'FM990.0') || ' kW)', '') as grid_max_txt,\n  to_char(abs(bat), 'FM990.0') as bat_txt,\n  coalesce(round(bat_soc)::text || ' %', '–') as bat_soc_txt,\n  to_char(home, 'FM990.0') as home_txt,\n  to_char(goe, 'FM990.0') as goe_txt,\n  coalesce(round(car_soc)::text || ' %', '–') as car_soc_txt,\n  to_char(goe_pv, 'FM990.0') as goe_pv_txt,\n  to_char(goe_bat, 'FM990.0') as goe_bat_txt,\n  to_char(goe_grid, 'FM990.0') as goe_grid_txt,\n  -- line state: off when the value shows as 0.0 kW (below 50 W); fwd = along the drawn path, rev = against it\n  case when pv >= 0.05 then 'on fwd' else 'off' end as pv_cls,\n  case when grid >= 0.05 then 'on fwd' when grid <= -0.05 then 'on rev' else 'off' end as grid_cls,\n  case when bat <= -0.05 then 'on fwd' when bat >= 0.05 then 'on rev' else 'off' end as bat_cls,\n  case when home >= 0.05 then 'on fwd' else 'off' end as home_cls,\n  case when goe >= 0.05 then 'on fwd' else 'off' end as goe_cls,\n  case when goe >= 0.05 then '' else 'off' end as split_cls,\n  -- line width class by power: < 1, < 3, < 5, < 8, >= 8 kW\n  case when pv < 1 then 'w1' when pv < 3 then 'w2' when pv < 5 then 'w3' when pv < 8 then 'w4' else 'w5' end as pv_w,\n  case when abs(grid) < 1 then 'w1' when abs(grid) < 3 then 'w2' when abs(grid) < 5 then 'w3' when abs(grid) < 8 then 'w4' else 'w5' end as grid_w,\n  case when abs(bat) < 1 then 'w1' when abs(bat) < 3 then 'w2' when abs(bat) < 5 then 'w3' when abs(bat) < 8 then 'w4' else 'w5' end as bat_w,\n  case when home < 1 then 'w1' when home < 3 then 'w2' when home < 5 then 'w3' when home < 8 then 'w4' else 'w5' end as home_w,\n  case when goe < 1 then 'w1' when goe < 3 then 'w2' when goe < 5 then 'w3' when goe < 8 then 'w4' else 'w5' end as goe_w,\n  -- the split bar under the wallbox, in percent\n  coalesce(round((100 * goe_pv / nullif(goe, 0))::numeric, 1), 0) as bar_pv,\n  coalesce(round((100 * goe_bat / nullif(goe, 0))::numeric, 1), 0) as bar_bat,\n  coalesce(round((100 * goe_grid / nullif(goe, 0))::numeric, 1), 0) as bar_grid\nfrom f, m;\n",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": []
-            }
-          },
-          "description": "Live power from data_power_live (one row per 15 s), with the time of the row at the top; faded when it is older than 2 minutes. Moving dots show the direction, thicker lines carry more power, grey lines and nodes show 0.0 kW (below 50 W). Household is the house without the car (house_kw − goe_kw). The bar under the wallbox shows where the car's power comes from, by priority: PV covers the household and battery charging first, only the surplus goes to the car; the rest comes from battery discharge, then the grid. The bracket next to the grid shows today's highest grid import as a 15-minute average over the finished clock quarters (:00, :15, :30, :45) since local midnight, like the smart meter's quarter-hour values; export in the same quarter does not lower it. Car SOC from data_vehicle_energy_level.",
-          "id": 30,
-          "links": [],
-          "title": "Energy flow",
-          "vizConfig": {
-            "group": "marcusolsson-dynamictext-panel",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  }
-                },
-                "overrides": []
-              },
-              "options": {
-                "afterRender": "",
-                "content": "<div class=\"stage {{stale}}\">\n  <div class=\"updated\">{{updated}}</div>\n  <div class=\"line pv {{pv_cls}} {{pv_w}}\"></div>\n  <div class=\"line grid {{grid_cls}} {{grid_w}}\"></div>\n  <div class=\"line bat {{bat_cls}} {{bat_w}}\"></div>\n  <div class=\"line home {{home_cls}} {{home_w}}\"></div>\n  <div class=\"line goe {{goe_cls}} {{goe_w}}\"></div>\n  <div class=\"hub\"></div>\n  <div class=\"node pv {{pv_cls}}\">☀️</div>\n  <div class=\"tag pv\"><span class=\"name\">PV</span><span class=\"value\">{{pv_txt}} kW</span></div>\n  <div class=\"node grid {{grid_cls}}\">⚡</div>\n  <div class=\"tag grid\"><span class=\"name\">{{grid_name}}{{grid_max_txt}}</span><span class=\"value\">{{grid_txt}} kW</span></div>\n  <div class=\"node bat {{bat_cls}}\">🔋</div>\n  <div class=\"tag bat\"><span class=\"value\">{{bat_txt}} kW</span><span class=\"name\">Battery {{bat_soc_txt}}</span></div>\n  <div class=\"node home {{home_cls}}\">🏠</div>\n  <div class=\"tag home\"><span class=\"value\">{{home_txt}} kW</span><span class=\"name\">Household</span></div>\n  <div class=\"node goe {{goe_cls}}\">🚗</div>\n  <div class=\"tag goe-left\"><span class=\"name\">Wallbox</span><span class=\"value\">{{goe_txt}} kW</span></div>\n  <div class=\"tag goe-right\"><span class=\"name\">e-208</span><span class=\"value\">{{car_soc_txt}}</span></div>\n  <div class=\"split {{split_cls}}\">\n    <div class=\"bar\"><div class=\"seg pv\" style=\"width: {{bar_pv}}%\"></div><div class=\"seg bat\" style=\"width: {{bar_bat}}%\"></div><div class=\"seg grid\" style=\"width: {{bar_grid}}%\"></div></div>\n    <div class=\"legend\">☀️ {{goe_pv_txt}} · 🔋 {{goe_bat_txt}} · ⚡ {{goe_grid_txt}} kW</div>\n  </div>\n</div>\n",
-                "contentPartials": [],
-                "defaultContent": "<p>No live power data.</p>",
-                "editor": {
-                  "format": "auto",
-                  "height": 200,
-                  "language": "html"
-                },
-                "editors": [
-                  "styles"
-                ],
-                "externalScripts": [],
-                "externalStyles": [],
-                "helpers": "",
-                "renderMode": "everyRow",
-                "styles": "& {\n  --pv: #e8a400;\n  --grid: #e0533c;\n  --bat: #2bb673;\n  --home: #3d8bfd;\n  --goe: #9b6bff;\n  --muted: rgba(128, 128, 128, 0.35);\n}\n\n/* The picture is drawn on a 440 x 400 grid; --u is one grid unit, so it\n   scales with the panel and keeps its aspect ratio. */\n& .dt-row {\n  height: 100%;\n  padding: 0;\n  container-type: size;\n}\n\n& .stage {\n  --u: calc(min(100cqw, 110cqh) / 440);\n  position: relative;\n  width: calc(var(--u) * 440);\n  height: calc(var(--u) * 400);\n  margin: 0 auto;\n}\n\n& .stage.stale {\n  opacity: 0.4;\n}\n\n& .stage > div {\n  position: absolute;\n}\n\n& .updated {\n  left: 50%;\n  top: 0;\n  transform: translateX(-50%);\n  font-size: calc(var(--u) * 12);\n  opacity: 0.7;\n}\n\n& .tag {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  line-height: 1.25;\n  white-space: nowrap;\n  transform: translateX(-50%);\n}\n\n& .name {\n  font-size: calc(var(--u) * 12);\n  opacity: 0.7;\n}\n\n& .value {\n  font-size: calc(var(--u) * 16);\n  font-weight: 600;\n}\n\n& .tag.pv { left: calc(var(--u) * 80); top: calc(var(--u) * 26); }\n& .tag.grid { left: calc(var(--u) * 360); top: calc(var(--u) * 26); }\n& .tag.bat { left: calc(var(--u) * 80); top: calc(var(--u) * 268); }\n& .tag.home { left: calc(var(--u) * 360); top: calc(var(--u) * 268); }\n& .tag.goe-left { left: calc(var(--u) * 186); top: calc(var(--u) * 306); align-items: flex-end; transform: translateX(-100%); }\n& .tag.goe-right { left: calc(var(--u) * 254); top: calc(var(--u) * 306); align-items: flex-start; transform: none; }\n\n& .node {\n  width: calc(var(--u) * 52);\n  height: calc(var(--u) * 52);\n  margin: calc(var(--u) * -26) 0 0 calc(var(--u) * -26);\n  box-sizing: border-box;\n  border: calc(var(--u) * 2.5) solid;\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: calc(var(--u) * 22);\n}\n\n& .node.pv { left: calc(var(--u) * 80); top: calc(var(--u) * 95); border-color: var(--pv); }\n& .node.grid { left: calc(var(--u) * 360); top: calc(var(--u) * 95); border-color: var(--grid); }\n& .node.bat { left: calc(var(--u) * 80); top: calc(var(--u) * 235); border-color: var(--bat); }\n& .node.home { left: calc(var(--u) * 360); top: calc(var(--u) * 235); border-color: var(--home); }\n& .node.goe { left: calc(var(--u) * 220); top: calc(var(--u) * 325); border-color: var(--goe); }\n\n/* Nodes without power flow are grey, like their lines. */\n& .node.off {\n  border-color: var(--muted);\n  filter: grayscale(1);\n  opacity: 0.6;\n}\n\n& .hub {\n  left: calc(var(--u) * 213);\n  top: calc(var(--u) * 168);\n  width: calc(var(--u) * 14);\n  height: calc(var(--u) * 14);\n  border-radius: 50%;\n  background: currentColor;\n  opacity: 0.5;\n}\n\n/* A line starts at (left, top) and is rotated around its left end. Moving\n   dots show the direction: fwd runs from the start to the end, rev back. */\n& .line {\n  transform-origin: 0 50%;\n  border-radius: 999px;\n  --c: var(--muted);\n  background: var(--muted);\n}\n\n& .line.on {\n  background:\n    radial-gradient(circle, var(--c) 40%, transparent 45%) 0 50% / calc(var(--u) * 10) 100% repeat-x,\n    linear-gradient(color-mix(in srgb, var(--c) 35%, transparent), color-mix(in srgb, var(--c) 35%, transparent));\n  animation: energy-flow 0.8s linear infinite;\n}\n\n& .line.rev {\n  animation-direction: reverse;\n}\n\n& .line.pv.on { --c: var(--pv); }\n& .line.grid.on { --c: var(--grid); }\n& .line.bat.on { --c: var(--bat); }\n& .line.home.on { --c: var(--home); }\n& .line.goe.on { --c: var(--goe); }\n\n& .line.off, & .line.w1 { height: calc(var(--u) * 2.5); margin-top: calc(var(--u) * -1.25); }\n& .line.on.w2 { height: calc(var(--u) * 3.5); margin-top: calc(var(--u) * -1.75); }\n& .line.on.w3 { height: calc(var(--u) * 5); margin-top: calc(var(--u) * -2.5); }\n& .line.on.w4 { height: calc(var(--u) * 6.5); margin-top: calc(var(--u) * -3.25); }\n& .line.on.w5 { height: calc(var(--u) * 8); margin-top: calc(var(--u) * -4); }\n\n@keyframes energy-flow {\n  from { background-position: 0 50%, 0 0; }\n  to { background-position: calc(var(--u) * 10) 50%, 0 0; }\n}\n\n& .split {\n  left: calc(var(--u) * 130);\n  top: calc(var(--u) * 362);\n  width: calc(var(--u) * 180);\n}\n\n& .split.off {\n  opacity: 0.3;\n}\n\n& .bar {\n  display: flex;\n  height: calc(var(--u) * 7);\n  border-radius: calc(var(--u) * 3.5);\n  overflow: hidden;\n  background: var(--muted);\n}\n\n& .seg.pv { background: var(--pv); }\n& .seg.bat { background: var(--bat); }\n& .seg.grid { background: var(--grid); }\n\n& .legend {\n  margin-top: calc(var(--u) * 4);\n  text-align: center;\n  white-space: nowrap;\n  font-size: calc(var(--u) * 12);\n  opacity: 0.7;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  & .line.on { animation: none; }\n}\n& .line.pv { left: calc(var(--u) * 104.3); top: calc(var(--u) * 108.9); width: calc(var(--u) * 125.3); transform: rotate(29.7deg); }\n& .line.grid { left: calc(var(--u) * 335.7); top: calc(var(--u) * 108.9); width: calc(var(--u) * 125.3); transform: rotate(150.3deg); }\n& .line.bat { left: calc(var(--u) * 105.7); top: calc(var(--u) * 224.0); width: calc(var(--u) * 116.3); transform: rotate(-23.2deg); }\n& .line.home { left: calc(var(--u) * 227.4); top: calc(var(--u) * 178.2); width: calc(var(--u) * 116.3); transform: rotate(23.2deg); }\n& .line.goe { left: calc(var(--u) * 220); top: calc(var(--u) * 183); width: calc(var(--u) * 114.0); transform: rotate(90.0deg); }\n",
-                "wrap": true
-              }
-            },
-            "version": "5.7.0"
-          }
-        }
-      },
+      "panel-90": "@@ENERGY_FLOW_PANEL@@",
       "panel-31": {
         "kind": "Panel",
         "spec": {
@@ -662,7 +562,7 @@
                                 "spec": {
                                   "element": {
                                     "kind": "ElementReference",
-                                    "name": "panel-30"
+                                    "name": "panel-90"
                                   }
                                 }
                               }
@@ -772,6 +672,18 @@
         "tooltip": "",
         "type": "dashboards",
         "url": ""
+      },
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Home",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/home"
       }
     ],
     "liveNow": false,

@@ -47,6 +47,9 @@ user = {{ vault_grafana_pg_user }}
 password = $__file{/run/secrets/grafana_pg_password}
 log_queries = true
 
+[dashboards]
+default_home_dashboard_path = /etc/grafana/provisioning/dashboards/Homeassistant/home.json
+
 [server]
 root_url = https://{{ grafana.domain }}/
 
