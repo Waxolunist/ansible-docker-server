@@ -1399,7 +1399,7 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "autoRefresh": "",
+      "autoRefresh": "10s",
       "autoRefreshIntervals": [
         "5s",
         "10s",

@@ -780,7 +780,7 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "autoRefresh": "30s",
+      "autoRefresh": "10s",
       "autoRefreshIntervals": [
         "5s",
         "10s",

@@ -1719,48 +1719,64 @@
                     "hidden": false,
                     "query": {
                       "datasource": {
-                        "name": "goe"
+                        "name": "Prometheus"
                       },
-                      "group": "yesoreyeram-infinity-datasource",
+                      "group": "prometheus",
                       "kind": "DataQuery",
                       "spec": {
-                        "columns": [
-                          {
-                            "selector": "car",
-                            "text": "Car",
-                            "type": "number"
-                          },
-                          {
-                            "selector": "frc",
-                            "text": "Command",
-                            "type": "number"
-                          },
-                          {
-                            "selector": "nrg.11",
-                            "text": "Power",
-                            "type": "number"
-                          }
-                        ],
-                        "format": "table",
-                        "parser": "backend",
-                        "root_selector": "",
-                        "source": "url",
-                        "type": "json",
-                        "url": "@@GOE_URL@@/api/status",
-                        "url_options": {
-                          "data": "",
-                          "method": "GET",
-                          "params": [
-                            {
-                              "key": "filter",
-                              "value": "frc,car,nrg"
-                            }
-                          ]
-                        }
+                        "editorMode": "code",
+                        "expr": "goe_car_state",
+                        "instant": true,
+                        "legendFormat": "Car",
+                        "range": false
                       },
                       "version": "v0"
                     },
                     "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "goe_force_state",
+                        "instant": true,
+                        "legendFormat": "Command",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "power_goe_watts",
+                        "instant": true,
+                        "legendFormat": "Power",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C"
                   }
                 }
               ],
@@ -1768,7 +1784,7 @@
               "transformations": []
             }
           },
-          "description": "Read from the charger's local API when the dashboard loads or refreshes, unlike the other panels, which show the last values in the database. Refresh the dashboard after pressing a button.",
+          "description": "The charger's last reading, taken by the collector every 5 s and read from Prometheus, so refreshing the dashboard doesn't call the charger. Empty when the collector has had no answer from the charger for 60 s. After pressing a button the new command shows within about 10 s.",
           "id": 25,
           "links": [],
           "title": "Charger (live)",
@@ -2496,7 +2512,7 @@
       "homeassistant"
     ],
     "timeSettings": {
-      "autoRefresh": "",
+      "autoRefresh": "10s",
       "autoRefreshIntervals": [
         "5s",
         "10s",
