@@ -49,7 +49,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(container_up_bool{id=\"\",name=~\"$container\"}) or vector(0)",
+                        "expr": "sum(container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"}) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -132,7 +132,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(time() - max_over_time(name:container_last_seen:max{name=~\"$container\"}[1d]) and on (name) (container_up_bool{id=\"\",name=~\"$container\"} == 0), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(time() - max_over_time(name:container_last_seen:max{name=~\"$container\",instance=~\"$host\"}[1d]) and on (name) (container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"} == 0), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -223,7 +223,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(max by (name) (container_health_state{name=~\"$container\"}) == 0, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (container_health_state{name=~\"$container\",instance=~\"$host\"}) == 0, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -492,7 +492,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace((changes(name:container_start_time_seconds:max{name=~\"$container\"}[24h])) > 0, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace((changes(name:container_start_time_seconds:max{name=~\"$container\",instance=~\"$host\"}[24h])) > 0, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -579,7 +579,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "((max(container_health_state{name=\"$container\"}) == 0) - 1) or (max(container_up_bool{id=\"\",name=\"$container\"}) * (time() - max(name:container_start_time_seconds:max{name=\"$container\"}))) or (max(container_up_bool{id=\"\",name=\"$container\"}) * 0)",
+                        "expr": "((max(container_health_state{name=\"$container\",instance=\"$host\"}) == 0) - 1) or (max(container_up_bool{id=\"\",name=\"$container\",instance=\"$host\"}) * (time() - max(name:container_start_time_seconds:max{name=\"$container\",instance=\"$host\"}))) or (max(container_up_bool{id=\"\",name=\"$container\",instance=\"$host\"}) * 0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -689,7 +689,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(sum_over_time(container_up_bool{id=\"\",name=~\"$container\"}[$__range]) / count_over_time(container_up_bool{id=\"\",name=~\"$container\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(sum_over_time(container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"}[$__range]) / count_over_time(container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -712,7 +712,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(changes(name:container_start_time_seconds:max{name=~\"$container\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(changes(name:container_start_time_seconds:max{name=~\"$container\",instance=~\"$host\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -735,7 +735,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_start_time_seconds:max{name=~\"$container\"} * 1000, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(name:container_start_time_seconds:max{name=~\"$container\",instance=~\"$host\"} * 1000, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -953,7 +953,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(container_up_bool{id=\"\",name=~\"$container\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "time_series",
                         "instant": false,
                         "legendFormat": "{{name}}",
@@ -1061,7 +1061,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(avg_over_time(container_up_bool{id=\"\",name=~\"$container\"}[1d]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(avg_over_time(container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"}[1d]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "time_series",
                         "instant": false,
                         "interval": "1d",
@@ -1239,7 +1239,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "count(container_up_bool{id=\"\",name=~\"$container\"} == 0) or vector(0)",
+                        "expr": "count(container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"} == 0) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -1655,7 +1655,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "count(max by (name) (container_health_state{name=~\"$container\"}) == 0) or vector(0)",
+                        "expr": "count(max by (name) (container_health_state{name=~\"$container\",instance=~\"$host\"}) == 0) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -1742,7 +1742,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum(changes(name:container_start_time_seconds:max{name=~\"$container\"}[24h])) or vector(0)",
+                        "expr": "sum(changes(name:container_start_time_seconds:max{name=~\"$container\",instance=~\"$host\"}[24h])) or vector(0)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -2189,7 +2189,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "vector(1) unless on() ((container_up_bool{id=\"\",name=~\"$container\"} == 0) or (max by (name) (container_health_state{name=~\"$container\"}) == 0) or (up == 0) or (ALERTS{alertstate=\"firing\"}))",
+                        "expr": "vector(1) unless on() ((container_up_bool{id=\"\",name=~\"$container\",instance=~\"$host\"} == 0) or (max by (name) (container_health_state{name=~\"$container\",instance=~\"$host\"}) == 0) or (up == 0) or (ALERTS{alertstate=\"firing\"}))",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",
@@ -2848,6 +2848,41 @@
       {
         "kind": "QueryVariable",
         "spec": {
+          "allowCustomValue": false,
+          "current": {
+            "text": "VPS",
+            "value": "VPS"
+          },
+          "definition": "label_values(container_last_seen, instance)",
+          "description": "Server whose containers are shown",
+          "hide": "dontHide",
+          "includeAll": false,
+          "label": "Host",
+          "multi": false,
+          "name": "host",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "BfDiy2hMk"
+            },
+            "group": "prometheus",
+            "kind": "DataQuery",
+            "spec": {
+              "qryType": 1,
+              "query": "label_values(container_last_seen, instance)",
+              "refId": "PrometheusVariableQueryEditor-VariableQuery"
+            },
+            "version": "v0"
+          },
+          "refresh": "onDashboardLoad",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
           "allValue": ".+",
           "allowCustomValue": false,
           "current": {
@@ -2858,7 +2893,7 @@
               "$__all"
             ]
           },
-          "definition": "query_result(container_up_bool{id=\"\"})",
+          "definition": "query_result(container_up_bool{id=\"\",instance=~\"$host\"})",
           "description": "Containers running, or seen in the last 24 hours",
           "hide": "dontHide",
           "includeAll": true,
@@ -2874,7 +2909,7 @@
             "kind": "DataQuery",
             "spec": {
               "qryType": 3,
-              "query": "query_result(container_up_bool{id=\"\"})",
+              "query": "query_result(container_up_bool{id=\"\",instance=~\"$host\"})",
               "refId": "PrometheusVariableQueryEditor-VariableQuery"
             },
             "version": "v0"

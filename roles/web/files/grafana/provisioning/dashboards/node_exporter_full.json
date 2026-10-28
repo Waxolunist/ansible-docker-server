@@ -14625,7 +14625,11 @@
         "type": "datasource"
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "node-metrics",
+          "value": "node-metrics"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "BfDiy2hMk"
@@ -14648,7 +14652,11 @@
         "useTags": false
       },
       {
-        "current": {},
+        "current": {
+          "selected": false,
+          "text": "VPS",
+          "value": "VPS"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "BfDiy2hMk"

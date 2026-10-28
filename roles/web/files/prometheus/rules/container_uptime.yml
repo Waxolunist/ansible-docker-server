@@ -3,9 +3,9 @@ groups:
     interval: 1m
     rules:
       - record: name:container_last_seen:max
-        expr: max by (name) (container_last_seen{name!="",name!="/"})
+        expr: max by (name, instance) (container_last_seen{name!="",name!="/"})
       - record: name:container_start_time_seconds:max
-        expr: max by (name) (container_start_time_seconds{name!="",name!="/"})
+        expr: max by (name, instance) (container_start_time_seconds{name!="",name!="/"})
       - record: container_up_bool
         expr: |
           (name:container_last_seen:max > bool (time() - 90))

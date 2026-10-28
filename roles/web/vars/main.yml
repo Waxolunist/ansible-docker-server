@@ -176,6 +176,8 @@
     grafana_url: "https://{{ grafana.domain }}"
     runbook_url: "https://github.com/Waxolunist/home_docs/blob/main/how-to"
     collector_target: "10.8.0.2:9105"
+    pi_node_target: "10.8.0.2:9100"
+    pi_cadvisor_target: "10.8.0.2:8081"
     scrape_jobs:
       - prometheus
       - docker
@@ -192,6 +194,8 @@
     grid_import_limit_watts: 8000
     memory_available_min_ratio: 0.1
     swap_used_max_bytes: 2147483648
+    swap_used_max_ratio: 0.6
+    pi_temperature_max_celsius: 80
     collector_job_stale_after:
       PsaHealthJob: 15m
       VehicleInfoJob: 30m

@@ -1,6 +1,6 @@
 {% set dash = alerting.grafana_url ~ '/d/' %}
 {% set status_page = dash ~ 'container-status-page' %}
-{% set node_page = dash ~ 'rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100' %}
+{% set node_page = dash ~ 'rYdddlPWk?var-job=node-metrics&var-node=' ~ '{{ $labels.instance }}' %}
 {% set runbook = alerting.runbook_url ~ '/' %}
 {% set respond = runbook ~ 'respond-to-alerts.md#' %}
 groups:
@@ -90,7 +90,7 @@ groups:
           severity: warning
           area: infra
         annotations:
-          summary: "The VPS is running out of memory"
+          summary: "{{ $labels.instance }} is running out of memory"
           description: "Only {{ $value | humanizePercentage }} of the memory is available. The OOM killer is next."
           dashboard: "[[ node_page ]]"
           runbook: "[[ respond ]]memorylow"
@@ -102,10 +102,22 @@ groups:
           severity: warning
           area: infra
         annotations:
-          summary: "The VPS is using a lot of swap"
+          summary: "{{ $labels.instance }} is using a lot of swap"
           description: "{{ $value | humanize1024 }}B of swap are in use. Memory is under sustained pressure; the OOM killer may be next."
           dashboard: "[[ node_page ]]"
           runbook: "[[ respond ]]swapusagehigh"
+
+      - alert: SwapUsageRatioHigh
+        expr: (node_memory_SwapTotal_bytes - node_memory_SwapFree_bytes) / node_memory_SwapTotal_bytes > [[ alerting.swap_used_max_ratio ]]
+        for: 10m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "{{ $labels.instance }} has used more than 60% of its swap"
+          description: "{{ $value | humanizePercentage }} of the swap is in use. Memory is under sustained pressure; the OOM killer may be next."
+          dashboard: "[[ node_page ]]"
+          runbook: "[[ respond ]]swapusageratiohigh"
 
       - alert: OomKill
         expr: increase(node_vmstat_oom_kill[10m]) > 0
@@ -117,6 +129,31 @@ groups:
           description: "{{ $value | printf \"%.0f\" }} processes were OOM-killed in the last 10 minutes. Check dmesg and docker inspect (State.OOMKilled) for the container."
           dashboard: "[[ node_page ]]"
           runbook: "[[ respond ]]oomkill"
+
+      - alert: TemperatureHigh
+        expr: node_hwmon_temp_celsius{instance="Pi"} > [[ alerting.pi_temperature_max_celsius ]]
+        for: 10m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "The Pi runs hot"
+          description: "The Pi's {{ $labels.chip }} sensor reads {{ printf \"%.0f\" $value }} °C. The Raspberry Pi throttles its CPU at 80 °C."
+          dashboard: "[[ node_page ]]"
+          runbook: "[[ respond ]]temperaturehigh"
+
+      - alert: MetricMissing_node_hwmon_temp_celsius
+        expr: absent(node_hwmon_temp_celsius{job="node-metrics",instance="Pi"})
+        for: 15m
+        labels:
+          severity: warning
+          area: infra
+          metric: node_hwmon_temp_celsius
+        annotations:
+          summary: "Metric node_hwmon_temp_celsius is missing"
+          description: "The Pi's node-exporter is scraped but no longer reports node_hwmon_temp_celsius, so TemperatureHigh cannot fire."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]metricmissing"
 
       - alert: BackupStale
         expr: time() - backup_last_success_timestamp_seconds > 36 * 3600

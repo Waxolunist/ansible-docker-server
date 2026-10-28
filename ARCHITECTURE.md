@@ -547,8 +547,8 @@ graph LR
 | `docker` | `docker.host:9323` | Docker engine metrics |
 | `registry` | `registry:5001` | Docker registry metrics |
 | `traefik` | `reverse-proxy:8080` | Traefik request/router metrics |
-| `node-metrics` | `node-exporter:9100` | Host CPU, memory, disk, network; the host `/` is mounted read-only at `/host` (`--path.rootfs`), so `node_filesystem_*` shows the real filesystems (`/backup` is a directory on `/`); `FilesystemUsageHigh` ignores the container bind mounts under `/etc` |
-| `cadvisor` | `cadvisor:8080` | Container resource metrics |
+| `node-metrics` | `node-exporter:9100` (`instance="VPS"`), `10.8.0.2:9100` (`instance="Pi"`, over WireGuard) | Host CPU, memory, disk, network; the host `/` is mounted read-only at `/host` (`--path.rootfs`), so `node_filesystem_*` shows the real filesystems (`/backup` is a directory on `/`); `FilesystemUsageHigh` ignores the container bind mounts under `/etc` |
+| `cadvisor` | `cadvisor:8080` (`instance="VPS"`), `10.8.0.2:8081` (`instance="Pi"`, over WireGuard) | Container resource metrics |
 | `postgres_exporter` | `postgres-exporter:9187` | TimescaleDB connection metrics via `pg_stat_activity` |
 | `coturn` | `docker.host:9641` | TURN server metrics. coturn sends no `Content-Type`, so the job sets `fallback_scrape_protocol: PrometheusText0.0.4`; without it Prometheus 3 rejects every scrape |
 | `alertmanager` | `alertmanager:9093` | Alertmanager's own metrics, including failed notifications |

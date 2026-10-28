@@ -57,9 +57,9 @@ tests:
   - name: MemoryLow fires below 10 % available memory
     interval: 1m
     input_series:
-      - series: 'node_memory_MemTotal_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_memory_MemTotal_bytes{job="node-metrics",instance="VPS"}'
         values: '8000000000x20'
-      - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="VPS"}'
         values: '2000000000x5 600000000x15'
     alert_rule_test:
       - eval_time: 5m
@@ -68,19 +68,19 @@ tests:
       - eval_time: 12m
         alertname: MemoryLow
         exp_alerts:
-          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: "node-exporter:9100"}
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: "VPS"}
             exp_annotations:
-              summary: "The VPS is running out of memory"
+              summary: "VPS is running out of memory"
               description: "Only 7.5% of the memory is available. The OOM killer is next."
-              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100"
+              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=VPS"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#memorylow"
 
   - name: SwapUsageHigh fires above 2 GiB of swap in use
     interval: 1m
     input_series:
-      - series: 'node_memory_SwapTotal_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_memory_SwapTotal_bytes{job="node-metrics",instance="VPS"}'
         values: '4294967296x30'
-      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="VPS"}'
         values: '4000000000x5 1500000000x25'
     alert_rule_test:
       - eval_time: 5m
@@ -89,12 +89,58 @@ tests:
       - eval_time: 20m
         alertname: SwapUsageHigh
         exp_alerts:
-          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: "node-exporter:9100"}
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: "VPS"}
             exp_annotations:
-              summary: "The VPS is using a lot of swap"
+              summary: "VPS is using a lot of swap"
               description: "2.603GiB of swap are in use. Memory is under sustained pressure; the OOM killer may be next."
-              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=node-exporter:9100"
+              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=VPS"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#swapusagehigh"
+
+  - name: TemperatureHigh fires when the Pi runs hot
+    interval: 1m
+    input_series:
+      - series: 'node_hwmon_temp_celsius{job="node-metrics",instance="Pi",chip="thermal_thermal_zone0",sensor="temp1"}'
+        values: '60x5 85x25'
+      - series: 'node_hwmon_temp_celsius{job="node-metrics",instance="VPS",chip="x",sensor="temp1"}'
+        values: '90x30'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: TemperatureHigh
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: TemperatureHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: Pi, chip: thermal_thermal_zone0, sensor: temp1}
+            exp_annotations:
+              summary: "The Pi runs hot"
+              description: "The Pi's thermal_thermal_zone0 sensor reads 85 °C. The Raspberry Pi throttles its CPU at 80 °C."
+              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=Pi"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#temperaturehigh"
+
+  - name: SwapUsageRatioHigh fires above 60 % of the swap in use
+    interval: 1m
+    input_series:
+      - series: 'node_memory_SwapTotal_bytes{job="node-metrics",instance="Pi"}'
+        values: '1000000000x30'
+      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="Pi"}'
+        values: '800000000x5 300000000x25'
+      - series: 'node_memory_SwapTotal_bytes{job="node-metrics",instance="VPS"}'
+        values: '0x30'
+      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="VPS"}'
+        values: '0x30'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: SwapUsageRatioHigh
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: SwapUsageRatioHigh
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: node-metrics, instance: Pi}
+            exp_annotations:
+              summary: "Pi has used more than 60% of its swap"
+              description: "70% of the swap is in use. Memory is under sustained pressure; the OOM killer may be next."
+              dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=Pi"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#swapusageratiohigh"
 
   - name: ContainerRestartingFrequently links the container's status page
     interval: 1m
@@ -325,11 +371,11 @@ tests:
         values: '99999999999x20'
       - series: 'container_start_time_seconds{job="cadvisor",instance="cadvisor:8080",name="web_grafana"}'
         values: '0x20'
-      - series: 'node_filesystem_avail_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_filesystem_avail_bytes{job="node-metrics",instance="VPS"}'
         values: '1x20'
-      - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_memory_MemAvailable_bytes{job="node-metrics",instance="VPS"}'
         values: '1x20'
-      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="node-exporter:9100"}'
+      - series: 'node_memory_SwapFree_bytes{job="node-metrics",instance="VPS"}'
         values: '1x20'
       - series: 'collector_job_failures_total{job="collector",instance="10.8.0.2:9105",collector_job="GoEEnergyJob"}'
         values: '0x20'
