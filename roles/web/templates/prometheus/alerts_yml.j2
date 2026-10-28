@@ -319,12 +319,53 @@ groups:
           description: "The ignition status is StartUp."
           dashboard: "[[ dash ]]ch6qwwl"
           runbook: "[[ respond ]]carstarted"
+
+      - alert: CarPluggedIn
+        expr: goe_car_state > 1 < 5
+        keep_firing_for: 2m
+        labels:
+          severity: info
+          area: car
+        annotations:
+          summary: "The car is plugged in at the go-e"
+          description: "The go-e reports a car (state {{ $value | printf \"%.0f\" }})."
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ respond ]]carpluggedin"
+
+      - alert: CarPluggedInAway
+        expr: vehicle_plugged_away == 1
+        for: 15m
+        keep_firing_for: 30m
+        labels:
+          severity: info
+          area: car
+        annotations:
+          summary: "The car is plugged in away from home"
+          description: "The car reports a charging cable, and the go-e has not seen the car since it was plugged in."
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ respond ]]carpluggedinaway"
+
+      - alert: CarBatteryFull
+        expr: vehicle_battery_level_percent >= 100 and on() (goe_car_state > 1 < 5 or vehicle_plugged == 1)
+        keep_firing_for: 1h
+        labels:
+          severity: info
+          area: car
+        annotations:
+          summary: "The car's battery is full"
+          description: "The car reports a battery level of {{ $value | printf \"%.0f\" }} % and is plugged in."
+          dashboard: "[[ dash ]]ch6qwwl"
+          runbook: "[[ respond ]]carbatteryfull"
 {% for metric, area in [
   ('collector_job_failures_total', 'data'),
   ('power_grid_watts', 'energy'),
   ('psa_health_up', 'car'),
   ('psa_api_authenticated', 'car'),
   ('vehicle_ignition_running', 'car'),
+  ('goe_car_state', 'car'),
+  ('vehicle_plugged', 'car'),
+  ('vehicle_plugged_away', 'car'),
+  ('vehicle_battery_level_percent', 'car'),
 ] %}
 
       - alert: MetricMissing_[[ metric ]]

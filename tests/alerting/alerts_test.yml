@@ -273,6 +273,124 @@ tests:
         alertname: CarStarted
         exp_alerts: []
 
+  - name: CarPluggedIn fires while the go-e has a car, bridges a short gap and resolves on unplug
+    interval: 1m
+    input_series:
+      - series: 'goe_car_state{job="collector",instance="10.8.0.2:9105"}'
+        values: '1x2 2x2 NaN 4x2 1x10'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: CarPluggedIn
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CarPluggedIn
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car is plugged in at the go-e"
+              description: "The go-e reports a car (state 2)."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carpluggedin"
+      - eval_time: 6m
+        alertname: CarPluggedIn
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car is plugged in at the go-e"
+              description: "The go-e reports a car (state 2)."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carpluggedin"
+      - eval_time: 11m
+        alertname: CarPluggedIn
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car is plugged in at the go-e"
+              description: "The go-e reports a car (state 4)."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carpluggedin"
+      - eval_time: 13m
+        alertname: CarPluggedIn
+        exp_alerts: []
+
+  - name: CarPluggedIn ignores the go-e error state
+    interval: 1m
+    input_series:
+      - series: 'goe_car_state{job="collector",instance="10.8.0.2:9105"}'
+        values: '5x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: CarPluggedIn
+        exp_alerts: []
+
+  - name: CarPluggedInAway needs 15 minutes and rides out flapping
+    interval: 1m
+    input_series:
+      - series: 'vehicle_plugged_away{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x2 1x20 0x5 1x10 0x40'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: CarPluggedInAway
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: CarPluggedInAway
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car is plugged in away from home"
+              description: "The car reports a charging cable, and the go-e has not seen the car since it was plugged in."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carpluggedinaway"
+      - eval_time: 26m
+        alertname: CarPluggedInAway
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car is plugged in away from home"
+              description: "The car reports a charging cable, and the go-e has not seen the car since it was plugged in."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carpluggedinaway"
+      - eval_time: 75m
+        alertname: CarPluggedInAway
+        exp_alerts: []
+
+  - name: CarBatteryFull fires at 100 % while plugged in
+    interval: 1m
+    input_series:
+      - series: 'vehicle_battery_level_percent{job="collector",instance="10.8.0.2:9105"}'
+        values: '99x3 100x10'
+      - series: 'goe_car_state{job="collector",instance="10.8.0.2:9105"}'
+        values: '4x13'
+      - series: 'vehicle_plugged{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x13'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: CarBatteryFull
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: CarBatteryFull
+        exp_alerts:
+          - exp_labels: {severity: info, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car's battery is full"
+              description: "The car reports a battery level of 100 % and is plugged in."
+              dashboard: "https://graph.v-collaborate.com/d/ch6qwwl"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carbatteryfull"
+
+  - name: CarBatteryFull stays quiet when the car is not plugged in
+    interval: 1m
+    input_series:
+      - series: 'vehicle_battery_level_percent{job="collector",instance="10.8.0.2:9105"}'
+        values: '100x10'
+      - series: 'goe_car_state{job="collector",instance="10.8.0.2:9105"}'
+        values: '1x10'
+      - series: 'vehicle_plugged{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x10'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: CarBatteryFull
+        exp_alerts: []
+
   - name: CollectorJobStale per job threshold, and for a job that never succeeded
     interval: 1m
     input_series:

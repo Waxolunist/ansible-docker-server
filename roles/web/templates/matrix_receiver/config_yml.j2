@@ -38,6 +38,12 @@ templating:
   firing-template: |
     {{ if eq .Alert.Labels.alertname "CarStarted" }}
     <p>🚗 <strong>Car has started</strong> at {{ .Alert.StartsAt.Local.Format "15:04" }}</p>
+    {{ else if eq .Alert.Labels.alertname "CarPluggedIn" }}
+    <p>🔌 <strong>Car plugged in</strong> at {{ .Alert.StartsAt.Local.Format "15:04" }}</p>
+    {{ else if eq .Alert.Labels.alertname "CarPluggedInAway" }}
+    <p>🔌 <strong>Car plugged in away from home</strong> at {{ .Alert.StartsAt.Local.Format "15:04" }}</p>
+    {{ else if eq .Alert.Labels.alertname "CarBatteryFull" }}
+    <p>🔋 <strong>Battery full</strong> at {{ .Alert.StartsAt.Local.Format "15:04" }}</p>
     {{ else }}
     <p>
     {{ if eq .Alert.Labels.severity "critical" }}@room{% for user in vault_matrix_alerts_mention_users | default([]) %} <a href="https://matrix.to/#/[[ user ]]">[[ user ]]</a>{% endfor %}<br>{{ end }}
@@ -53,6 +59,12 @@ templating:
   resolved-template: |
     {{ if eq .Alert.Labels.alertname "CarStarted" }}
     <p>🅿️ <strong>Car has stopped</strong> at {{ .Alert.EndsAt.Local.Format "15:04" }}, after {{ (.Alert.EndsAt.Sub .Alert.StartsAt).Round 60000000000 }}</p>
+    {{ else if eq .Alert.Labels.alertname "CarPluggedIn" }}
+    <p>🔌 <strong>Car unplugged</strong> at {{ .Alert.EndsAt.Local.Format "15:04" }}, after {{ (.Alert.EndsAt.Sub .Alert.StartsAt).Round 60000000000 }}</p>
+    {{ else if eq .Alert.Labels.alertname "CarPluggedInAway" }}
+    <p>🔌 <strong>Car unplugged away from home</strong> at {{ .Alert.EndsAt.Local.Format "15:04" }}, after {{ (.Alert.EndsAt.Sub .Alert.StartsAt).Round 60000000000 }}</p>
+    {{ else if eq .Alert.Labels.alertname "CarBatteryFull" }}
+    <p>🔋 <strong>Battery no longer full</strong> or car unplugged</p>
     {{ else }}
     <p>
     {{ .ComputedValues.icon }} <strong><font color="{{ .ComputedValues.color }}">RESOLVED</font></strong><br>
