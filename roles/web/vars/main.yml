@@ -251,3 +251,12 @@
         stale_after: -4h
         dashboard: energy-contract-prices
         description: "The spot prices run out in less than 4 hours, so tomorrow's prices have not arrived."
+
+  # Where the circles of the energy flow panel link to. Any Grafana path or URL.
+  grafana_flow_links:
+    pv: /d/cekyf6g8gyupse
+    grid: /d/del1obdfglfy8f
+    battery: /d/cekyf6g8gyupse
+    household: /d/bekag75iz9on4e
+    wallbox: /d/chw95zv
+    car: /d/ch6qwwl

@@ -51,9 +51,18 @@
   # Not template: dashboard JSON is full of {{ }} (legend formats), which
   # Jinja would try to render. Values that must stay out of this public
   # repository are written as @@NAME@@ placeholders and filled in here.
+  # "@@ENERGY_FLOW_PANEL@@" is replaced by the shared panel in
+  # grafana/flow/energy_flow_panel.json, whose @@FLOW_LINK_*@@ placeholders
+  # are filled from grafana_flow_links.
   - name: Grafana - Write dashboards
     copy:
-      content: "{{ lookup('file', item.src, rstrip=False) | replace('@@PSA_URL@@', vault_psa_url) | replace('@@PSA_VIN@@', vault_psa_vin) | replace('@@GOE_URL@@', vault_goe_url) }}"
+      content: >-
+        {%- set ns = namespace(text=lookup('file', item.src, rstrip=False)
+            | replace('"@@ENERGY_FLOW_PANEL@@"', lookup('file', 'grafana/flow/energy_flow_panel.json', rstrip=False))) -%}
+        {%- for name, target in grafana_flow_links.items() -%}
+        {%- set ns.text = ns.text | replace('@@FLOW_LINK_' ~ (name | upper) ~ '@@', target) -%}
+        {%- endfor -%}
+        {{ ns.text | replace('@@PSA_URL@@', vault_psa_url) | replace('@@PSA_VIN@@', vault_psa_vin) | replace('@@GOE_URL@@', vault_goe_url) }}
       dest: "{{ docker.paths.configs }}grafana/provisioning/dashboards/{{ item.path }}"
       mode: '0644'
       owner: '472'
