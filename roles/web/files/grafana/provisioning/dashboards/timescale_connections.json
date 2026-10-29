@@ -147,7 +147,7 @@
               "queryOptions": {},
               "transformations": [
                 {
-                  "group": "",
+                  "group": "organize",
                   "kind": "organize",
                   "spec": {
                     "options": {

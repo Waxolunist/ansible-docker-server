@@ -1842,7 +1842,7 @@
               "queryOptions": {},
               "transformations": [
                 {
-                  "group": "",
+                  "group": "joinByField",
                   "kind": "joinByField",
                   "spec": {
                     "options": {
@@ -1852,7 +1852,7 @@
                   }
                 },
                 {
-                  "group": "",
+                  "group": "organize",
                   "kind": "organize",
                   "spec": {
                     "options": {

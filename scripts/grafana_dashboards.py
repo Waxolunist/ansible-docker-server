@@ -158,9 +158,21 @@ def local_files():
     return files
 
 
+def fill_transformation_groups(node):
+    if isinstance(node, dict):
+        if node.get("group") == "" and node.get("kind"):
+            node["group"] = node["kind"]
+        for value in node.values():
+            fill_transformation_groups(value)
+    elif isinstance(node, list):
+        for value in node:
+            fill_transformation_groups(value)
+
+
 def clean(kind, data):
     """Strip what changes on every save, keep what the provider needs."""
     if kind == "v2":
+        fill_transformation_groups(data["spec"])
         return {
             "apiVersion": data["apiVersion"],
             "kind": data["kind"],
