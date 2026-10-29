@@ -737,7 +737,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold;",
+                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold,\n  (select value from settings_config where key = 'grid_import_limit_kw') as grid_import_limit_kw,\n  (select value from settings_config where key = 'grid_import_alert_kw') as grid_import_alert_kw;",
                         "sql": {
                           "columns": [
                             {
@@ -828,7 +828,7 @@
                     },
                     "section": "",
                     "title": "Charging mode",
-                    "tooltip": "Charging power of the go-e, applied within 5 minutes",
+                    "tooltip": "Charging power of the go-e; the fixed modes are applied within 5 minutes, auto adjusts every minute",
                     "type": "select",
                     "uid": "47f28024-5b45-4cbe-a093-880f689e8ffa",
                     "unit": "",
@@ -857,7 +857,7 @@
                       },
                       {
                         "id": "auto",
-                        "label": "Auto (like Balanced for now)",
+                        "label": "Auto (1 \u00d7 6 A \u2026 3 \u00d7 10 A, holds the grid import limit)",
                         "type": "string",
                         "value": "auto"
                       }
@@ -943,6 +943,42 @@
                         "value": "100"
                       }
                     ]
+                  },
+                  {
+                    "id": "grid_import_limit_kw",
+                    "labelWidth": 30,
+                    "queryField": {
+                      "label": "A:grid_import_limit_kw",
+                      "refId": "A",
+                      "value": "grid_import_limit_kw"
+                    },
+                    "section": "",
+                    "title": "Auto: grid import limit",
+                    "tooltip": "Grid import the auto charging mode holds by lowering the charger, applied within a minute",
+                    "type": "number",
+                    "uid": "6571e453-88a5-4ed1-a080-4369f8d99050",
+                    "unit": "kW",
+                    "value": 10,
+                    "min": 2,
+                    "max": 30
+                  },
+                  {
+                    "id": "grid_import_alert_kw",
+                    "labelWidth": 30,
+                    "queryField": {
+                      "label": "A:grid_import_alert_kw",
+                      "refId": "A",
+                      "value": "grid_import_alert_kw"
+                    },
+                    "section": "",
+                    "title": "Grid import alert line",
+                    "tooltip": "Grid import above which GridImportHigh fires after 2 minutes; keep it above the auto limit",
+                    "type": "number",
+                    "uid": "485f3030-bda8-4bf1-aeb8-806681ea77e9",
+                    "unit": "kW",
+                    "value": 12,
+                    "min": 2,
+                    "max": 40
                   }
                 ],
                 "initial": {
@@ -998,7 +1034,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold');",
+                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n    when 'grid_import_limit_kw' then '${payload.grid_import_limit_kw}'\n    when 'grid_import_alert_kw' then '${payload.grid_import_alert_kw}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold', 'grid_import_limit_kw', 'grid_import_alert_kw');",
                     "refId": "A",
                     "sql": {
                       "columns": [
