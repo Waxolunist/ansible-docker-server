@@ -1158,7 +1158,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(sum by (service) (rate(traefik_service_requests_total[$__rate_interval])), \"service\", \"$1\", \"service\", \"([^@]+?)(?:-docker)?@.*\")",
+                        "expr": "label_replace(sum by (service) (rate(traefik_service_requests_total{instance=~\"$host\"}[$__rate_interval])), \"service\", \"$1\", \"service\", \"([^@]+?)(?:-docker)?@.*\")",
                         "format": "time_series",
                         "instant": false,
                         "legendFormat": "{{service}}",
@@ -1326,7 +1326,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(sum by (service) (rate(traefik_service_requests_total{code=~\"5..\"}[$__rate_interval])) / sum by (service) (rate(traefik_service_requests_total[$__rate_interval])) > 0, \"service\", \"$1\", \"service\", \"([^@]+?)(?:-docker)?@.*\")",
+                        "expr": "label_replace(sum by (service) (rate(traefik_service_requests_total{instance=~\"$host\",code=~\"5..\"}[$__rate_interval])) / sum by (service) (rate(traefik_service_requests_total{instance=~\"$host\"}[$__rate_interval])) > 0, \"service\", \"$1\", \"service\", \"([^@]+?)(?:-docker)?@.*\")",
                         "format": "time_series",
                         "instant": false,
                         "legendFormat": "{{service}}",
@@ -1421,7 +1421,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sort(min by (cn) (traefik_tls_certs_not_after - time()) / 86400)",
+                        "expr": "sort(min by (cn) (traefik_tls_certs_not_after{instance=~\"$host\"} - time()) / 86400)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "{{cn}}",
@@ -2098,7 +2098,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "min(min by (cn) (traefik_tls_certs_not_after - time()) / 86400)",
+                        "expr": "min(min by (cn) (traefik_tls_certs_not_after{instance=~\"$host\"} - time()) / 86400)",
                         "format": "time_series",
                         "instant": true,
                         "legendFormat": "",

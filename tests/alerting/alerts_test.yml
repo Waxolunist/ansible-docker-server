@@ -8,7 +8,7 @@ tests:
   - name: Watchdog always fires and nothing else fires without data
     interval: 1m
     input_series:
-      - series: 'up{job="traefik",instance="reverse-proxy:8080"}'
+      - series: 'up{job="traefik",instance="VPS"}'
         values: '1x10'
     alert_rule_test:
       - eval_time: 5m
@@ -27,7 +27,7 @@ tests:
   - name: A scrape target down fires TargetDown, the collector fires PiUnreachable instead
     interval: 1m
     input_series:
-      - series: 'up{job="traefik",instance="reverse-proxy:8080"}'
+      - series: 'up{job="traefik",instance="VPS"}'
         values: '0x10'
       - series: 'up{job="collector",instance="10.8.0.2:9105"}'
         values: '0x10'
@@ -38,10 +38,10 @@ tests:
       - eval_time: 6m
         alertname: TargetDown_traefik
         exp_alerts:
-          - exp_labels: {severity: warning, area: infra, job: traefik, instance: "reverse-proxy:8080"}
+          - exp_labels: {severity: warning, area: infra, job: traefik, instance: "VPS"}
             exp_annotations:
               summary: "Prometheus cannot scrape traefik"
-              description: "reverse-proxy:8080 has not answered a scrape for 5 minutes. Alerts on its metrics are held back."
+              description: "VPS has not answered a scrape for 5 minutes. Alerts on its metrics are held back."
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#targetdown"
       - eval_time: 6m
@@ -74,6 +74,24 @@ tests:
               description: "Only 7.5% of the memory is available. The OOM killer is next."
               dashboard: "https://graph.v-collaborate.com/d/rYdddlPWk?var-job=node-metrics&var-node=VPS"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#memorylow"
+
+  - name: TlsCertificateExpiringSoon fires per certificate and links to that Traefik's TLS tab
+    interval: 1m
+    input_series:
+      - series: 'traefik_tls_certs_not_after{job="traefik",instance="Pi",cn="psa.example",sans="psa.example"}'
+        values: '864000x10'
+      - series: 'traefik_tls_certs_not_after{job="traefik",instance="VPS",cn="graph.example",sans="graph.example"}'
+        values: '5184000x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: TlsCertificateExpiringSoon
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, job: traefik, instance: "Pi", cn: "psa.example", sans: "psa.example"}
+            exp_annotations:
+              summary: "TLS certificate psa.example expires in less than 14 days"
+              description: "Certificate CN=psa.example SANs=psa.example expires in 10.0 days."
+              dashboard: "https://graph.v-collaborate.com/d/traefik?var-instance=Pi&dtab=TLS"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#tlscertificateexpiringsoon"
 
   - name: SwapUsageHigh fires above 2 GiB of swap in use
     interval: 1m
@@ -485,7 +503,7 @@ tests:
   - name: A metric missing while its target is up fires MetricMissing with the target's job
     interval: 1m
     input_series:
-      - series: 'traefik_tls_certs_not_after{job="traefik",instance="reverse-proxy:8080",cn="x"}'
+      - series: 'traefik_tls_certs_not_after{job="traefik",instance="VPS",cn="x"}'
         values: '99999999999x20'
       - series: 'container_start_time_seconds{job="cadvisor",instance="cadvisor:8080",name="web_grafana"}'
         values: '0x20'

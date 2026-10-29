@@ -178,6 +178,7 @@
     collector_target: "10.8.0.2:9105"
     pi_node_target: "10.8.0.2:9100"
     pi_cadvisor_target: "10.8.0.2:8081"
+    pi_traefik_target: "10.8.0.2:8082"
     scrape_jobs:
       - prometheus
       - docker

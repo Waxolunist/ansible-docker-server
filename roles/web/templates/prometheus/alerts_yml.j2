@@ -1,6 +1,7 @@
 {% set dash = alerting.grafana_url ~ '/d/' %}
 {% set status_page = dash ~ 'container-status-page' %}
 {% set node_page = dash ~ 'rYdddlPWk?var-job=node-metrics&var-node=' ~ '{{ $labels.instance }}' %}
+{% set traefik_tls_page = dash ~ 'traefik?var-instance=' ~ '{{ $labels.instance }}' ~ '&dtab=TLS' %}
 {% set runbook = alerting.runbook_url ~ '/' %}
 {% set respond = runbook ~ 'respond-to-alerts.md#' %}
 groups:
@@ -56,7 +57,7 @@ groups:
         annotations:
           summary: "TLS certificate {{ $labels.cn }} expires in less than 14 days"
           description: "Certificate CN={{ $labels.cn }} SANs={{ $labels.sans }} expires in {{ printf \"%.1f\" $value }} days."
-          dashboard: "[[ status_page ]]"
+          dashboard: "[[ traefik_tls_page ]]"
           runbook: "[[ respond ]]tlscertificateexpiringsoon"
 
       - alert: ContainerRestartingFrequently
