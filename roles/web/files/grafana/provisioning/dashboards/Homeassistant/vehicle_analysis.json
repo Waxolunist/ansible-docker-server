@@ -504,9 +504,9 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "time_series",
+                        "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select (year + interval '6 months')::timestamp at time zone 'Europe/Vienna' as time, price_fuel / km * 100 as \"Combustion car\", price_car / km * 100 as \"EV\"\nfrom agg_1year_what_if\nwhere km > 0\norder by time;"
+                        "rawSql": "select to_char(month, 'YYYY-MM') as month, price_fuel / km * 100 as \"Combustion car\", price_car / km * 100 as \"EV\"\nfrom agg_1month_what_if\nwhere km > 0\norder by month;"
                       },
                       "version": "v0"
                     },
@@ -514,42 +514,42 @@
                   }
                 }
               ],
-              "queryOptions": {
-                "hideTimeOverride": true,
-                "timeFrom": "5y"
-              },
+              "queryOptions": {},
               "transformations": []
             }
           },
-          "description": "agg_1year_what_if: the reference car's fuel (km x l/100 km x the day's fuel price) against the EV's grid energy at the hourly price, PV energy free, both divided by the driven km. The current year is the year to date; 2022 is only December.",
+          "description": "agg_1month_what_if: the reference car's fuel (km x l/100 km x the day's fuel price) against the EV's grid energy at the hourly price, PV energy free, both divided by the driven km. The current month is the month to date; months without driven km are left out.",
           "id": 14,
           "links": [],
           "title": "Cost per 100 km: combustion car vs EV",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "barchart",
             "kind": "VizConfig",
             "version": "13.2.4",
             "spec": {
               "fieldConfig": {
                 "defaults": {
                   "unit": "suffix: €/100 km",
-                  "decimals": 2,
-                  "custom": {
-                    "drawStyle": "bars",
-                    "fillOpacity": 80,
-                    "lineWidth": 1,
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.8,
-                    "showPoints": "never",
-                    "stacking": {
-                      "mode": "none",
-                      "group": "A"
-                    }
-                  }
+                  "decimals": 2
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "month"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
+                "xField": "month",
+                "stacking": "none",
                 "legend": {
                   "displayMode": "list",
                   "placement": "bottom",
@@ -558,7 +558,9 @@
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
-                }
+                },
+                "xTickLabelRotation": -45,
+                "xTickLabelSpacing": 0
               }
             }
           }
