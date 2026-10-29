@@ -502,7 +502,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_char(month, 'YYYY-MM') as month, price_fuel / km * 100 as \"Combustion car\", price_car / km * 100 as \"EV\"\nfrom agg_1month_what_if\nwhere km > 0\n  and month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by month;"
+                        "rawSql": "with trips as (\n    select date_trunc('month', start_at at time zone 'Europe/Vienna')::date as month,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n)\nselect to_char(w.month, 'YYYY-MM') as month,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom agg_1month_what_if w\nleft join trips t on t.month = w.month\ncross join overall o\nwhere w.km > 0\n  and w.month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and w.month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by w.month;"
                       },
                       "version": "v0"
                     },
@@ -514,7 +514,7 @@
               "transformations": []
             }
           },
-          "description": "agg_1month_what_if: the reference car's fuel (km x l/100 km x the day's fuel price) against the EV's grid energy at the hourly price, PV energy free, both divided by the driven km. The current month is the month to date; months without driven km are left out.",
+          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, from agg_1month_what_if. EV: the average price per kWh paid for home charging that month (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. Months without trips use the average consumption over all trips. The trip consumption leaves out charging losses.",
           "id": 14,
           "links": [],
           "title": "Cost per 100 km: combustion car vs EV",
