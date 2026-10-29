@@ -646,7 +646,7 @@
         "1d"
       ],
       "fiscalYearStartMonth": 0,
-      "from": "now-90d",
+      "from": "now-1y",
       "hideTimepicker": false,
       "timezone": "browser",
       "to": "now"
