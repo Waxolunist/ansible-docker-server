@@ -1769,14 +1769,58 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "power_goe_watts",
+                        "expr": "goe_phase_mode",
                         "instant": true,
-                        "legendFormat": "Power",
+                        "legendFormat": "Phases",
                         "range": false
                       },
                       "version": "v0"
                     },
                     "refId": "C"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "goe_ampere",
+                        "instant": true,
+                        "legendFormat": "Current",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "D"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "goe_ampere * 0.23 * (1 + 2 * (goe_phase_mode == bool 2)) unless on() (goe_phase_mode == 0)",
+                        "instant": true,
+                        "legendFormat": "Setting",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "E"
                   }
                 }
               ],
@@ -1784,7 +1828,7 @@
               "transformations": []
             }
           },
-          "description": "The charger's last reading, taken by the collector every 5 s and read from Prometheus, so refreshing the dashboard doesn't call the charger. Empty when the collector has had no answer from the charger for 60 s. After pressing a button the new command shows within about 10 s.",
+          "description": "The charger's last reading, taken by the collector every 5 s and read from Prometheus, so refreshing the dashboard doesn't call the charger. Empty when the collector has had no answer from the charger for 60 s. Phases and Current are what the go-e is set to, Setting is phases × 230 V × current. After pressing a button or changing the charging mode the new values show within about 10 s.",
           "id": 25,
           "links": [],
           "title": "Charger (live)",
@@ -1795,7 +1839,8 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "mode": "thresholds"
+                    "mode": "thresholds",
+                    "fixedColor": "#ad46ff"
                   },
                   "thresholds": {
                     "mode": "absolute",
@@ -1892,26 +1937,75 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "Power"
+                      "options": "Phases"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "color": "text",
+                                "index": 0,
+                                "text": "Auto"
+                              },
+                              "1": {
+                                "color": "text",
+                                "index": 1,
+                                "text": "1 phase"
+                              },
+                              "2": {
+                                "color": "text",
+                                "index": 2,
+                                "text": "3 phases"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Current"
                     },
                     "properties": [
                       {
                         "id": "unit",
-                        "value": "watt"
+                        "value": "amp"
                       },
                       {
                         "id": "decimals",
                         "value": 0
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Setting"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "kwatt"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
                   }
                 ]
               },
               "options": {
-                "colorMode": "value",
-                "graphMode": "none",
-                "justifyMode": "center",
-                "orientation": "vertical",
+                "colorMode": "background",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
                 "percentChangeColorMode": "standard",
                 "reduceOptions": {
                   "calcs": [
@@ -1921,7 +2015,7 @@
                   "values": false
                 },
                 "showPercentChange": false,
-                "textMode": "value_and_name",
+                "textMode": "auto",
                 "wideLayout": true
               }
             },
@@ -2281,7 +2375,111 @@
           }
         }
       },
-      "panel-90": "@@ENERGY_FLOW_PANEL@@"
+      "panel-90": "@@ENERGY_FLOW_PANEL@@",
+      "panel-26": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "power_goe_watts",
+                        "instant": true,
+                        "legendFormat": "Power",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "The power the go-e delivers right now, from the collector's last reading (see Charger (live)). The markers are the steps of the charging modes: 2.3 kW slow, 6.9 kW balanced, 11 kW fast.",
+          "id": 26,
+          "links": [],
+          "title": "Charging power",
+          "vizConfig": {
+            "group": "gauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 11000,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "super-light-blue",
+                        "value": 0
+                      },
+                      {
+                        "color": "light-blue",
+                        "value": 2300
+                      },
+                      {
+                        "color": "blue",
+                        "value": 6900
+                      }
+                    ]
+                  },
+                  "unit": "watt",
+                  "decimals": 1
+                },
+                "overrides": []
+              },
+              "options": {
+                "barShape": "flat",
+                "barWidthFactor": 0.5,
+                "effects": {
+                  "barGlow": false,
+                  "centerGlow": false,
+                  "gradient": false
+                },
+                "endpointMarker": "point",
+                "minVizHeight": 75,
+                "minVizWidth": 75,
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "segmentCount": 1,
+                "segmentSpacing": 0.3,
+                "shape": "gauge",
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true,
+                "sizing": "auto",
+                "sparkline": false,
+                "textMode": "auto"
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      }
     },
     "layout": {
       "kind": "RowsLayout",
@@ -2349,6 +2547,24 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
+                          "name": "panel-26"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-25"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
                           "name": "panel-9"
                         }
                       }
@@ -2363,7 +2579,7 @@
                       }
                     }
                   ],
-                  "maxColumnCount": 4,
+                  "maxColumnCount": 6,
                   "rowHeightMode": "standard"
                 }
               },
@@ -2464,21 +2680,12 @@
                                 "spec": {
                                   "element": {
                                     "kind": "ElementReference",
-                                    "name": "panel-25"
-                                  }
-                                }
-                              },
-                              {
-                                "kind": "AutoGridLayoutItem",
-                                "spec": {
-                                  "element": {
-                                    "kind": "ElementReference",
                                     "name": "panel-20"
                                   }
                                 }
                               }
                             ],
-                            "maxColumnCount": 3,
+                            "maxColumnCount": 2,
                             "rowHeightMode": "standard"
                           }
                         },
