@@ -76,11 +76,7 @@
                   }
                 }
               ],
-              "queryOptions": {
-                "hideTimeOverride": true,
-                "timeFrom": "1y/y",
-                "timeShift": "0y/y"
-              },
+              "queryOptions": {},
               "transformations": [
                 {
                   "group": "regression",
@@ -506,7 +502,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_char(month, 'YYYY-MM') as month, price_fuel / km * 100 as \"Combustion car\", price_car / km * 100 as \"EV\"\nfrom agg_1month_what_if\nwhere km > 0\norder by month;"
+                        "rawSql": "select to_char(month, 'YYYY-MM') as month, price_fuel / km * 100 as \"Combustion car\", price_car / km * 100 as \"EV\"\nfrom agg_1month_what_if\nwhere km > 0\n  and month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by month;"
                       },
                       "version": "v0"
                     },
@@ -650,8 +646,8 @@
         "1d"
       ],
       "fiscalYearStartMonth": 0,
-      "from": "now-6h",
-      "hideTimepicker": true,
+      "from": "now-90d",
+      "hideTimepicker": false,
       "timezone": "browser",
       "to": "now"
     },
