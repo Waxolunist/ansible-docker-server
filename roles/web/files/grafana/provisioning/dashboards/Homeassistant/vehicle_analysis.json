@@ -51,7 +51,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time_bucket('1 month', start_at) as time, average(stats_agg(consumption_km)) as consumption\nfrom data_vehicle_trips \nwhere $__timeFilter(start_at) \ngroup by time\norder by time;",
+                        "rawSql": "select time_bucket('1 month', start_at, 'Europe/Vienna') as time, sum(consumption) / sum(distance) * 100 as consumption\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at)\n  and distance > 0 and consumption > 0\ngroup by time\norder by time;",
                         "sql": {
                           "columns": [
                             {
@@ -93,7 +93,7 @@
               ]
             }
           },
-          "description": "",
+          "description": "data_vehicle_trips: the energy of all trips of the month divided by their distance (kWh/100 km), so long trips weigh by their km, the same consumption the EV bar of Cost per 100 km uses. The red line is a polynomial regression (degree 5).",
           "id": 11,
           "links": [],
           "title": "Average Consumption",
