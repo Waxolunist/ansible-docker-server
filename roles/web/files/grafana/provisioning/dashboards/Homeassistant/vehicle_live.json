@@ -214,7 +214,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "State of health of the traction battery in percent. The car reports it to the Stellantis API as the battery resistance health (battery.health.resistance), not as a capacity measurement. psa_car_controller stores it whenever it records a charge, and the collector reads the latest value every 5 minutes. The panel shows that last recorded value, so it changes only after a new charge is recorded.",
           "id": 10,
           "links": [],
           "title": "Battery SOH",
