@@ -502,7 +502,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with trips as (\n    select date_trunc('month', start_at at time zone 'Europe/Vienna')::date as month,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n)\nselect to_char(w.month, 'YYYY-MM') as month,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom agg_1month_what_if w\nleft join trips t on t.month = w.month\ncross join overall o\nwhere w.km > 0\n  and w.month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and w.month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by w.month;"
+                        "rawSql": "with trips as (\n    select date_trunc('month', start_at at time zone 'Europe/Vienna')::date as month,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n)\nselect (w.month + 14)::timestamp at time zone 'Europe/Vienna' as time,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom agg_1month_what_if w\nleft join trips t on t.month = w.month\ncross join overall o\nwhere w.km > 0\n  and w.month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and w.month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by time;"
                       },
                       "version": "v0"
                     },
@@ -511,41 +511,119 @@
                 }
               ],
               "queryOptions": {},
-              "transformations": []
+              "transformations": [
+                {
+                  "group": "regression",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "degree": 5,
+                      "modelType": "polynomial",
+                      "xFieldName": "time",
+                      "yFieldName": "EV"
+                    }
+                  }
+                }
+              ]
             }
           },
-          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, from agg_1month_what_if. EV: the average price per kWh paid for home charging that month (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. Months without trips use the average consumption over all trips. The trip consumption leaves out charging losses.",
+          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, from agg_1month_what_if. EV: the average price per kWh paid for home charging that month (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. Months without trips use the average consumption over all trips. The trip consumption leaves out charging losses. The red line is a polynomial regression (degree 5) over the EV bars, as on Average Consumption.",
           "id": 14,
           "links": [],
           "title": "Cost per 100 km: combustion car vs EV",
           "vizConfig": {
-            "group": "barchart",
+            "group": "timeseries",
             "kind": "VizConfig",
             "version": "13.2.4",
             "spec": {
               "fieldConfig": {
                 "defaults": {
                   "unit": "suffix: €/100 km",
-                  "decimals": 2
+                  "decimals": 2,
+                  "min": 0,
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "dark-red"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "lineWidth": 5,
+                    "fillOpacity": 0,
+                    "showPoints": "never",
+                    "barWidthFactor": 0.4,
+                    "stacking": {
+                      "mode": "none",
+                      "group": "A"
+                    }
+                  },
+                  "displayName": "EV (Regression)"
                 },
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byName",
-                      "options": "month"
+                      "id": "byFrameRefID",
+                      "options": "A"
                     },
                     "properties": [
                       {
-                        "id": "unit",
-                        "value": "none"
+                        "id": "displayName",
+                        "value": "EV"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "blue"
+                        }
+                      },
+                      {
+                        "id": "custom.barAlignment",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "bars"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 80
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Combustion car"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Combustion car"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "fixed",
+                          "fixedColor": "orange"
+                        }
+                      },
+                      {
+                        "id": "custom.barAlignment",
+                        "value": -1
                       }
                     ]
                   }
                 ]
               },
               "options": {
-                "xField": "month",
-                "stacking": "none",
                 "legend": {
                   "displayMode": "list",
                   "placement": "bottom",
@@ -554,9 +632,7 @@
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
-                },
-                "xTickLabelRotation": -45,
-                "xTickLabelSpacing": 0
+                }
               }
             }
           }
