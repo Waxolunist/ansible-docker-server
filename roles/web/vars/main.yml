@@ -192,7 +192,6 @@
       - alertmanager
       - matrix_receiver
       - sql_exporter
-    grid_import_limit_watts: 8000
     memory_available_min_ratio: 0.1
     swap_used_max_bytes: 2147483648
     swap_used_max_ratio: 0.6
