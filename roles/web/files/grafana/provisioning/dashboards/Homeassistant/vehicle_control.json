@@ -828,7 +828,7 @@
                     },
                     "section": "",
                     "title": "Charging mode",
-                    "tooltip": "Charging power of the go-e; the fixed modes are applied within 5 minutes, auto adjusts every minute",
+                    "tooltip": "Charging power of the go-e; applied within a minute",
                     "type": "select",
                     "uid": "47f28024-5b45-4cbe-a093-880f689e8ffa",
                     "unit": "",
