@@ -484,6 +484,85 @@
             "version": "12.0.0"
           }
         }
+      },
+      "panel-14": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "time_series",
+                        "rawQuery": true,
+                        "rawSql": "select (year + interval '6 months')::timestamp at time zone 'Europe/Vienna' as time, price_fuel / km * 100 as \"Combustion car\", price_car / km * 100 as \"EV\"\nfrom agg_1year_what_if\nwhere km > 0\norder by time;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "5y"
+              },
+              "transformations": []
+            }
+          },
+          "description": "agg_1year_what_if: the reference car's fuel (km x l/100 km x the day's fuel price) against the EV's grid energy at the hourly price, PV energy free, both divided by the driven km. The current year is the year to date; 2022 is only December.",
+          "id": 14,
+          "links": [],
+          "title": "Cost per 100 km: combustion car vs EV",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "version": "13.2.4",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "suffix: €/100 km",
+                  "decimals": 2,
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "lineWidth": 1,
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.8,
+                    "showPoints": "never",
+                    "stacking": {
+                      "mode": "none",
+                      "group": "A"
+                    }
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "layout": {
@@ -498,6 +577,15 @@
               "element": {
                 "kind": "ElementReference",
                 "name": "panel-11"
+              }
+            }
+          },
+          {
+            "kind": "AutoGridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-14"
               }
             }
           },
