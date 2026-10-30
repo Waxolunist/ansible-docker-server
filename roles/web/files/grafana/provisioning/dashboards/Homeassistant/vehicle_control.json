@@ -844,7 +844,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold,\n  (select value from settings_config where key = 'grid_import_limit_kw') as grid_import_limit_kw,\n  (select value from settings_config where key = 'grid_import_alert_kw') as grid_import_alert_kw;",
+                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold,\n  (select value from settings_config where key = 'grid_import_limit_kw') as grid_import_limit_kw,\n  (select value from settings_config where key = 'grid_import_alert_kw') as grid_import_alert_kw,\n  (select value from settings_config where key = 'grid_import_raise_margin_kw') as grid_import_raise_margin_kw;",
                         "sql": {
                           "columns": [
                             {
@@ -1086,6 +1086,24 @@
                     "value": 12,
                     "min": 2,
                     "max": 40
+                  },
+                  {
+                    "id": "grid_import_raise_margin_kw",
+                    "labelWidth": 30,
+                    "queryField": {
+                      "label": "A:grid_import_raise_margin_kw",
+                      "refId": "A",
+                      "value": "grid_import_raise_margin_kw"
+                    },
+                    "section": "",
+                    "title": "Auto: raise margin",
+                    "tooltip": "Room the next step needs on top of its own power before auto raises the charger; lowering is never delayed",
+                    "type": "number",
+                    "uid": "a3c91d57-2e84-4f6b-b0d9-7c15e8a2f640",
+                    "unit": "kW",
+                    "value": 0.3,
+                    "min": 0,
+                    "max": 3
                   }
                 ],
                 "initial": {
@@ -1141,7 +1159,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n    when 'grid_import_limit_kw' then '${payload.grid_import_limit_kw}'\n    when 'grid_import_alert_kw' then '${payload.grid_import_alert_kw}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold', 'grid_import_limit_kw', 'grid_import_alert_kw');",
+                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n    when 'grid_import_limit_kw' then '${payload.grid_import_limit_kw}'\n    when 'grid_import_alert_kw' then '${payload.grid_import_alert_kw}'\n    when 'grid_import_raise_margin_kw' then '${payload.grid_import_raise_margin_kw}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold', 'grid_import_limit_kw', 'grid_import_alert_kw', 'grid_import_raise_margin_kw');",
                     "refId": "A",
                     "sql": {
                       "columns": [
