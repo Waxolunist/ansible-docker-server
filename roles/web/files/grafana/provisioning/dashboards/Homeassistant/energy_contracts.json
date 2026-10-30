@@ -3790,9 +3790,9 @@
                                             "kind": "DataQuery",
                                             "spec": {
                                                 "editorMode": "code",
-                                                "format": "time_series",
+                                                "format": "table",
                                                 "rawQuery": true,
-                                                "rawSql": "select (year + interval '6 months')::timestamp at time zone 'Europe/Vienna' as time, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by time;"
+                                                "rawSql": "select to_char(year, 'YYYY') as year, saved_pv as \"PV\", saved_ev as \"EV\", saved_both as \"PV and EV\"\nfrom agg_1year_what_if\norder by year;"
                                             },
                                             "version": "v0"
                                         },
@@ -3807,62 +3807,39 @@
                             "transformations": []
                         }
                     },
-                    "description": "agg_1year_what_if, the same as per month. 2022 is only December. PV and EV are stacked bars; the line is the combined saving, which counts the car's PV energy once, so it lies a little below the top of the stack.",
+                    "description": "agg_1year_what_if, the same as per month. 2022 is only December. PV and EV next to each other; \"PV and EV\" is the combined saving, which counts the car's PV energy once, so it is a little less than PV plus EV.",
                     "id": 7,
                     "links": [],
                     "title": "Savings per year",
                     "vizConfig": {
-                        "group": "timeseries",
+                        "group": "barchart",
                         "kind": "VizConfig",
                         "version": "13.2.4",
                         "spec": {
                             "fieldConfig": {
                                 "defaults": {
                                     "unit": "suffix: €",
-                                    "decimals": 0,
-                                    "custom": {
-                                        "drawStyle": "bars",
-                                        "fillOpacity": 80,
-                                        "lineWidth": 1,
-                                        "barAlignment": 0,
-                                        "barWidthFactor": 0.8,
-                                        "showPoints": "never",
-                                        "stacking": {
-                                            "mode": "normal",
-                                            "group": "A"
-                                        }
-                                    }
+                                    "decimals": 0
                                 },
                                 "overrides": [
+                                    {
+                                        "matcher": {
+                                            "id": "byName",
+                                            "options": "year"
+                                        },
+                                        "properties": [
+                                            {
+                                                "id": "unit",
+                                                "value": "none"
+                                            }
+                                        ]
+                                    },
                                     {
                                         "matcher": {
                                             "id": "byName",
                                             "options": "PV and EV"
                                         },
                                         "properties": [
-                                            {
-                                                "id": "custom.drawStyle",
-                                                "value": "line"
-                                            },
-                                            {
-                                                "id": "custom.stacking",
-                                                "value": {
-                                                    "mode": "none",
-                                                    "group": "B"
-                                                }
-                                            },
-                                            {
-                                                "id": "custom.lineWidth",
-                                                "value": 2
-                                            },
-                                            {
-                                                "id": "custom.fillOpacity",
-                                                "value": 0
-                                            },
-                                            {
-                                                "id": "custom.showPoints",
-                                                "value": "always"
-                                            },
                                             {
                                                 "id": "color",
                                                 "value": {
@@ -3875,6 +3852,8 @@
                                 ]
                             },
                             "options": {
+                                "xField": "year",
+                                "stacking": "none",
                                 "legend": {
                                     "displayMode": "list",
                                     "placement": "bottom",
