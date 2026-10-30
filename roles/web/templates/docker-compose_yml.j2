@@ -10,7 +10,7 @@ services:
       - {{ registry.port }}
     volumes:
       - "{{ docker.paths.work }}registry:/var/lib/registry"
-      - "{{ docker.paths.configs }}registry/config.yml:/etc/docker/registry/config.yml:ro"
+      - "{{ docker.paths.configs }}registry/config.yml:/etc/distribution/config.yml:ro"
       - "{{ docker.paths.logs }}registry:/var/log/docker-registry"
       - "{{ docker.paths.configs }}registry/secrets:/secrets:ro"
     networks:

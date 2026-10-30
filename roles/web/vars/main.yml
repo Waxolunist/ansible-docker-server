@@ -157,6 +157,7 @@
     - sql-exporter
     - cadvisor
     - node-exporter
+    - registry
 
   restart_container: no
 

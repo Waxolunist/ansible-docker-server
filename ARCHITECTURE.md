@@ -683,7 +683,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 
 | Service | Config Mount | Data Mount | Work Mount | Log Mount |
 |---|---|---|---|---|
-| registry | `configs/registry` → `/etc/docker/registry` | — | `work/registry` → `/var/lib/registry` | `logs/registry` → `/var/log/docker-registry` |
+| registry | `configs/registry/config.yml` → `/etc/distribution/config.yml`, `configs/registry/secrets` → `/secrets` | — | `work/registry` → `/var/lib/registry` | `logs/registry` → `/var/log/docker-registry` |
 | reverse-proxy | `configs/traefik` → `/etc/traefik` | — | `work/traefik` → `/var/run/traefik` | `logs/traefik` → `/var/log/traefik` |
 | prometheus | `configs/prometheus` → `/etc/prometheus` | `data/prometheus` → `/prometheus` | — | — |
 | authelia | `configs/authelia` → `/config` | `data/authelia/db.sqlite3` → `/var/db.sqlite3`, `data/authelia/users` → `/users` | — | — |
