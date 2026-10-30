@@ -238,20 +238,41 @@ graph TD
 
 ## Network Architecture
 
-Four Docker networks isolate service communication:
+Docker networks isolate service communication. Docker drops traffic between
+two bridge networks, so a container reaches only what shares a network with it.
 
 ```mermaid
 graph TB
     subgraph proxy_net[web_proxy network]
         RP[reverse-proxy]
-        REG[registry]
         AUTH[authelia]
-        PROM[prometheus]
-        GR[grafana]
         PP[photoprism]
         CO[conduit]
-        PC[picoclaw]
+        RV[rendezvous]
+        MR[matrix-receiver]
+    end
+
+    subgraph grafana_ui_net[web_grafana_ui network]
+        RP3[reverse-proxy 172.20.1.2]
+        GR[grafana]
+    end
+
+    subgraph monitoring_ui_net[web_monitoring_ui network]
+        RP4[reverse-proxy]
+        PROM[prometheus]
+        AM[alertmanager]
+        CA[cadvisor]
+        REG[registry]
+    end
+
+    subgraph code_ui_net[web_code_ui network]
+        RP5[reverse-proxy]
         CS[code-server]
+    end
+
+    subgraph picoclaw_ui_net[web_picoclaw_ui network]
+        RP6[reverse-proxy]
+        PC[picoclaw]
     end
 
     subgraph prom_net[prometheus network]
@@ -285,8 +306,12 @@ graph TB
 
 | Network | Name | Purpose | Connected Services |
 |---|---|---|---|
-| `proxy` | `web_proxy` | Traefik reverse proxy communication | registry, reverse-proxy, prometheus, authelia, grafana, photoprism, conduit, picoclaw, code-server, alertmanager, matrix-receiver (reaches Conduit as `http://conduit:6167`) |
-| `prometheus` | auto-generated | Metrics collection and alerting | prometheus, node-exporter, cadvisor, postgres-exporter, sql-exporter, alertmanager, matrix-receiver |
+| `proxy` | `web_proxy` | Traefik and the services with their own login or no secrets | reverse-proxy, authelia, photoprism, conduit, rendezvous, matrix-receiver (reaches Conduit as `http://conduit:6167`; Alertmanager calls it with a password) |
+| `grafana_ui` | `web_grafana_ui` | Traefik to Grafana. Subnet `172.20.1.0/24`, Traefik fixed at `172.20.1.2` (`traefik.grafana_ui_address`), others get addresses from `172.20.1.128/25` | reverse-proxy, grafana |
+| `monitoring_ui` | `web_monitoring_ui` | Traefik to the monitoring UIs and the registry; Prometheus scrapes Traefik and the registry here | reverse-proxy, prometheus, alertmanager, cadvisor, registry |
+| `code_ui` | `web_code_ui` | Traefik to code-server, which has no login of its own | reverse-proxy, code-server |
+| `picoclaw_ui` | `web_picoclaw_ui` | Traefik to PicoClaw, which reaches only the internet (Matrix through its public name) | reverse-proxy, picoclaw |
+| `prometheus` | auto-generated | Metrics collection and alerting | prometheus, node-exporter, cadvisor, postgres-exporter, sql-exporter, alertmanager, matrix-receiver, grafana (datasources), authelia (scraped on 9959) |
 | `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, promtail, postgres-exporter, sql-exporter |
 | `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
 | `photoprism` | auto-generated | PhotoPrism database access | photoprism-mariadb, photoprism |
@@ -829,7 +854,9 @@ Vault-encrypted variables used across the project include:
 
 ### Network Isolation
 
-- Services are segmented into four Docker networks, limiting inter-service communication
+- Services are segmented into Docker networks, limiting inter-service communication
+- Header logins are trusted from Traefik only: Grafana's `auth.proxy` whitelist is Traefik's fixed address on `web_grafana_ui`, so a forged `Remote-User` from any other container gets `401 auth-proxy.invalid-ip`
+- Services without a login of their own (Grafana, Otterwiki, code-server, PicoClaw, Prometheus, Alertmanager, cAdvisor, the registry) are not on `web_proxy`. Each reaches Traefik through a network shared with Traefik alone; the monitoring UIs and the registry share one, as Prometheus scrapes them anyway. Only services with their own login or nothing to protect stay on `web_proxy`, so a compromised PhotoPrism, Conduit or PicoClaw can't reach them directly. Such services set `traefik.docker.network`, because Traefik's default network is `web_proxy`
 - Only Traefik, Minecraft, TimescaleDB (on the WireGuard address only) and coturn expose ports to the host; the provider firewall is described in [FIREWALL.md](FIREWALL.md)
 - Backend databases (`grafana-pg`, `photoprism-mariadb`) are not accessible from the `proxy` network
 - Node Exporter has Traefik disabled (`traefik.enable=false`) and is only reachable within the `prometheus` network

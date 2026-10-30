@@ -41,6 +41,7 @@
     port: 9091
   traefik:
     domain: "proxy.{{ topleveldomain }}"
+    grafana_ui_address: "172.20.1.2"
   grafana:
     domain: "graph.{{ topleveldomain }}"
   minecraft:
@@ -158,6 +159,9 @@
     - cadvisor
     - node-exporter
     - registry
+    - prometheus
+    - picoclaw
+    - code-server
 
   restart_container: no
 

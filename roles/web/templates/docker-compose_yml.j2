@@ -14,10 +14,11 @@ services:
       - "{{ docker.paths.logs }}registry:/var/log/docker-registry"
       - "{{ docker.paths.configs }}registry/secrets:/secrets:ro"
     networks:
-      - proxy
+      - monitoring_ui
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_monitoring_ui
       - traefik.http.middlewares.registry-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.registry-secure.entrypoints=websecure
       - traefik.http.routers.registry-secure.rule=Host(`{{ registry.domain }}`)
@@ -93,9 +94,14 @@ services:
     environment:
       - TZ=Europe/Vienna
     networks:
-      - proxy
-      - socket_proxy
-      - wiki
+      proxy:
+      socket_proxy:
+      wiki:
+      grafana_ui:
+        ipv4_address: {{ traefik.grafana_ui_address }}
+      monitoring_ui:
+      code_ui:
+      picoclaw_ui:
     labels:
       - autoheal=true
       - traefik.enable=true
@@ -177,13 +183,14 @@ services:
     environment:
       - TZ=Europe/Vienna
     networks:
-      - proxy
+      - monitoring_ui
       - prometheus
     extra_hosts:
       docker.host: {{ docker_ip_address }}
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_monitoring_ui
       - traefik.http.middlewares.metrics-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.metrics-secure.entrypoints=websecure
       - traefik.http.routers.metrics-secure.rule=Host(`{{ prometheus.domain }}`)
@@ -262,11 +269,12 @@ services:
     expose:
       - 8080
     networks:
-      - proxy
+      - monitoring_ui
       - prometheus
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_monitoring_ui
       - traefik.http.middlewares.cadvisor-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.cadvisor-secure.entrypoints=websecure
       - traefik.http.routers.cadvisor-secure.rule=Host(`{{ cadvisor.domain }}`)
@@ -305,11 +313,12 @@ services:
     environment:
       - TZ=Europe/Vienna
     networks:
-      - proxy
+      - monitoring_ui
       - prometheus
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_monitoring_ui
       - traefik.http.middlewares.alerts-https-redirect.redirectscheme.scheme=https
       - traefik.http.services.alerts.loadbalancer.server.port={{ alertmanager.port }}
       - traefik.http.routers.alerts-secure.entrypoints=websecure
@@ -379,9 +388,11 @@ services:
       - reverse-proxy
     networks:
       - proxy
+      - prometheus
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_proxy
       - traefik.http.middlewares.auth-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.auth-secure.entrypoints=websecure
       - traefik.http.routers.auth-secure.rule=Host(`{{ authelia.domain }}`)
@@ -459,6 +470,7 @@ services:
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_grafana_ui
       - traefik.http.middlewares.grafana-https-redirect.redirectscheme.scheme=https
       - traefik.http.routers.grafana-secure.entrypoints=websecure
       - traefik.http.routers.grafana-secure.rule=Host(`{{ grafana.domain }}`)
@@ -469,8 +481,9 @@ services:
       - traefik.http.routers.grafana.middlewares=grafana-https-redirect
       - traefik.http.routers.grafana.rule=Host(`{{ grafana.domain }}`)
     networks:
-      - proxy
+      - grafana_ui
       - grafana
+      - prometheus
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1"]
       interval: 30s
@@ -922,10 +935,11 @@ services:
       - PICOCLAW_LAUNCHER_TOKEN={{ vault_picoclaw_launcher_token }}
       - PICOCLAW_GATEWAY_HOST=0.0.0.0
     networks:
-      - proxy
+      - picoclaw_ui
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_picoclaw_ui
       - traefik.http.middlewares.picoclaw-https-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.picoclaw-gw-https-redirect.redirectscheme.scheme=https
       - traefik.http.services.picoclaw-launcher.loadbalancer.server.port={{ picoclaw.port }}
@@ -979,10 +993,11 @@ services:
       - ANDROID_SDK_ROOT=/config/android-sdk
       - JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
     networks:
-      - proxy
+      - code_ui
     labels:
       - autoheal=true
       - traefik.enable=true
+      - traefik.docker.network=web_code_ui
       - traefik.http.services.code-server.loadbalancer.server.port={{ code_server.port }}
       - traefik.http.services.expo.loadbalancer.server.port={{ expo.port }}
       - traefik.http.middlewares.code-server-https-redirect.redirectscheme.scheme=https
@@ -1078,6 +1093,18 @@ networks:
   photoprism:
   wiki:
     name: web_wiki
+  grafana_ui:
+    name: web_grafana_ui
+    ipam:
+      config:
+        - subnet: 172.20.1.0/24
+          ip_range: 172.20.1.128/25
+  monitoring_ui:
+    name: web_monitoring_ui
+  code_ui:
+    name: web_code_ui
+  picoclaw_ui:
+    name: web_picoclaw_ui
 
 secrets:
   timescale_superuser_password:
