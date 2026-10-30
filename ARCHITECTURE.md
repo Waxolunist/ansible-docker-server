@@ -682,7 +682,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 ├── data/             # Persistent application data
 │   ├── prometheus/   # Prometheus TSDB
 │   ├── alertmanager/ # Alertmanager silences and notification log
-│   ├── grafana/      # Grafana data + postgres/ (PostgreSQL 18) + pgdata/ (PostgreSQL 13, pre-upgrade copy)
+│   ├── grafana/      # Grafana data + postgres/ (PostgreSQL 18)
 │   ├── minecraft/    # Minecraft world data
 │   ├── timescale/    # TimescaleDB pgdata/
 │   ├── authelia/     # db.sqlite3, users/users_database.yml
@@ -801,7 +801,7 @@ The upgrade to Grafana 13 and PostgreSQL 18 on 2026-10-19 left a one-off backup 
 | `dashboards/` | All dashboards as JSON from the API, at their stored version |
 | `rowcounts*.txt` | Row counts of every table before and after the restore into 18 |
 
-Going back to Grafana 12.2 requires one of these dumps. Restore it into a dropped and recreated `grafana` database, because a restore over the migrated database leaves Grafana 13's tables behind, and set the image back. The PostgreSQL 13 cluster itself is still in `data/grafana/pgdata/`.
+Going back to Grafana 12.2 requires one of these dumps. Restore it into a dropped and recreated `grafana` database, because a restore over the migrated database leaves Grafana 13's tables behind, and set the image back.
 
 ### Container Health Monitoring
 
