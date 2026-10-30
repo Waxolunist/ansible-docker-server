@@ -2440,13 +2440,35 @@
                     },
                     "refId": "A"
                   }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "((clamp_min(95 - vehicle_battery_level_percent, 0) * 0.5 / (avg_over_time(power_goe_watts[2m]) / 1000) + (100 - clamp_min(vehicle_battery_level_percent, 95)) * 0.5 / clamp_max(avg_over_time(power_goe_watts[2m]) / 1000, 2.5)) * 3600 and avg_over_time(power_goe_watts[2m]) > 500) or on() vector(-1)",
+                        "instant": true,
+                        "legendFormat": "Time to full",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
                 }
               ],
               "queryOptions": {},
               "transformations": []
             }
           },
-          "description": "The power the go-e delivers right now, from the collector's last reading (see Charger (live)). The markers are the steps of the charging modes: 2.3 kW slow, 6.9 kW balanced, 11 kW fast.",
+          "description": "Power: what the go-e delivers right now, from the collector's last reading (see Charger (live)). The markers are the steps of the charging modes: 2.3 kW slow, 6.9 kW balanced, 11 kW fast.\n\nTime to full: an estimate from the battery level and the charging power of the last 2 minutes, with the same model as the charging control (50 kWh battery, 0.5 kWh per percent, the last 5 % at no more than 2.5 kW), without its 15-minute safety margin. The car reports its level only every 5 minutes, so the estimate falls in steps. Shows – while the go-e delivers less than 0.5 kW.",
           "id": 26,
           "links": [],
           "title": "Charging power",
@@ -2481,7 +2503,54 @@
                   "unit": "watt",
                   "decimals": 1
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Time to full"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dtdurations"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      },
+                      {
+                        "id": "max",
+                        "value": 43200
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "green",
+                              "value": 0
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "-1": {
+                                "index": 0,
+                                "text": "–"
+                              }
+                            },
+                            "type": "value"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
                 "barShape": "flat",
