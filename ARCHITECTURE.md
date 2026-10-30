@@ -188,7 +188,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 14 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
 | 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
 | 16 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
-| 17 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
+| 17 | `photoprism` | `photoprism/photoprism:260523` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
 | 18 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
 | 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `picoclaw_ui` | `picoclaw.v-collaborate.com` |
 | 20 | `code-server` | `lscr.io/linuxserver/code-server:4.117.0-ls335` | Browser-based VS Code IDE | — | `code_ui` | `code.v-collaborate.com` |
