@@ -173,7 +173,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | # | Service | Image | Purpose | Exposed Ports | Networks | Domain |
 |---|---|---|---|---|---|---|
 | 1 | `registry` | `registry:3.0.0` | Private Docker registry | — | `monitoring_ui` | `registry.v-collaborate.com` |
-| 2 | `autoheal` | `willfarrell/autoheal:latest` | Automatic container restart on failure | — | — | — |
+| 2 | `autoheal` | `willfarrell/autoheal:latest@sha256:7ab2ddc7…` (pinned by digest: no version tags since 1.2.0 in 2021) | Automatic container restart on failure | — | — | — |
 | 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
 | 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
 | 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `monitoring_ui`, `prometheus` | `metrics.v-collaborate.com` |
@@ -191,7 +191,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 17 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
 | 18 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
 | 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `picoclaw_ui` | `picoclaw.v-collaborate.com` |
-| 20 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `code_ui` | `code.v-collaborate.com` |
+| 20 | `code-server` | `lscr.io/linuxserver/code-server:4.117.0-ls335` | Browser-based VS Code IDE | — | `code_ui` | `code.v-collaborate.com` |
 | 21 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
 | 22 | `otterwiki` | `redimp/otterwiki:2.25.2` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
 | 23 | `alertmanager` | `prom/alertmanager:v0.34.1` | Groups, routes and silences the Prometheus alerts | `10.8.0.1:9093` (WireGuard only) | `monitoring_ui`, `prometheus` | `alerts.v-collaborate.com` |
@@ -434,7 +434,8 @@ Traefik also handles personal domain redirects:
 - **Restart on change**: Authelia reads its configuration at startup only; `tasks/main.yml` restarts it when the file changed. The users database is watched (`file.watch`), so user changes apply without a restart, and `refresh_interval: 1m` ends a disabled user's sessions within a minute
 - **Upgrades**: Authelia is in `recreate_when_changed` ([vars](roles/web/vars/main.yml)), so bumping `authelia.image` recreates it on the next playbook run. Before that, `tasks/authelia.yml` copies the database to `/backup/authelia_db_<old version>_<timestamp>.sqlite3`: the new version migrates the schema on start, and an older version cannot open the migrated database. To roll back, restore that file to `data/authelia/db.sqlite3` and revert the image
 - **Session management**: 1-hour expiration, 30-minute inactivity timeout (long enough to write a wiki page without saving), one cookie scoped to `v-collaborate.com`
-- **Brute-force protection**: Max 3 retries within 120 seconds, 300-second ban
+- **Brute-force protection**: Max 3 retries within 120 seconds, 300-second ban for the user; fail2ban's `authelia` jail bans the client address (see [SSH Hardening](#ssh-hardening))
+- **Logs**: stdout and `/var/docker/logs/authelia/authelia.log` (`log.file_path` with `keep_stdout`), the file fail2ban watches. `hardening.yml` creates it owned by `devops`, so logrotate's `copytruncate` can truncate it
 - **Storage**: SQLite database at `/var/db.sqlite3`
 - **Notifications**: SMTP through the same Gmail account and app password as Grafana (`smtp_password` secret). Sends the one-time codes for identity verification (2FA enrollment, elevated sessions). The startup check is disabled so a revoked app password cannot stop Authelia, and with it every protected service
 - **Password reset and change**: Enabled. The reset link goes out by email through the notifier above. New passwords must reach zxcvbn score 3
@@ -828,7 +829,7 @@ The [`system`](roles/system/tasks/main.yml) role applies the following SSH secur
 
 - **Password authentication disabled** — Only SSH key-based login is permitted. [`hardening.yml`](hardening.yml) also writes `/etc/ssh/sshd_config.d/00-hardening.conf`, because the provider's `50-cloud-init.conf` turns password login back on and sshd keeps the first value it reads
 - **Root login disabled** — The `root` user cannot log in via SSH
-- **fail2ban** — [`hardening.yml`](hardening.yml) bans an address for an hour after 3 failed SSH logins within 10 minutes (`sshd` jail). The `traefik-auth` jail is disabled: it matched every 401/403 from a backend, including the ones Matrix clients get in normal use
+- **fail2ban** — [`hardening.yml`](hardening.yml) bans an address for an hour after 3 failed SSH logins within 10 minutes (`sshd` jail), and after 5 failed Authelia logins (password or second factor) within 10 minutes (`authelia` jail). The `authelia` jail reads `/var/docker/logs/authelia/authelia.log` and bans in the `DOCKER-USER` chain on ports 80 and 443 with `iptables-multiport`: with `userland-proxy` off, traffic to Traefik passes `FORWARD`, never `INPUT`, so Debian's default `nftables` action (hooked on input) would block nothing. It ignores the Docker networks and WireGuard. It replaces a Traefik jail that matched every 401/403 from a backend, including the ones Matrix clients get in normal use
 - **Dedicated service account** — All operations run as the `devops` user with passwordless sudo
 
 ### Ansible Vault
@@ -875,6 +876,7 @@ Vault-encrypted variables used across the project include:
 
 - All containers use `restart: on-failure` or `restart: unless-stopped` policies
 - PhotoPrism containers run with `seccomp:unconfined` and `apparmor:unconfined` as required by the application
+- code-server runs with [`seccomp_json.j2`](roles/web/templates/code-server/seccomp_json.j2): Docker 29.9's default profile (moby `profiles/seccomp/default.json`) with one rule changed, so `clone`, `unshare` and `setns` are allowed without `CAP_SYS_ADMIN`. Chromium and Electron tools (React Native DevTools) sandbox themselves in user namespaces, which the default profile blocks; their SUID sandbox can't stand in, because the daemon sets `no-new-privileges`. Everything else is as restrictive as the default
 - Minecraft server has memory limits enforced (`mem_limit: 2048M`, `MAX_MEMORY=2G`)
 - PhotoPrism runs as user `1000:1000` rather than root
 
@@ -905,8 +907,9 @@ Note: Minecraft alone reserves 2 GB RAM (`mem_limit: 2048M`), and PhotoPrism wit
 The current VPS has 7.9 GB RAM and no swap. Most containers have a `mem_limit` in the compose file. The limits are caps, not reservations, so together they add up to more than the host has. What matters is actual use: about 6 GB on 2026-10-22, with about 1.5 GB still available.
 
 - **TimescaleDB**: `mem_limit` and `memswap_limit` are 2560m. PostgreSQL is sized for that through `command: postgres -c ...` in the compose file: `shared_buffers=640MB`, `effective_cache_size=1792MB`, `maintenance_work_mem=256MB`, `work_mem=8MB`, `autovacuum_max_workers=3`, `autovacuum_work_mem=64MB`, two parallel workers. These flags override `postgresql.conf` in the data directory. That file was written by timescaledb-tune at init for a bigger host (`shared_buffers` ≈ 2 GB under a 1 GB limit), and with those settings an aggregate refresh got the server OOM-killed on 2026-10-22.
-- **Grafana**: capped at 1G (it used about 0.5 GB on 2026-10-22).
+- **Grafana**: capped at 1G and 1 CPU (it used about 0.5 GB on 2026-10-22 and 0.58 GB on 2026-10-30).
 - **Prometheus**: capped at 2G. With about 25–35k head series it sits at 0.7–0.95 GB, and block compaction comes on top; under the old 1G cap a compaction got it OOM-killed on 2026-10-23.
+- **TimescaleDB time zones**: `tasks/timescale.yml` sets `timezone = 'UTC'` and `log_timezone = 'Europe/Vienna'` in `postgresql.conf` (reloaded, no restart). The cluster was initialised with the typo `Europa0`, which PostgreSQL read as a zone named EUROPA at offset 0, i.e. UTC. Sessions that don't set their own zone, such as Grafana's, compute `date_trunc`, `::date` and `extract` on `timestamptz` in UTC, and the views and dashboards were built that way, so UTC stays. The collector sets `Europe/Vienna` for its own connections
 - The compose module runs with `recreate: never`, and `timescaledb` isn't in `recreate_when_changed`, so a change to its service only takes effect after `docker compose up -d --no-deps timescaledb` on the host. That restarts the database, and Grafana and the collector lose it for about 20 s.
 - The Prometheus rule `OomKill` fires when the kernel's OOM killer runs anywhere on the host (`node_vmstat_oom_kill`). It is delivered to the `#alerts-infra` Matrix room, see [Alerting](#alerting).
 

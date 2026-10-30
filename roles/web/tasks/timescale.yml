@@ -67,3 +67,13 @@
       - "{{ wireguard.network }}"
     become: yes
     notify: reload timescale
+  - name: Timescale - Set the time zones
+    lineinfile:
+      path: "{{ docker.paths.data }}timescale/pgdata/postgresql.conf"
+      regexp: '^{{ item.name }}\s*='
+      line: "{{ item.name }} = '{{ item.value }}'"
+    loop:
+      - { name: timezone, value: UTC }
+      - { name: log_timezone, value: Europe/Vienna }
+    become: yes
+    notify: reload timescale

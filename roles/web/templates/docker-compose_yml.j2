@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
 
   autoheal:
-    image: willfarrell/autoheal:latest
+    image: willfarrell/autoheal:latest@sha256:7ab2ddc7ec5f5933fd5d92df8d0feb928b185fc50d62a3e215d1c40fb21ab9c9
     container_name: web_autoheal
     mem_limit: 64M
     cpus: 0.1
@@ -373,6 +373,7 @@ services:
       # users database. A directory, not the file, so the watcher keeps
       # working when the file is replaced.
       - "{{ docker.paths.data }}authelia/users:/users"
+      - "{{ docker.paths.logs }}authelia:/var/log/authelia"
     secrets:
       - authelia_jwt_secret
       - authelia_session_secret
@@ -450,6 +451,7 @@ services:
     image: grafana/grafana:13.2.4
     container_name: web_grafana
     mem_limit: 1G
+    cpus: 1.0
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
       - "{{ docker.paths.data }}grafana:/var/lib/grafana"
@@ -965,14 +967,14 @@ services:
     restart: unless-stopped
 
   code-server:
-    image: lscr.io/linuxserver/code-server:latest
+    image: lscr.io/linuxserver/code-server:4.117.0-ls335
     container_name: web_code-server
     mem_limit: 4G
     cpus: 2.0
     depends_on:
       - reverse-proxy
     security_opt:
-      - seccomp=unconfined
+      - seccomp={{ docker.paths.configs }}code-server/seccomp.json
     shm_size: "1gb"
     expose:
       - {{ code_server.port }}

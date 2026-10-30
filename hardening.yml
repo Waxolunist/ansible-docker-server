@@ -109,34 +109,59 @@
           mode: "0644"
         notify: restart fail2ban
 
-      # Disabled: the filter matches any 401/403 from a backend, and Matrix
-      # clients get 403s in bursts during normal use, so it would ban the
-      # owner from every web service. Its bans would also not apply as is --
-      # with userland-proxy off, traffic to Traefik passes FORWARD, not
-      # INPUT, so it would need chain = DOCKER-USER. A replacement should
-      # watch Authelia's failed logins instead.
-      - name: Configure fail2ban Traefik jail
+      - name: Remove the disabled fail2ban Traefik jail
+        file:
+          path: "{{ item }}"
+          state: absent
+        loop:
+          - /etc/fail2ban/jail.d/traefik.conf
+          - /etc/fail2ban/filter.d/traefik-auth.conf
+        notify: restart fail2ban
+
+      - name: Create the Authelia log directory
+        file:
+          path: /var/docker/logs/authelia
+          state: directory
+          owner: "{{ ansible_user }}"
+          group: "{{ ansible_user }}"
+
+      - name: Create the Authelia log file watched by fail2ban
+        file:
+          path: /var/docker/logs/authelia/authelia.log
+          state: touch
+          owner: "{{ ansible_user }}"
+          group: "{{ ansible_user }}"
+          mode: "0644"
+          modification_time: preserve
+          access_time: preserve
+
+      - name: Create fail2ban filter for Authelia login failures
         copy:
-          dest: /etc/fail2ban/jail.d/traefik.conf
+          dest: /etc/fail2ban/filter.d/authelia.conf
           content: |
-            [traefik-auth]
-            enabled = false
-            port = http,https
-            filter = traefik-auth
-            logpath = /var/docker/logs/traefik/access.log
-            maxretry = 5
-            findtime = 300
-            bantime = 3600
+            [Definition]
+            failregex = ^\s*level=error msg="Unsuccessful \S+ authentication attempt by user '.*'".* remote_ip=<HOST>(?:\s|$)
+            ignoreregex =
+            datepattern = ^time="%%Y-%%m-%%dT%%H:%%M:%%S%%z"
           mode: "0644"
         notify: restart fail2ban
 
-      - name: Create fail2ban filter for Traefik auth failures
+      - name: Configure fail2ban Authelia jail
         copy:
-          dest: /etc/fail2ban/filter.d/traefik-auth.conf
+          dest: /etc/fail2ban/jail.d/authelia.conf
           content: |
-            [Definition]
-            failregex = ^.*"ClientAddr":"<HOST>:\d+".*"OriginStatus":(401|403).*$
-            ignoreregex =
+            [authelia]
+            enabled = true
+            filter = authelia
+            backend = auto
+            logpath = /var/docker/logs/authelia/authelia.log
+            port = http,https
+            banaction = iptables-multiport
+            chain = DOCKER-USER
+            ignoreip = 127.0.0.1/8 ::1 172.16.0.0/12 10.8.0.0/24
+            maxretry = 5
+            findtime = 600
+            bantime = 3600
           mode: "0644"
         notify: restart fail2ban
 

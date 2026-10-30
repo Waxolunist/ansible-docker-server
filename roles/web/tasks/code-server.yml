@@ -6,6 +6,12 @@
       mode: 0644
       backup: yes
 
+  - name: Code-Server - Deploy seccomp profile
+    template:
+      src: code-server/seccomp_json.j2
+      dest: "{{ docker.paths.configs }}code-server/seccomp.json"
+      mode: 0644
+
   - name: Code-Server - Ensure custom-cont-init.d directory exists (root-owned, required by s6)
     file:
       path: "{{ docker.paths.configs }}code-server/custom-cont-init.d"
