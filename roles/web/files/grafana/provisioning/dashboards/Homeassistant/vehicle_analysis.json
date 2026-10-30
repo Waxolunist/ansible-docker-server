@@ -27,10 +27,10 @@
       }
     ],
     "cursorSync": "Off",
-    "description": "",
+    "description": "Consumption, battery and usage of the e-208 over a selectable time range, with regression trendlines.",
     "editable": true,
     "elements": {
-      "panel-11": {
+      "panel-1": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -51,24 +51,89 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time_bucket('1 month', start_at, 'Europe/Vienna') as time, sum(consumption) / sum(distance) * 100 as consumption\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at)\n  and distance > 0 and consumption > 0\ngroup by time\norder by time;",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
+                        "rawSql": "select time_bucket('1 week', start_at, 'Europe/Vienna') as time, sum(distance) as \"Distance\"\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at) and distance >= ${min_km}\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Kilometres of all trips in the time range; the sparkline is the weekly distance.",
+          "id": 1,
+          "links": [],
+          "title": "Distance",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "suffix: km"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "none",
+                "graphMode": "area",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-10": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with c as (\n    select time_bucket('1 ${grain}', start_at, 'Europe/Vienna') as time, sum(consumption) / sum(distance) * 100 as consumption\n    from data_vehicle_trips\n    where $__timeFilter(start_at) and distance >= ${min_km} and consumption > 0\n    group by 1\n), t as (\n    select time_bucket('1 ${grain}', time, 'Europe/Vienna') as time, percentile_cont(0.5) within group (order by air_temp) as temp\n    from data_vehicle_environment_airtemp\n    where $__timeFilter(time)\n    group by 1\n)\nselect c.time, c.consumption as \"Consumption\", t.temp as \"Outside temperature\"\nfrom c left join t using (time)\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -83,20 +148,20 @@
                   "kind": "Transformation",
                   "spec": {
                     "options": {
-                      "degree": 5,
+                      "degree": 4,
                       "modelType": "polynomial",
                       "xFieldName": "time",
-                      "yFieldName": "consumption"
+                      "yFieldName": "Consumption"
                     }
                   }
                 }
               ]
             }
           },
-          "description": "data_vehicle_trips: the energy of all trips of the month divided by their distance (kWh/100 km), so long trips weigh by their km, the same consumption the EV bar of Cost per 100 km uses. The red line is a polynomial regression (degree 5).",
-          "id": 11,
+          "description": "Per ${grain}: the energy of all trips divided by their distance (bars, colour by level) and the median outside temperature the car reported (line, right axis). The red line is a polynomial regression (degree 4) over the bars. Winter costs about a quarter more energy than summer.",
+          "id": 10,
           "links": [],
-          "title": "Average Consumption",
+          "title": "Consumption and outside temperature",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -108,47 +173,25 @@
                     "mode": "fixed"
                   },
                   "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
                     "axisPlacement": "auto",
-                    "barAlignment": 0,
                     "barWidthFactor": 0.6,
                     "drawStyle": "line",
                     "fillOpacity": 0,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": true,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
                     "lineWidth": 5,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "auto",
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
+                    "showPoints": "never",
+                    "spanNulls": true,
                     "thresholdsStyle": {
                       "mode": "dashed+area"
                     }
                   },
                   "decimals": 1,
-                  "displayName": "Consumption (Regression)",
                   "min": 10,
                   "thresholds": {
                     "mode": "absolute",
                     "steps": [
                       {
                         "color": "green",
-                        "value": 0
+                        "value": null
                       },
                       {
                         "color": "#EAB839",
@@ -168,7 +211,7 @@
                       }
                     ]
                   },
-                  "unit": "kWh/100km"
+                  "unit": "suffix: kWh/100 km"
                 },
                 "overrides": [
                   {
@@ -177,10 +220,6 @@
                       "options": "A"
                     },
                     "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Consumption"
-                      },
                       {
                         "id": "color",
                         "value": {
@@ -205,12 +244,49 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "time"
+                      "options": "Outside temperature"
                     },
                     "properties": [
                       {
                         "id": "unit",
-                        "value": "time: yyyy-MM"
+                        "value": "celsius"
+                      },
+                      {
+                        "id": "min",
+                        "value": -10
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.thresholdsStyle",
+                        "value": {
+                          "mode": "off"
+                        }
+                      },
+                      {
+                        "id": "custom.axisGridShow",
+                        "value": false
                       }
                     ]
                   }
@@ -218,23 +294,1632 @@
               },
               "options": {
                 "legend": {
-                  "calcs": [],
                   "displayMode": "list",
                   "placement": "bottom",
                   "showLegend": true
                 },
                 "tooltip": {
-                  "hideZeros": false,
+                  "hideZeros": true,
                   "mode": "multi",
                   "sort": "none"
                 }
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-11": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with t as (\n    select (time at time zone 'Europe/Vienna')::date as d, percentile_cont(0.5) within group (order by air_temp) as temp\n    from data_vehicle_environment_airtemp\n    where $__timeFilter(time)\n    group by 1\n), b as (\n    select round(t.temp / 2) * 2 as x, sum(v.consumption) / sum(v.distance) * 100 as y, count(*) as n\n    from data_vehicle_trips v join t on t.d = (v.start_at at time zone 'Europe/Vienna')::date\n    where $__timeFilter(v.start_at) and v.distance >= ${min_km} and v.consumption > 0\n    group by 1\n), s as (\n    select count(*) as n, sum(x) as sx, sum(x ^ 2) as sx2, sum(x ^ 3) as sx3, sum(x ^ 4) as sx4, sum(y) as sy, sum(x * y) as sxy, sum(x ^ 2 * y) as sx2y from b where n >= 10\n), c as (\n    select ((s.sy) * ((s.sx2) * (s.sx4) - (s.sx3) * (s.sx3)) - (s.sx) * ((s.sxy) * (s.sx4) - (s.sx3) * (s.sx2y)) + (s.sx2) * ((s.sxy) * (s.sx3) - (s.sx2) * (s.sx2y))) / ((s.n) * ((s.sx2) * (s.sx4) - (s.sx3) * (s.sx3)) - (s.sx) * ((s.sx) * (s.sx4) - (s.sx3) * (s.sx2)) + (s.sx2) * ((s.sx) * (s.sx3) - (s.sx2) * (s.sx2))) as a0,\n       ((s.n) * ((s.sxy) * (s.sx4) - (s.sx3) * (s.sx2y)) - (s.sy) * ((s.sx) * (s.sx4) - (s.sx3) * (s.sx2)) + (s.sx2) * ((s.sx) * (s.sx2y) - (s.sxy) * (s.sx2))) / ((s.n) * ((s.sx2) * (s.sx4) - (s.sx3) * (s.sx3)) - (s.sx) * ((s.sx) * (s.sx4) - (s.sx3) * (s.sx2)) + (s.sx2) * ((s.sx) * (s.sx3) - (s.sx2) * (s.sx2))) as a1,\n       ((s.n) * ((s.sx2) * (s.sx2y) - (s.sxy) * (s.sx3)) - (s.sx) * ((s.sx) * (s.sx2y) - (s.sxy) * (s.sx2)) + (s.sy) * ((s.sx) * (s.sx3) - (s.sx2) * (s.sx2))) / ((s.n) * ((s.sx2) * (s.sx4) - (s.sx3) * (s.sx3)) - (s.sx) * ((s.sx) * (s.sx4) - (s.sx3) * (s.sx2)) + (s.sx2) * ((s.sx) * (s.sx3) - (s.sx2) * (s.sx2))) as a2\n    from s\n)\nselect b.x as \"Temperature\", b.y as \"Consumption\", c.a0 + c.a1 * b.x + c.a2 * b.x ^ 2 as \"Quadratic fit\"\nfrom b, c\norder by b.x;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Each point is a 2 °C band of the median daily outside temperature (every band that has trips, from the coldest to the warmest measured): the energy of all trips of those days divided by their distance. The red line is a quadratic least-squares fit through the bands with at least 10 trips; outside them it is an extrapolation and the points rest on few trips. It shows how much range the cold takes.",
+          "id": 11,
+          "links": [],
+          "title": "Consumption against outside temperature",
+          "vizConfig": {
+            "group": "trend",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "axisPlacement": "auto",
+                    "drawStyle": "points",
+                    "fillOpacity": 0,
+                    "lineWidth": 1,
+                    "pointSize": 10,
+                    "showPoints": "always",
+                    "spanNulls": true
+                  },
+                  "decimals": 1,
+                  "unit": "suffix: kWh/100 km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Temperature"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "celsius"
+                      },
+                      {
+                        "id": "custom.axisLabel",
+                        "value": "Outside temperature"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Consumption"
+                    },
+                    "properties": [
+                      {
+                        "id": "min",
+                        "value": 10
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Quadratic fit"
+                    },
+                    "properties": [
+                      {
+                        "id": "min",
+                        "value": 10
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "dark-red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 4
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "custom.lineInterpolation",
+                        "value": "smooth"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "xField": "Temperature"
+              }
+            },
+            "version": "13.2.4"
           }
         }
       },
       "panel-12": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select (floor(speed_average / 10) * 10)::int || ' - ' || (floor(speed_average / 10) * 10 + 10)::int as \"Average speed (km/h)\", sum(consumption) / sum(distance) * 100 as \"Consumption\", floor(speed_average / 10) as sort\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at) and distance >= ${min_km} and consumption > 0 and speed_average > 0\ngroup by 1, sort\nhaving count(*) >= 10\norder by sort;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "The energy of all trips divided by their distance, grouped by the trip's average speed in 10 km/h bands (bands with at least 10 trips). Town traffic and motorway speed both cost more than the middle.",
+          "id": 12,
+          "links": [],
+          "title": "Consumption by average speed",
+          "vizConfig": {
+            "group": "barchart",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "axisPlacement": "auto",
+                    "fillOpacity": 90,
+                    "gradientMode": "none",
+                    "lineWidth": 0
+                  },
+                  "decimals": 1,
+                  "min": 10,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "#EAB839",
+                        "value": 17.5
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 20
+                      },
+                      {
+                        "color": "red",
+                        "value": 22.5
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 25
+                      }
+                    ]
+                  },
+                  "unit": "suffix: kWh/100 km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "sort"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": true,
+                          "tooltip": true,
+                          "viz": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "barWidth": 0.8,
+                "groupWidth": 0.7,
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "orientation": "vertical",
+                "showValue": "auto",
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                },
+                "xField": "Average speed (km/h)",
+                "xTickLabelRotation": 0
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-14": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with trips as (\n    select date_trunc('month', start_at at time zone 'Europe/Vienna')::date as month,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n)\nselect (w.month + 14)::timestamp at time zone 'Europe/Vienna' as time,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom agg_1month_what_if w\nleft join trips t on t.month = w.month\ncross join overall o\nwhere w.km > 0\n  and w.month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and w.month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by time;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "regression",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "degree": 5,
+                      "modelType": "polynomial",
+                      "xFieldName": "time",
+                      "yFieldName": "EV"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, from agg_1month_what_if. EV: the average price per kWh paid for home charging that month (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. Months without trips use the average consumption over all trips. The trip consumption leaves out charging losses. The red line is a polynomial regression (degree 5) over the EV bars, as on Average Consumption.",
+          "id": 14,
+          "links": [],
+          "title": "Cost per 100 km: combustion car vs EV",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "barWidthFactor": 0.4,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "lineWidth": 5,
+                    "showPoints": "never",
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    }
+                  },
+                  "decimals": 2,
+                  "displayName": "EV (Regression)",
+                  "min": 0,
+                  "unit": "suffix: €/100 km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "EV"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.barAlignment",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "bars"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 80
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 1
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Combustion car"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Combustion car"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "orange",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.barAlignment",
+                        "value": -1
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time_bucket('1 week', start_at, 'Europe/Vienna') as time, count(*) as \"Trips\"\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at) and distance >= ${min_km}\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Number of trips in the time range; the sparkline is the weekly count.",
+          "id": 2,
+          "links": [],
+          "title": "Trips",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "none",
+                "graphMode": "area",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-20": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time_bucket('1 day', time) as time, avg(soh) as \"State of health\"\nfrom data_vehicle_battery_soh\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "regression",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "modelType": "linear",
+                      "xFieldName": "time",
+                      "yFieldName": "State of health"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Daily mean of the state of health the car reports (whole percent, so it moves in steps). The red line is a linear regression over the time range.",
+          "id": 20,
+          "links": [],
+          "title": "Battery state of health",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "lineInterpolation": "stepAfter",
+                    "lineWidth": 4,
+                    "showPoints": "never",
+                    "spanNulls": true
+                  },
+                  "decimals": 1,
+                  "displayName": "State of health (trend)",
+                  "unit": "percent"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "State of health"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 15
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-21": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time_bucket('1 week', a.time, 'Europe/Vienna') as time, percentile_cont(0.5) within group (order by a.autonomy / l.level * 100) as \"Range at 100 %\"\nfrom data_vehicle_energy_autonomy a\njoin data_vehicle_energy_level l using (vehicle_id, time)\nwhere $__timeFilter(a.time) and $__timeFilter(l.time) and l.level between 30 and 100\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "regression",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "degree": 4,
+                      "modelType": "polynomial",
+                      "xFieldName": "time",
+                      "yFieldName": "Range at 100 %"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Weekly median of the car's range estimate scaled to a full battery (range divided by charge level, for levels between 30 and 100 %). The estimate follows the temperature and the recent driving style. The red line is a polynomial regression (degree 4).",
+          "id": 21,
+          "links": [],
+          "title": "Estimated range at 100 %",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "lineWidth": 4,
+                    "showPoints": "never",
+                    "spanNulls": true
+                  },
+                  "decimals": 0,
+                  "displayName": "Range (trend)",
+                  "unit": "suffix: km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Range at 100 %"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 15
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "auto"
+                      },
+                      {
+                        "id": "custom.pointSize",
+                        "value": 5
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-22": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select case when level >= 100 then '100' else (floor(level / 10) * 10)::int || ' - ' || (floor(level / 10) * 10 + 10)::int end as \"Charge level (%)\",\n       count(*) * 100.0 / sum(count(*)) over () as \"Share of time\", floor(level / 10) as sort\nfrom data_vehicle_energy_level\nwhere $__timeFilter(time)\ngroup by 1, sort\norder by sort;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Share of the car's charge-level readings (every 5 minutes) per 10 % band. Batteries age slowest when they rest between about 20 and 80 %.",
+          "id": 22,
+          "links": [],
+          "title": "Time at each charge level",
+          "vizConfig": {
+            "group": "barchart",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "custom": {
+                    "fillOpacity": 90,
+                    "gradientMode": "none",
+                    "lineWidth": 0
+                  },
+                  "decimals": 1,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "dark-orange",
+                        "value": null
+                      },
+                      {
+                        "color": "green",
+                        "value": 20
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "sort"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": true,
+                          "tooltip": true,
+                          "viz": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "barWidth": 0.8,
+                "groupWidth": 0.7,
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "orientation": "vertical",
+                "showValue": "auto",
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                },
+                "xField": "Charge level (%)"
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-23": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with m as (\n    select time_bucket('1 ${grain}', start_at, 'Europe/Vienna') as time, sum(distance) * ${battery_kwh} / sum(consumption) as measured\n    from data_vehicle_trips\n    where $__timeFilter(start_at) and distance >= ${min_km} and consumption > 0\n    group by 1\n), r as (\n    select time_bucket('1 ${grain}', a.time, 'Europe/Vienna') as time, percentile_cont(0.5) within group (order by a.autonomy / l.level * 100) as reported\n    from data_vehicle_energy_autonomy a\n    join data_vehicle_energy_level l using (vehicle_id, time)\n    where $__timeFilter(a.time) and $__timeFilter(l.time) and l.level between 30 and 100\n    group by 1\n)\nselect m.time, m.measured as \"Measured range at 100 %\", r.reported as \"Reported range at 100 %\"\nfrom m left join r using (time)\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "regression",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "degree": 3,
+                      "modelType": "polynomial",
+                      "xFieldName": "time",
+                      "yFieldName": "Measured range at 100 %"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Range the trips actually delivered, scaled to a full battery: distance divided by the energy used, times the battery capacity (${battery_kwh} kWh, the battery_power of the car in cars.json; the dashboard constant battery_kwh must match it). The trips' energy is the level drop times that capacity, so the capacity cancels out and the result is simply 100 divided by the share of the battery a kilometre costs. Per ${grain}, over all trips of the time range. The green line is the range the car reports (see Estimated range at 100 %). The red line is a polynomial regression (degree 3) over the measured range. The measured range is lower than the reported one, since the reported value assumes gentle driving.",
+          "id": 23,
+          "links": [],
+          "title": "Measured range at 100 %",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "lineWidth": 4,
+                    "showPoints": "never",
+                    "spanNulls": true
+                  },
+                  "decimals": 0,
+                  "unit": "suffix: km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "always"
+                      },
+                      {
+                        "id": "custom.pointSize",
+                        "value": 6
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Reported range at 100 %"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "custom.lineStyle",
+                        "value": {
+                          "dash": [
+                            10,
+                            10
+                          ],
+                          "fill": "dash"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time_bucket('1 week', start_at, 'Europe/Vienna') as time, sum(consumption) as \"Energy\"\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at) and distance >= ${min_km} and consumption > 0\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Energy of all trips in the time range as the car reports it, without charging losses; the sparkline is the weekly energy.",
+          "id": 3,
+          "links": [],
+          "title": "Energy used",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "suffix: kWh"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "none",
+                "graphMode": "area",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-30": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time_bucket('1 day', time, 'Europe/Vienna') as time, max(mileage) as \"Odometer\"\nfrom data_vehicle_mileage\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "regression",
+                  "kind": "Transformation",
+                  "spec": {
+                    "options": {
+                      "modelType": "linear",
+                      "xFieldName": "time",
+                      "yFieldName": "Odometer"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "Daily maximum of the odometer reading. The red line is a linear regression over the time range; its slope is the Yearly mileage above.",
+          "id": 30,
+          "links": [],
+          "title": "Odometer",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "dark-red",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "lineWidth": 4,
+                    "showPoints": "never",
+                    "spanNulls": true
+                  },
+                  "decimals": 0,
+                  "displayName": "Odometer (trend)",
+                  "unit": "suffix: km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byFrameRefID",
+                      "options": "A"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Odometer"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 15
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-31": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with c as (\n    select extract(isodow from start_at at time zone 'Europe/Vienna')::int as dow, extract(hour from start_at at time zone 'Europe/Vienna')::int as hour\n    from data_vehicle_trips\n    where $__timeFilter(start_at) and distance >= ${min_km}\n)\nselect lpad(c.hour::text, 2, '0') || ':00' as \"Hour\",\n       nullif(count(*) filter (where c.dow = 1), 0) as \"Mon\",\n       nullif(count(*) filter (where c.dow = 2), 0) as \"Tue\",\n       nullif(count(*) filter (where c.dow = 3), 0) as \"Wed\",\n       nullif(count(*) filter (where c.dow = 4), 0) as \"Thu\",\n       nullif(count(*) filter (where c.dow = 5), 0) as \"Fri\",\n       nullif(count(*) filter (where c.dow = 6), 0) as \"Sat\",\n       nullif(count(*) filter (where c.dow = 7), 0) as \"Sun\"\nfrom c\nwhere c.hour between 6 and 20\ngroup by c.hour\norder by c.hour;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "When the car is used: the number of trips by hour of the day and weekday they started, in the time range, from 06:00 to 20:59 (the few trips outside that window are left out). The darker the cell, the more trips; empty cells have none.",
+          "id": 31,
+          "links": [],
+          "title": "Trips by weekday and hour",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "continuous-BlPu"
+                  },
+                  "custom": {
+                    "align": "center",
+                    "cellOptions": {
+                      "mode": "gradient",
+                      "type": "color-background"
+                    },
+                    "inspect": false
+                  },
+                  "decimals": 0,
+                  "mappings": [
+                    {
+                      "options": {
+                        "match": "null",
+                        "result": {
+                          "color": "transparent",
+                          "index": 0,
+                          "text": ""
+                        }
+                      },
+                      "type": "special"
+                    }
+                  ],
+                  "min": 0,
+                  "unit": "none"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Hour"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.align",
+                        "value": "left"
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "auto"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "text",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "fieldMinMax": true,
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-32": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select distance as \"Distance\"\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at) and distance >= ${min_km}\norder by start_at;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Number of trips by distance in 5 km bands. Most trips are short; the few long ones carry much of the distance.",
+          "id": 32,
+          "links": [],
+          "title": "Trip length distribution",
+          "vizConfig": {
+            "group": "histogram",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "fillOpacity": 80,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 1
+                  },
+                  "unit": "suffix: km"
+                },
+                "overrides": []
+              },
+              "options": {
+                "bucketSize": 5,
+                "combine": false,
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-33": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select (extract(year from year)::int || case when year = date_trunc('year', now() at time zone 'Europe/Vienna')::date then ' (to date)' else '' end) as \"Year\",\n       case when not estimated then km end as \"Measured\", case when estimated then km end as \"Estimated\"\nfrom agg_1year_what_if\nwhere km > 0\norder by year;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Distance driven per calendar year from agg_1year_what_if, the same figure as the savings calculation. It ignores the time range and the Shortest trip filter. The current year is the year to date. Years that include months before the first odometer reading (2022-12 to 2024-02, from the purchase on 2022-12-01) are estimates and drawn lighter.",
+          "id": 33,
+          "links": [],
+          "title": "Kilometres per calendar year",
+          "vizConfig": {
+            "group": "barchart",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "fillOpacity": 90,
+                    "gradientMode": "none",
+                    "lineWidth": 0
+                  },
+                  "decimals": 0,
+                  "min": 0,
+                  "unit": "suffix: km"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Year"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Estimated"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "light-blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 40
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "barWidth": 0.7,
+                "groupWidth": 0.7,
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "orientation": "vertical",
+                "showValue": "always",
+                "stacking": "normal",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "xField": "Year"
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select max(start_at) as time, sum(consumption) / sum(distance) * 100 as \"Consumption\"\nfrom data_vehicle_trips\nwhere $__timeFilter(start_at) and distance >= ${min_km} and consumption > 0;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Energy of all trips divided by their distance, so every trip counts by its kilometres.",
+          "id": 4,
+          "links": [],
+          "title": "Consumption",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 1,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "#EAB839",
+                        "value": 17.5
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 20
+                      },
+                      {
+                        "color": "red",
+                        "value": 22.5
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 25
+                      }
+                    ]
+                  },
+                  "unit": "suffix: kWh/100 km"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-40": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -285,7 +1970,7 @@
             }
           },
           "description": "One point per minute while a car is connected and the charging mode is auto. Grid import stays under the limit by lowering the charger's step; the step is raised again only after five minutes of room.",
-          "id": 12,
+          "id": 40,
           "links": [],
           "title": "Auto charging: grid import against the limit",
           "vizConfig": {
@@ -390,11 +2075,11 @@
                 }
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
-      "panel-13": {
+      "panel-41": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -445,7 +2130,7 @@
             }
           },
           "description": "Every minute the auto mode changed the charger's step: the readings it used and the step it chose. Room = limit - (grid import - charger power).",
-          "id": 13,
+          "id": 41,
           "links": [],
           "title": "Auto charging: step changes",
           "vizConfig": {
@@ -477,11 +2162,11 @@
                 "showHeader": true
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
-      "panel-14": {
+      "panel-5": {
         "kind": "Panel",
         "spec": {
           "data": {
@@ -502,7 +2187,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with trips as (\n    select date_trunc('month', start_at at time zone 'Europe/Vienna')::date as month,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n)\nselect (w.month + 14)::timestamp at time zone 'Europe/Vienna' as time,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom agg_1month_what_if w\nleft join trips t on t.month = w.month\ncross join overall o\nwhere w.km > 0\n  and w.month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and w.month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by time;"
+                        "rawSql": "with cur as (\n    select sum(consumption) / sum(distance) as c from data_vehicle_trips\n    where $__timeFilter(start_at) and distance >= ${min_km} and consumption > 0\n), prev as (\n    select sum(consumption) / sum(distance) as c from data_vehicle_trips\n    where start_at >= $__timeFrom()::timestamptz - ($__timeTo()::timestamptz - $__timeFrom()::timestamptz)\n      and start_at < $__timeFrom()::timestamptz and distance >= ${min_km} and consumption > 0\n)\nselect now() as time, (cur.c / prev.c - 1) * 100 as \"Change\"\nfrom cur, prev\nwhere prev.c is not null;"
                       },
                       "version": "v0"
                     },
@@ -511,179 +2196,654 @@
                 }
               ],
               "queryOptions": {},
-              "transformations": [
-                {
-                  "group": "regression",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "degree": 5,
-                      "modelType": "polynomial",
-                      "xFieldName": "time",
-                      "yFieldName": "EV"
-                    }
-                  }
-                }
-              ]
+              "transformations": []
             }
           },
-          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, from agg_1month_what_if. EV: the average price per kWh paid for home charging that month (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. Months without trips use the average consumption over all trips. The trip consumption leaves out charging losses. The red line is a polynomial regression (degree 5) over the EV bars, as on Average Consumption.",
-          "id": 14,
+          "description": "Change of the consumption against the period of the same length right before the time range. Down is better. Hidden when there is no earlier data.",
+          "id": 5,
           "links": [],
-          "title": "Cost per 100 km: combustion car vs EV",
+          "title": "Consumption vs. previous period",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "stat",
             "kind": "VizConfig",
-            "version": "13.2.4",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "unit": "suffix: €/100 km",
-                  "decimals": 2,
-                  "min": 0,
                   "color": {
-                    "mode": "fixed",
-                    "fixedColor": "dark-red"
+                    "mode": "thresholds"
                   },
-                  "custom": {
-                    "drawStyle": "line",
-                    "lineWidth": 5,
-                    "fillOpacity": 0,
-                    "showPoints": "never",
-                    "barWidthFactor": 0.4,
-                    "stacking": {
-                      "mode": "none",
-                      "group": "A"
-                    }
+                  "decimals": 1,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 0
+                      }
+                    ]
                   },
-                  "displayName": "EV (Regression)"
+                  "unit": "percent"
                 },
-                "overrides": [
-                  {
-                    "matcher": {
-                      "id": "byFrameRefID",
-                      "options": "A"
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select time_bucket('1 day', time) as time, avg(soh) as \"SOH\"\nfrom data_vehicle_battery_soh\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
                     },
-                    "properties": [
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Last state of health in the time range (the car reports whole percent); the sparkline is the daily mean.",
+          "id": 6,
+          "links": [],
+          "title": "Battery state of health",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "max": 100,
+                  "min": 70,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
                       {
-                        "id": "displayName",
-                        "value": "EV"
+                        "color": "red",
+                        "value": null
                       },
                       {
-                        "id": "color",
-                        "value": {
-                          "mode": "fixed",
-                          "fixedColor": "blue"
-                        }
-                      },
-                      {
-                        "id": "custom.barAlignment",
-                        "value": 1
-                      },
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "bars"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
+                        "color": "dark-orange",
                         "value": 80
                       },
                       {
-                        "id": "custom.lineWidth",
-                        "value": 1
-                      },
-                      {
-                        "id": "custom.showPoints",
-                        "value": "never"
+                        "color": "green",
+                        "value": 85
                       }
                     ]
                   },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Combustion car"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Combustion car"
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "mode": "fixed",
-                          "fixedColor": "orange"
-                        }
-                      },
-                      {
-                        "id": "custom.barAlignment",
-                        "value": -1
-                      }
-                    ]
-                  }
-                ]
+                  "unit": "percent"
+                },
+                "overrides": []
               },
               "options": {
-                "legend": {
-                  "displayMode": "list",
-                  "placement": "bottom",
-                  "showLegend": true
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
                 },
-                "tooltip": {
-                  "mode": "multi",
-                  "sort": "none"
-                }
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
               }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with d as (\n    select extract(epoch from time_bucket('1 day', time)) as x, max(mileage) as y\n    from data_vehicle_mileage\n    where $__timeFilter(time)\n    group by 1\n)\nselect now() as time, regr_slope(y, x) * 365.25 * 86400 as \"Yearly mileage\"\nfrom d;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
             }
+          },
+          "description": "Slope of the linear regression through the daily odometer readings in the time range, in kilometres per year.",
+          "id": 7,
+          "links": [],
+          "title": "Yearly mileage (trend)",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "suffix: km/year"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "none",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with d as (\n    select extract(epoch from time_bucket('1 day', time)) as x, avg(soh) as y\n    from data_vehicle_battery_soh\n    where $__timeFilter(time)\n    group by 1\n), r as (\n    select regr_slope(y, x) as s, regr_intercept(y, x) as b from d\n)\nselect now() as time, to_char(to_timestamp((80 - b) / s) at time zone 'Europe/Vienna', 'YYYY-MM') as \"Month\"\nfrom r\nwhere s < 0;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Month in which the linear regression through the daily state of health in the time range reaches 80 %. The car reports whole percent, so this is a rough estimate. Empty while the health is not declining.",
+          "id": 8,
+          "links": [],
+          "title": "80 % health reached (trend)",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "none"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "none",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/^(?!time$).*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
           }
         }
       }
     },
     "layout": {
-      "kind": "AutoGridLayout",
+      "kind": "RowsLayout",
       "spec": {
-        "columnWidthMode": "standard",
-        "fillScreen": true,
-        "items": [
+        "rows": [
           {
-            "kind": "AutoGridLayoutItem",
+            "kind": "RowsLayoutRow",
             "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-11"
-              }
+              "collapse": false,
+              "fillScreen": false,
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "narrow",
+                  "fillScreen": true,
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-1"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-2"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-3"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-4"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "conditionalRendering": {
+                          "kind": "ConditionalRenderingGroup",
+                          "spec": {
+                            "condition": "and",
+                            "items": [
+                              {
+                                "kind": "ConditionalRenderingData",
+                                "spec": {
+                                  "value": true
+                                }
+                              }
+                            ],
+                            "visibility": "show"
+                          }
+                        },
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-5"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-6"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-7"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "conditionalRendering": {
+                          "kind": "ConditionalRenderingGroup",
+                          "spec": {
+                            "condition": "and",
+                            "items": [
+                              {
+                                "kind": "ConditionalRenderingData",
+                                "spec": {
+                                  "value": true
+                                }
+                              }
+                            ],
+                            "visibility": "show"
+                          }
+                        },
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-8"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 4,
+                  "rowHeightMode": "short"
+                }
+              },
+              "title": "Key figures"
             }
           },
           {
-            "kind": "AutoGridLayoutItem",
+            "kind": "RowsLayoutRow",
             "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-14"
-              }
-            }
-          },
-          {
-            "kind": "AutoGridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-12"
-              }
-            }
-          },
-          {
-            "kind": "AutoGridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-13"
-              }
+              "collapse": false,
+              "fillScreen": true,
+              "hideHeader": true,
+              "layout": {
+                "kind": "TabsLayout",
+                "spec": {
+                  "tabs": [
+                    {
+                      "kind": "TabsLayoutTab",
+                      "spec": {
+                        "layout": {
+                          "kind": "AutoGridLayout",
+                          "spec": {
+                            "columnWidthMode": "standard",
+                            "fillScreen": true,
+                            "items": [
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-10"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-11"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-12"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-14"
+                                  }
+                                }
+                              }
+                            ],
+                            "maxColumnCount": 2,
+                            "rowHeightMode": "standard"
+                          }
+                        },
+                        "title": "Consumption"
+                      }
+                    },
+                    {
+                      "kind": "TabsLayoutTab",
+                      "spec": {
+                        "layout": {
+                          "kind": "AutoGridLayout",
+                          "spec": {
+                            "columnWidthMode": "standard",
+                            "fillScreen": true,
+                            "items": [
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-20"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-21"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-23"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-22"
+                                  }
+                                }
+                              }
+                            ],
+                            "maxColumnCount": 2,
+                            "rowHeightMode": "standard"
+                          }
+                        },
+                        "title": "Battery"
+                      }
+                    },
+                    {
+                      "kind": "TabsLayoutTab",
+                      "spec": {
+                        "layout": {
+                          "kind": "AutoGridLayout",
+                          "spec": {
+                            "columnWidthMode": "standard",
+                            "fillScreen": true,
+                            "items": [
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-30"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-32"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-33"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-31"
+                                  }
+                                }
+                              }
+                            ],
+                            "maxColumnCount": 2,
+                            "rowHeightMode": "tall"
+                          }
+                        },
+                        "title": "Usage"
+                      }
+                    },
+                    {
+                      "kind": "TabsLayoutTab",
+                      "spec": {
+                        "layout": {
+                          "kind": "AutoGridLayout",
+                          "spec": {
+                            "columnWidthMode": "standard",
+                            "fillScreen": true,
+                            "items": [
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-40"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-41"
+                                  }
+                                }
+                              }
+                            ],
+                            "maxColumnCount": 2,
+                            "rowHeightMode": "standard"
+                          }
+                        },
+                        "title": "Auto charging"
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Analysis"
             }
           }
-        ],
-        "maxColumnCount": 2,
-        "rowHeightMode": "standard"
+        ]
       }
     },
     "links": [
@@ -722,12 +2882,92 @@
         "1d"
       ],
       "fiscalYearStartMonth": 0,
-      "from": "now-1y",
+      "from": "now-2y",
       "hideTimepicker": false,
       "timezone": "browser",
       "to": "now"
     },
     "title": "Vehicle - Analysis",
-    "variables": []
+    "variables": [
+      {
+        "kind": "ConstantVariable",
+        "spec": {
+          "hide": "hideVariable",
+          "name": "battery_kwh",
+          "query": "46",
+          "skipUrlSync": true
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allowCustomValue": false,
+          "current": {
+            "text": "Month",
+            "value": "month"
+          },
+          "hide": "dontHide",
+          "includeAll": false,
+          "label": "Aggregate by",
+          "multi": false,
+          "name": "grain",
+          "options": [
+            {
+              "selected": true,
+              "text": "Month",
+              "value": "month"
+            },
+            {
+              "selected": false,
+              "text": "Week",
+              "value": "week"
+            }
+          ],
+          "query": "Month : month, Week : week",
+          "skipUrlSync": false,
+          "valuesFormat": "csv"
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allowCustomValue": false,
+          "current": {
+            "text": "1 km",
+            "value": "1"
+          },
+          "hide": "dontHide",
+          "includeAll": false,
+          "label": "Shortest trip",
+          "multi": false,
+          "name": "min_km",
+          "options": [
+            {
+              "selected": false,
+              "text": "All",
+              "value": "0"
+            },
+            {
+              "selected": true,
+              "text": "1 km",
+              "value": "1"
+            },
+            {
+              "selected": false,
+              "text": "2 km",
+              "value": "2"
+            },
+            {
+              "selected": false,
+              "text": "5 km",
+              "value": "5"
+            }
+          ],
+          "query": "All : 0, 1 km : 1, 2 km : 2, 5 km : 5",
+          "skipUrlSync": false,
+          "valuesFormat": "csv"
+        }
+      }
+    ]
   }
 }
