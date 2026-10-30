@@ -172,16 +172,16 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 
 | # | Service | Image | Purpose | Exposed Ports | Networks | Domain |
 |---|---|---|---|---|---|---|
-| 1 | `registry` | `registry:3.0.0` | Private Docker registry | — | `proxy` | `registry.v-collaborate.com` |
+| 1 | `registry` | `registry:3.0.0` | Private Docker registry | — | `monitoring_ui` | `registry.v-collaborate.com` |
 | 2 | `autoheal` | `willfarrell/autoheal:latest` | Automatic container restart on failure | — | — | — |
 | 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
-| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy` | `proxy.v-collaborate.com` |
-| 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `proxy`, `prometheus` | `metrics.v-collaborate.com` |
+| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
+| 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `monitoring_ui`, `prometheus` | `metrics.v-collaborate.com` |
 | 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
-| 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `proxy`, `prometheus` | `cadvisor.v-collaborate.com` |
-| 8 | `authelia` | `authelia/authelia:4.39.28` | Authentication / SSO | — | `proxy` | `auth.v-collaborate.com` |
+| 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `monitoring_ui`, `prometheus` | `cadvisor.v-collaborate.com` |
+| 8 | `authelia` | `authelia/authelia:4.39.28` | Authentication / SSO | — | `proxy`, `prometheus` | `auth.v-collaborate.com` |
 | 9 | `grafana-pg` | `postgres:18-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
-| 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `proxy`, `grafana` | `graph.v-collaborate.com` |
+| 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `grafana_ui`, `grafana`, `prometheus` | `graph.v-collaborate.com` |
 | 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
 | 12 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
 | 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
@@ -190,11 +190,11 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 16 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
 | 17 | `photoprism` | `photoprism/photoprism:260305` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
 | 18 | `conduit` | `matrixconduit/matrix-conduit:v0.10.12` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
-| 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `proxy` | `picoclaw.v-collaborate.com` |
-| 20 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `proxy` | `code.v-collaborate.com` |
+| 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `picoclaw_ui` | `picoclaw.v-collaborate.com` |
+| 20 | `code-server` | `lscr.io/linuxserver/code-server:latest` | Browser-based VS Code IDE | — | `code_ui` | `code.v-collaborate.com` |
 | 21 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
 | 22 | `otterwiki` | `redimp/otterwiki:2.25.2` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
-| 23 | `alertmanager` | `prom/alertmanager:v0.34.1` | Groups, routes and silences the Prometheus alerts | `10.8.0.1:9093` (WireGuard only) | `proxy`, `prometheus` | `alerts.v-collaborate.com` |
+| 23 | `alertmanager` | `prom/alertmanager:v0.34.1` | Groups, routes and silences the Prometheus alerts | `10.8.0.1:9093` (WireGuard only) | `monitoring_ui`, `prometheus` | `alerts.v-collaborate.com` |
 | 24 | `matrix-receiver` | `metio/matrix-alertmanager-receiver:2026.9.23` | Posts the alerts to the Matrix rooms on Conduit | `10.8.0.1:12345` (WireGuard only) | `proxy`, `prometheus` | — |
 | 25 | `sql-exporter` | `burningalchemist/sql_exporter:0.24.11` | Age of the newest row of the `data_*` tables as metrics | — | `grafana`, `prometheus` | — |
 
