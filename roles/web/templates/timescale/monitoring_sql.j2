@@ -3,9 +3,6 @@
 -- For existing databases: connect as superuser and run this file once, e.g.
 --   psql -h localhost -U <superuser> -d timescale_home -f monitoring.sql
 
--- Allow postgres_exporter (grafana_ro) to see all sessions in pg_stat_activity
-GRANT pg_monitor TO grafana_ro;
-
 -- Enable connection-level logging so Promtail / Loki can track access attempts
 ALTER SYSTEM SET log_connections    = 'on';
 ALTER SYSTEM SET log_disconnections = 'on';

@@ -200,6 +200,19 @@
     delay: 10
     when: "'sql_exporter' in web_containers"
 
+  - name: Postgres exporter - Grant pg_monitor to its database role
+    command: >-
+      docker exec web_timescaledb
+      psql -v ON_ERROR_STOP=1 -q -U {{ vault_timescale_pg_user }} -d timescale_home
+      -c "GRANT pg_monitor TO grafana_ro"
+    become: yes
+    register: postgres_exporter_grant
+    changed_when: "'already been granted' not in postgres_exporter_grant.stderr"
+    until: postgres_exporter_grant.rc == 0
+    retries: 6
+    delay: 10
+    when: "'postgres_exporter' in web_containers"
+
   # Authelia reads its configuration once at startup. compose runs with
   # recreate: never, so access rule changes would otherwise sit on disk
   # unapplied. The users database is watched and needs no restart.

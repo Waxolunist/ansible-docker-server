@@ -612,7 +612,7 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 
 - Connects as `grafana_ro` (read-only role) using a Docker secret for the password
 - Runs a custom query against `pg_stat_activity` grouped by `client_addr / username / datname / state`, producing the `pg_connections_by_client_count` metric
-- Requires `pg_monitor` granted to `grafana_ro` — applied by [`02_monitoring.sql`](roles/web/templates/timescale/monitoring_sql.j2) on first DB initialisation, or manually for existing databases
+- Requires `pg_monitor` granted to `grafana_ro` (for `pg_stat_activity` and the WAL collector's `pg_ls_waldir()`), applied by the "Postgres exporter - Grant pg_monitor to its database role" task in `roles/web/tasks/main.yml` on every deploy
 
 ### Grafana
 
