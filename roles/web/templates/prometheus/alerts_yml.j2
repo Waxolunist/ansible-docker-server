@@ -260,7 +260,7 @@ groups:
         annotations:
           summary: "The car controller has lost its PSA login"
           description: "psa_car_controller answers but has not been logged in to the PSA API for 15 minutes, so no car data arrives. Log in again on the User config tab of the controller's config page: [[ vault_psa_url ]]/"
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ runbook ]]refresh-psa-tokens.md"
 
       - alert: PsaControllerUnreachable
@@ -272,7 +272,7 @@ groups:
         annotations:
           summary: "The car controller does not answer"
           description: "psa_car_controller's /health has not answered the collector for 15 minutes."
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ runbook ]]refresh-psa-tokens.md#recognise-which-one-it-is"
 
       - alert: PsaControllerFlapping
@@ -283,7 +283,7 @@ groups:
         annotations:
           summary: "The car controller keeps going down and coming back"
           description: "psa_car_controller's /health changed state {{ $value | printf \"%.0f\" }} times in 30 minutes. Autoheal restarts it on a 503, which means the MQTT broker keeps refusing it and the remote-control activation is probably gone."
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ respond ]]psacontrollerflapping"
 
       - alert: GridImportHigh
@@ -318,7 +318,7 @@ groups:
         annotations:
           summary: "The car has started"
           description: "The ignition status is StartUp."
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ respond ]]carstarted"
 
       - alert: CarPluggedIn
@@ -330,7 +330,7 @@ groups:
         annotations:
           summary: "The car is plugged in at the go-e"
           description: "The go-e reports a car (state {{ $value | printf \"%.0f\" }})."
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ respond ]]carpluggedin"
 
       - alert: CarPluggedInAway
@@ -343,7 +343,7 @@ groups:
         annotations:
           summary: "The car is plugged in away from home"
           description: "The car reports a charging cable, and the go-e has not seen the car since it was plugged in."
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ respond ]]carpluggedinaway"
 
       - alert: CarBatteryFull
@@ -355,7 +355,7 @@ groups:
         annotations:
           summary: "The car's battery is full"
           description: "The car reports a battery level of {{ $value | printf \"%.0f\" }} % and is plugged in."
-          dashboard: "[[ dash ]]ch6qwwl"
+          dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ respond ]]carbatteryfull"
 {% for metric, area in [
   ('collector_job_failures_total', 'data'),

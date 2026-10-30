@@ -50,7 +50,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select last(level, time) from data_vehicle_energy_level where vehicle_id = 1;",
+                        "rawSql": "select last(level, time) as level from data_vehicle_energy_level where vehicle_id = 1;",
                         "sql": {
                           "columns": [
                             {
@@ -73,13 +73,51 @@
                     },
                     "refId": "A"
                   }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select autonomy as range from data_vehicle_energy_autonomy where vehicle_id = 1 order by time desc limit 1;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
                 }
               ],
               "queryOptions": {},
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Level: the battery level in percent the car last reported.\n\nRange: the remaining range in km the car estimates for that level. It depends on the recent driving and the temperature, so it moves without the level changing.\n\nBoth are the newest values the collector stored; it reads the car controller's cached status every 5 minutes.",
           "id": 1,
           "links": [],
           "title": "Battery Level",
@@ -141,7 +179,76 @@
                   },
                   "unit": "percent"
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "level"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Level"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "range"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Range"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "lengthkm"
+                      },
+                      {
+                        "id": "min",
+                        "value": 0
+                      },
+                      {
+                        "id": "max",
+                        "value": 350
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "dark-red",
+                              "value": 0
+                            },
+                            {
+                              "color": "dark-red",
+                              "value": 50
+                            },
+                            {
+                              "color": "orange",
+                              "value": 100
+                            },
+                            {
+                              "color": "yellow",
+                              "value": 150
+                            },
+                            {
+                              "color": "super-light-green",
+                              "value": 200
+                            },
+                            {
+                              "color": "semi-dark-green",
+                              "value": 250
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
                 "barShape": "flat",
@@ -2122,7 +2229,7 @@
               ]
             }
           },
-          "description": "",
+          "description": "When the collector last stored a battery level, in Vienna time. It reads the car controller's cached status every 5 minutes, and the controller refreshes it from the Stellantis API every 2 minutes, so the time is the collector's run, not when the car itself last sent data. If it is more than about 5 minutes old, the collector or the car controller has stopped delivering.",
           "id": 3,
           "links": [],
           "title": "Last Update",
@@ -2300,10 +2407,10 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "What the car last reported to the Stellantis API, read by the collector every 5 minutes.\n\nPreconditioning: whether the air conditioning is preconditioning the car (Enabled or Disabled).\n\nCharging: the car's charging state, e.g. InProgress, Stop, Finished or Disconnected. Connected means the cable is plugged in but the car is not charging.\n\nIgnition Status: StartUp while the car is switched on, Stop when it is off.",
           "id": 9,
           "links": [],
-          "title": "",
+          "title": "Car status",
           "vizConfig": {
             "group": "stat",
             "kind": "VizConfig",
@@ -2453,7 +2560,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "((clamp_min(95 - vehicle_battery_level_percent, 0) * 0.5 / (avg_over_time(power_goe_watts[2m]) / 1000) + (100 - clamp_min(vehicle_battery_level_percent, 95)) * 0.5 / clamp_max(avg_over_time(power_goe_watts[2m]) / 1000, 2.5)) * 3600 and avg_over_time(power_goe_watts[2m]) > 500) or on() vector(-1)",
+                        "expr": "round(((clamp_min(95 - vehicle_battery_level_percent, 0) * 0.5 / (avg_over_time(power_goe_watts[2m]) / 1000) + (100 - clamp_min(vehicle_battery_level_percent, 95)) * 0.5 / clamp_max(avg_over_time(power_goe_watts[2m]) / 1000, 2.5)) * 3600 and avg_over_time(power_goe_watts[2m]) > 500), 60) or on() vector(-1)",
                         "instant": true,
                         "legendFormat": "Time to full",
                         "range": false
@@ -2516,7 +2623,7 @@
                       },
                       {
                         "id": "decimals",
-                        "value": 2
+                        "value": 1
                       },
                       {
                         "id": "max",
@@ -2582,6 +2689,345 @@
               }
             },
             "version": "13.2.4"
+          }
+        }
+      },
+      "panel-27": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select bucket as time, last_val(mileage) as mileage from agg_15m_counter_data_vehicle_mileage where vehicle_id = 1 \nand $__timeFilter(bucket) order by bucket",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "now/w",
+                "timeShift": "0d/d"
+              },
+              "transformations": []
+            }
+          },
+          "description": "Odometer in km, as the car reports it. The sparkline shows this week.",
+          "id": 27,
+          "links": [],
+          "title": "Mileage",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "blue",
+                    "mode": "fixed"
+                  },
+                  "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "suffix: km"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              }
+            },
+            "version": "12.0.0"
+          }
+        }
+      },
+      "panel-28": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "SELECT last(soh, time) from data_vehicle_battery_soh;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "State of health of the traction battery in percent. The car reports it to the Stellantis API as the battery resistance health (battery.health.resistance), not as a capacity measurement. psa_car_controller stores it whenever it records a charge, and the collector reads the latest value every 5 minutes. The panel shows that last recorded value, so it changes only after a new charge is recorded.",
+          "id": 28,
+          "links": [],
+          "title": "Battery SOH",
+          "vizConfig": {
+            "group": "gauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 100,
+                  "min": 70,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "dark-red",
+                        "value": 0
+                      },
+                      {
+                        "color": "dark-red",
+                        "value": 70
+                      },
+                      {
+                        "color": "dark-orange",
+                        "value": 75
+                      },
+                      {
+                        "color": "super-light-yellow",
+                        "value": 80
+                      },
+                      {
+                        "color": "dark-yellow",
+                        "value": 85
+                      },
+                      {
+                        "color": "green",
+                        "value": 90
+                      },
+                      {
+                        "color": "dark-green",
+                        "value": 95
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
+              "options": {
+                "minVizHeight": 75,
+                "minVizWidth": 75,
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true,
+                "sizing": "auto",
+                "text": {}
+              }
+            },
+            "version": "12.0.0"
+          }
+        }
+      },
+      "panel-29": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "SELECT time, air_temp\nFROM data_vehicle_environment_airtemp \nWHERE $__timeFilter(time) ",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "now/d",
+                "timeShift": "0d/d"
+              },
+              "transformations": []
+            }
+          },
+          "description": "Outside air temperature measured by the car, as it last reported it. The sparkline shows today.",
+          "id": 29,
+          "links": [],
+          "title": "Air Temp",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "continuous-BlYlRd"
+                  },
+                  "max": 40,
+                  "min": -10,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  "unit": "celsius"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "area",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "auto",
+                "wideLayout": true
+              }
+            },
+            "version": "12.0.0"
           }
         }
       }
@@ -2673,6 +3119,54 @@
                           "name": "panel-9"
                         }
                       }
+                    }
+                  ],
+                  "maxColumnCount": 5,
+                  "rowHeightMode": "standard"
+                }
+              },
+              "title": "New row"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "hideHeader": true,
+              "title": "Vehicle",
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "narrow",
+                  "maxColumnCount": 4,
+                  "rowHeightMode": "short",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-27"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-28"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-29"
+                        }
+                      }
                     },
                     {
                       "kind": "AutoGridLayoutItem",
@@ -2683,12 +3177,9 @@
                         }
                       }
                     }
-                  ],
-                  "maxColumnCount": 6,
-                  "rowHeightMode": "standard"
+                  ]
                 }
-              },
-              "title": "New row"
+              }
             }
           },
           {

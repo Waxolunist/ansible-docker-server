@@ -240,11 +240,11 @@
       - table: data_vehicle_energy_level
         column: time
         stale_after: 30m
-        dashboard: ch6qwwl
+        dashboard: chw95zv
       - table: data_vehicle_battery_soh
         column: time
         stale_after: 30m
-        dashboard: ch6qwwl
+        dashboard: chw95zv
       - table: data_smartmeter_energy
         column: time
         stale_after: 48h
@@ -266,4 +266,4 @@
     battery: /d/cekyf6g8gyupse
     household: /d/bekag75iz9on4e
     wallbox: /d/chw95zv
-    car: /d/ch6qwwl
+    car: /d/chw95zv
