@@ -47,6 +47,8 @@ services:
     restart: always
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal
+    labels:
+      - traefik.enable=false
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
@@ -529,7 +531,7 @@ services:
     # Host networking is the sane choice for coturn: the relay port range would
     # otherwise need publishing port-by-port, and coturn sees the real client
     # address rather than Docker's bridge address. It also means this container
-    # is not on the proxy network and carries no Traefik labels -- STUN/TURN is
+    # is not on the proxy network and is not routed by Traefik -- STUN/TURN is
     # not HTTP, so there is nothing for the reverse proxy to route.
     network_mode: host
     volumes:
@@ -544,6 +546,7 @@ services:
       - TZ=Europe/Vienna
     labels:
       - autoheal=true
+      - traefik.enable=false
     healthcheck:
       # A plain STUN binding request against the listener -- no credentials, no
       # relay allocation. It must target the address coturn actually binds:
@@ -955,6 +958,7 @@ services:
       - traefik.http.routers.picoclaw.entrypoints=web
       - traefik.http.routers.picoclaw.middlewares=picoclaw-https-redirect
       - traefik.http.routers.picoclaw.rule=Host(`{{ picoclaw.domain }}`)
+      - traefik.http.routers.picoclaw.service=picoclaw-launcher
       - traefik.http.routers.picoclaw-gw-secure.entrypoints=websecure
       - traefik.http.routers.picoclaw-gw-secure.rule=Host(`{{ picoclaw_gw.domain }}`)
       - traefik.http.routers.picoclaw-gw-secure.service=picoclaw-gateway
@@ -964,6 +968,7 @@ services:
       - traefik.http.routers.picoclaw-gw.entrypoints=web
       - traefik.http.routers.picoclaw-gw.middlewares=picoclaw-gw-https-redirect
       - traefik.http.routers.picoclaw-gw.rule=Host(`{{ picoclaw_gw.domain }}`)
+      - traefik.http.routers.picoclaw-gw.service=picoclaw-gateway
     restart: unless-stopped
 
   code-server:
