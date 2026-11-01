@@ -728,7 +728,7 @@
                     "hidden": false,
                     "query": {
                       "datasource": {
-                        "name": "Prometheus"
+                        "name": "BfDiy2hMk"
                       },
                       "group": "prometheus",
                       "kind": "DataQuery",
@@ -802,7 +802,7 @@
                     "hidden": false,
                     "query": {
                       "datasource": {
-                        "name": "Prometheus"
+                        "name": "BfDiy2hMk"
                       },
                       "group": "prometheus",
                       "kind": "DataQuery",
@@ -841,7 +841,7 @@
                     "drawStyle": "line",
                     "fillOpacity": 10,
                     "lineWidth": 2,
-                    "showPoints": "never",
+                    "showPoints": "auto",
                     "spanNulls": false
                   },
                   "max": 100,
