@@ -2722,7 +2722,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect gti as \"Irradiance\", pv_kw as \"PV\",\n       regr_intercept(pv_kw, gti) over () + regr_slope(pv_kw, gti) over () * gti as \"Trend\"\nfrom h\norder by gti;"
+                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv_live as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\npv_counter as (\n  select t, e - lag(e) over (order by t) as pv_kw, t - lag(t) over (order by t) as step\n  from (select time_bucket('1 hour', time) as t, max(energy) as e\n        from data_solar_energy\n        where time >= $__timeFrom()::timestamptz - interval '1 hour' and time <= $__timeTo() group by 1) c),\npv as (\n  select t, pv_kw from pv_live\n  union all\n  select t, greatest(pv_kw, 0) from pv_counter\n  where step = interval '1 hour' and t not in (select t from pv_live)),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect gti as \"Irradiance\",\n       case when extract(year from t at time zone 'Europe/Vienna') = extract(year from now() at time zone 'Europe/Vienna') then pv_kw end as \"This year\",\n       case when extract(year from t at time zone 'Europe/Vienna') = extract(year from now() at time zone 'Europe/Vienna') - 1 then pv_kw end as \"Last year\",\n       case when extract(year from t at time zone 'Europe/Vienna') < extract(year from now() at time zone 'Europe/Vienna') - 1 then pv_kw end as \"Older\",\n       regr_intercept(pv_kw, gti) over () + regr_slope(pv_kw, gti) over () * gti as \"Trend\"\nfrom h\norder by gti;"
                       },
                       "version": "v0"
                     },
@@ -2734,7 +2734,7 @@
               "transformations": []
             }
           },
-          "description": "Hourly average PV power (data_power_live) against the hourly mean irradiance on the tilted panel plane (data_irradiance, Open-Meteo, hours above 20 W/m²). The points follow a line whose slope is the plant's output per W/m²; points well below it mark shading, soiling or a fault, or a mismatch between the modelled and real sky. The red line is the least-squares fit over the shown hours.",
+          "description": "Hourly average PV power (data_power_live) against the hourly mean irradiance on the tilted panel plane (data_irradiance, Open-Meteo, hours above 20 W/m²). The points follow a line whose slope is the plant's output per W/m²; points well below it mark shading, soiling or a fault, or a mismatch between the modelled and real sky. The red line is the least-squares fit over the shown hours. Points are coloured by year: this year, last year and older; the red trend line covers all of them.",
           "id": 28,
           "links": [],
           "title": "PV vs irradiance",
@@ -2799,6 +2799,51 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "This year"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#e8a400",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Last year"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#3274d9",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Older"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#8a8f98",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
                   }
                 ]
               },
@@ -2807,7 +2852,7 @@
                   "calcs": [],
                   "displayMode": "list",
                   "placement": "bottom",
-                  "showLegend": false
+                  "showLegend": true
                 },
                 "mapping": "auto",
                 "series": [],
@@ -2842,7 +2887,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect sum(pv_kw) / (sum(gti) / 1000) / 3.6 * 100 as \"Performance ratio\" from h;"
+                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv_live as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\npv_counter as (\n  select t, e - lag(e) over (order by t) as pv_kw, t - lag(t) over (order by t) as step\n  from (select time_bucket('1 hour', time) as t, max(energy) as e\n        from data_solar_energy\n        where time >= $__timeFrom()::timestamptz - interval '1 hour' and time <= $__timeTo() group by 1) c),\npv as (\n  select t, pv_kw from pv_live\n  union all\n  select t, greatest(pv_kw, 0) from pv_counter\n  where step = interval '1 hour' and t not in (select t from pv_live)),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect sum(pv_kw) / (sum(gti) / 1000) / 3.6 * 100 as \"Performance ratio\" from h;"
                       },
                       "version": "v0"
                     },
@@ -3013,7 +3058,7 @@
                         "editorMode": "code",
                         "format": "time_series",
                         "rawQuery": true,
-                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect time, \"Performance ratio\",\n       regr_intercept(\"Performance ratio\", extract(epoch from time)) over ()\n         + regr_slope(\"Performance ratio\", extract(epoch from time)) over () * extract(epoch from time) as \"Trend\"\nfrom (select time_bucket('1 day', t, 'Europe/Vienna') as time,\n             sum(pv_kw) / (sum(gti) / 1000) / 3.6 * 100 as \"Performance ratio\"\n      from h\n      where t < time_bucket('1 day', now(), 'Europe/Vienna')\n      group by 1\n      having sum(gti) > 500) days\norder by time;"
+                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv_live as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\npv_counter as (\n  select t, e - lag(e) over (order by t) as pv_kw, t - lag(t) over (order by t) as step\n  from (select time_bucket('1 hour', time) as t, max(energy) as e\n        from data_solar_energy\n        where time >= $__timeFrom()::timestamptz - interval '1 hour' and time <= $__timeTo() group by 1) c),\npv as (\n  select t, pv_kw from pv_live\n  union all\n  select t, greatest(pv_kw, 0) from pv_counter\n  where step = interval '1 hour' and t not in (select t from pv_live)),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect time, \"Performance ratio\",\n       regr_intercept(\"Performance ratio\", extract(epoch from time)) over ()\n         + regr_slope(\"Performance ratio\", extract(epoch from time)) over () * extract(epoch from time) as \"Trend\",\n       regr_intercept(adjusted, extract(epoch from time)) over ()\n         + regr_slope(adjusted, extract(epoch from time)) over () * extract(epoch from time) as \"Seasonally adjusted trend\"\nfrom (select time, \"Performance ratio\",\n             \"Performance ratio\" / avg(\"Performance ratio\") over (partition by extract(month from time))\n               * avg(\"Performance ratio\") over () as adjusted\n      from (select time_bucket('1 day', t, 'Europe/Vienna') as time,\n                   sum(pv_kw) / (sum(gti) / 1000) / 3.6 * 100 as \"Performance ratio\"\n            from h\n            where t < time_bucket('1 day', now(), 'Europe/Vienna')\n            group by 1\n            having sum(gti) > 500) days) adjusted_days\norder by time;"
                       },
                       "version": "v0"
                     },
@@ -3025,7 +3070,7 @@
               "transformations": []
             }
           },
-          "description": "Daily performance ratio of the 3.6 kWp plant: PV energy / (irradiation on the panel plane × 3.6 kWp), with a least-squares trend line over the shown days. Days with under 0.5 kWh/m² and the current, incomplete day are left out. Compare days, not single values: the irradiance is modelled, so cloudy days scatter.",
+          "description": "Daily performance ratio of the 3.6 kWp plant: PV energy / (irradiation on the panel plane × 3.6 kWp). Red: least-squares trend over the shown days, which also contains the season (the range rarely covers whole years). Blue: the same trend after dividing each day by the average of its calendar month and rescaling to the overall mean, so only a change over the years remains; with two to three years of data it is indicative, not conclusive. Days with under 0.5 kWh/m² and the current, incomplete day are left out.",
           "id": 30,
           "links": [],
           "title": "Daily performance ratio",
@@ -3088,6 +3133,37 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Seasonally adjusted trend"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 3
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
                   }
                 ]
               },
@@ -3105,6 +3181,85 @@
                   "mode": "multi",
                   "sort": "desc"
                 }
+              }
+            },
+            "version": "12.0.0"
+          }
+        }
+      },
+      "panel-31": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\npv_live as (\n  select time_bucket('1 hour', time) as t, avg(pv_kw) as pv_kw\n  from data_power_live where $__timeFilter(time) group by 1),\npv_counter as (\n  select t, e - lag(e) over (order by t) as pv_kw, t - lag(t) over (order by t) as step\n  from (select time_bucket('1 hour', time) as t, max(energy) as e\n        from data_solar_energy\n        where time >= $__timeFrom()::timestamptz - interval '1 hour' and time <= $__timeTo() group by 1) c),\npv as (\n  select t, pv_kw from pv_live\n  union all\n  select t, greatest(pv_kw, 0) from pv_counter\n  where step = interval '1 hour' and t not in (select t from pv_live)),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect to_char(make_date(2000, m, 1), 'Mon') as \"Month\",\n       sum(pv_kw) filter (where y = this_year - 0) / nullif(sum(gti) filter (where y = this_year - 0) / 1000, 0) / 3.6 * 100 as \"This year\",\n       sum(pv_kw) filter (where y = this_year - 1) / nullif(sum(gti) filter (where y = this_year - 1) / 1000, 0) / 3.6 * 100 as \"Last year\",\n       sum(pv_kw) filter (where y = this_year - 2) / nullif(sum(gti) filter (where y = this_year - 2) / 1000, 0) / 3.6 * 100 as \"2 years ago\",\n       sum(pv_kw) filter (where y = this_year - 3) / nullif(sum(gti) filter (where y = this_year - 3) / 1000, 0) / 3.6 * 100 as \"3 years ago\"\nfrom (select extract(month from t at time zone 'Europe/Vienna')::int as m,\n             extract(year from t at time zone 'Europe/Vienna')::int as y,\n             extract(year from now() at time zone 'Europe/Vienna')::int as this_year,\n             pv_kw, gti\n      from h) x\ngroup by m\norder by m;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Performance ratio per calendar month, one column per year, so the same season is compared with itself; lower columns in later years point to real degradation or soiling. Months without data are empty, and the current month is incomplete. Only the last four years are shown, and the picked time range limits which months have data.",
+          "id": 31,
+          "links": [],
+          "title": "Monthly performance ratio by year",
+          "vizConfig": {
+            "group": "barchart",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisPlacement": "auto",
+                    "fillOpacity": 90,
+                    "lineWidth": 0
+                  },
+                  "decimals": 0,
+                  "min": 0,
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
+              "options": {
+                "barWidth": 0.9,
+                "groupWidth": 0.8,
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "orientation": "vertical",
+                "showValue": "never",
+                "stacking": "none",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "xTickLabelRotation": 0
               }
             },
             "version": "12.0.0"
@@ -4257,6 +4412,15 @@
                                             "element": {
                                               "kind": "ElementReference",
                                               "name": "panel-30"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-31"
                                             }
                                           }
                                         }
