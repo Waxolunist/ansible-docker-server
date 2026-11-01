@@ -4,7 +4,7 @@ import sys
 import yaml
 
 SEVERITIES = {"critical", "warning", "info"}
-AREAS = {"infra", "data", "energy", "car", "security"}
+AREAS = {"infra", "data", "energy", "car", "security", "home"}
 ANNOTATIONS = ("summary", "description", "dashboard", "runbook")
 LINKS = ("dashboard", "runbook")
 

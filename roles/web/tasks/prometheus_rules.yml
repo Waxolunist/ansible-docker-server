@@ -1,4 +1,13 @@
 ---
+  # Here and not in prometheus.yml, so the scrape jobs ship with the rules that
+  # watch them (TargetDown_<job>).
+  - name: Write configuration prometheus
+    template:
+      src: prometheus/prometheus_yml.j2
+      dest: "{{ docker.paths.configs }}prometheus/prometheus.yml"
+      mode: 0644
+      backup: yes
+    register: prometheus_config
   - name: Prometheus - Create rules directory
     file:
       path: "{{ docker.paths.configs }}prometheus/rules"

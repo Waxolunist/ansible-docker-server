@@ -95,6 +95,12 @@ scrape_configs:
     static_configs:
       - targets: ['sql-exporter:{{ sql_exporter.port }}']
 
+  - job_name: 'roborock'
+    static_configs:
+      - targets: ['{{ alerting.roborock_target }}']
+        labels:
+          instance: Pi
+
   - job_name: 'collector'
     static_configs:
       - targets: ['{{ alerting.collector_target }}']

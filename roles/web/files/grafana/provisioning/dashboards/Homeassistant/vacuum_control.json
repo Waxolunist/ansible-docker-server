@@ -1,0 +1,1028 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "vacuum-control"
+  },
+  "spec": {
+    "annotations": [],
+    "cursorSync": "Off",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "roborock"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "id",
+                            "text": "id",
+                            "type": "number"
+                          },
+                          {
+                            "selector": "name",
+                            "text": "name",
+                            "type": "string"
+                          }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@ROBOROCK_URL@@/routines",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET"
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "One button per routine defined in the Roborock app, read from the vacuum controller's /routines (cached for 5 minutes). A click starts the routine through the Roborock cloud; Stop and Return to dock go to the vacuum directly.",
+          "id": 1,
+          "links": [],
+          "title": "Programs",
+          "vizConfig": {
+            "group": "marcusolsson-dynamictext-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "afterRender": "const box = context.element.querySelector('.vacuum');\nconst theme = context.grafana.theme;\nconst rows = context.data || [];\n\nconst send = async (path, done) => {\n  const response = await fetch('/api/ds/query', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      from: 'now-5m',\n      to: 'now',\n      queries: [{\n        refId: 'A',\n        datasource: { uid: 'roborock' },\n        type: 'json',\n        source: 'url',\n        parser: 'backend',\n        format: 'table',\n        url: '@@ROBOROCK_URL@@' + path,\n        url_options: { method: 'POST', data: '' },\n      }],\n    }),\n  });\n  const body = await response.json().catch(() => ({}));\n  const error = body.results && body.results.A && body.results.A.error;\n  if (!response.ok || error) {\n    context.grafana.notifyError(['Vacuum', error || body.message || response.statusText]);\n    return;\n  }\n  context.grafana.notifySuccess(['Vacuum', done]);\n  context.grafana.refresh();\n};\n\nconst button = (label, color, path, done) => {\n  const b = document.createElement('button');\n  b.textContent = label;\n  b.style.background = color.main;\n  b.style.color = color.contrastText;\n  b.addEventListener('click', async () => {\n    b.disabled = true;\n    try { await send(path, done); } finally { b.disabled = false; }\n  });\n  return b;\n};\n\nconst programs = document.createElement('div');\nprograms.className = 'programs';\nrows.forEach((row) => programs.append(\n  button(row.name, theme.colors.primary, '/routines/' + row.id, row.name + ' started')));\nconst controls = document.createElement('div');\ncontrols.className = 'controls';\ncontrols.append(\n  button('Stop', theme.colors.error, '/stop', 'Stopped'),\n  button('Return to dock', theme.colors.secondary, '/dock', 'Returning to the dock'));\nbox.replaceChildren(programs, controls);\n",
+                "content": "<div class=\"vacuum\"></div>",
+                "contentPartials": [],
+                "defaultContent": "The vacuum controller returned no routines.",
+                "editor": {
+                  "format": "auto",
+                  "height": 200,
+                  "language": "html"
+                },
+                "editors": [
+                  "afterRender",
+                  "styles"
+                ],
+                "externalScripts": [],
+                "externalStyles": [],
+                "helpers": "",
+                "renderMode": "allRows",
+                "styles": "& .vacuum {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n& .programs, & .controls {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n& button {\n  border: 0;\n  border-radius: 4px;\n  padding: 10px 16px;\n  font-size: 15px;\n  cursor: pointer;\n}\n\n& button:disabled {\n  opacity: 0.5;\n  cursor: wait;\n}\n",
+                "wrap": false
+              }
+            },
+            "version": "6.3.0"
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "roborock"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "state",
+                            "text": "State",
+                            "type": "string"
+                          }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@ROBOROCK_URL@@/status",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET"
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "What the vacuum is doing, refreshed by the controller every 30 seconds.",
+          "id": 2,
+          "links": [],
+          "title": "State",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "mappings": [
+                    {
+                      "options": {
+                        "back_to_dock_washing_duster": {
+                          "color": "purple",
+                          "index": 10,
+                          "text": "Washing the mop"
+                        },
+                        "charging": {
+                          "color": "green",
+                          "index": 0,
+                          "text": "Charging"
+                        },
+                        "charging_complete": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "Docked, charged"
+                        },
+                        "charging_problem": {
+                          "color": "red",
+                          "index": 12,
+                          "text": "Charging problem"
+                        },
+                        "device_offline": {
+                          "color": "red",
+                          "index": 13,
+                          "text": "Offline"
+                        },
+                        "docking": {
+                          "color": "blue",
+                          "index": 5,
+                          "text": "Docking"
+                        },
+                        "emptying_the_bin": {
+                          "color": "purple",
+                          "index": 6,
+                          "text": "Emptying the bin"
+                        },
+                        "error": {
+                          "color": "red",
+                          "index": 11,
+                          "text": "Error"
+                        },
+                        "going_to_wash_the_mop": {
+                          "color": "purple",
+                          "index": 9,
+                          "text": "Going to wash the mop"
+                        },
+                        "idle": {
+                          "color": "text",
+                          "index": 2,
+                          "text": "Idle"
+                        },
+                        "paused": {
+                          "color": "yellow",
+                          "index": 3,
+                          "text": "Paused"
+                        },
+                        "returning_home": {
+                          "color": "blue",
+                          "index": 4,
+                          "text": "Returning to dock"
+                        },
+                        "updating": {
+                          "color": "orange",
+                          "index": 14,
+                          "text": "Updating"
+                        },
+                        "washing_the_mop": {
+                          "color": "purple",
+                          "index": 7,
+                          "text": "Washing the mop"
+                        },
+                        "washing_the_mop_2": {
+                          "color": "purple",
+                          "index": 8,
+                          "text": "Washing the mop"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "pattern": ".*(clean|mopping).*",
+                        "result": {
+                          "color": "blue",
+                          "index": 15,
+                          "text": "Cleaning"
+                        }
+                      },
+                      "type": "regex"
+                    }
+                  ],
+                  "noValue": "Controller down"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "roborock"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "battery",
+                            "text": "Battery",
+                            "type": "number"
+                          }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@ROBOROCK_URL@@/status",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET"
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "",
+          "id": 3,
+          "links": [],
+          "title": "Battery",
+          "vizConfig": {
+            "group": "gauge",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "red",
+                        "value": 0
+                      },
+                      {
+                        "color": "orange",
+                        "value": 20
+                      },
+                      {
+                        "color": "green",
+                        "value": 40
+                      }
+                    ]
+                  },
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
+              "options": {
+                "minVizHeight": 75,
+                "minVizWidth": 75,
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showThresholdLabels": false,
+                "showThresholdMarkers": false,
+                "sizing": "auto"
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "roborock"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "error",
+                            "text": "Vacuum",
+                            "type": "string"
+                          },
+                          {
+                            "selector": "dock_error",
+                            "text": "Dock",
+                            "type": "string"
+                          }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@ROBOROCK_URL@@/status",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET"
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "The vacuum's own error (e.g. a jammed brush) and the dock's (e.g. empty clean water tank, full dirty water tank). Both raise an alert.",
+          "id": 4,
+          "links": [],
+          "title": "Errors",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "red",
+                    "mode": "fixed"
+                  },
+                  "mappings": [
+                    {
+                      "options": {
+                        "none": {
+                          "color": "green",
+                          "index": 0,
+                          "text": "OK"
+                        },
+                        "ok": {
+                          "color": "green",
+                          "index": 1,
+                          "text": "OK"
+                        }
+                      },
+                      "type": "value"
+                    },
+                    {
+                      "options": {
+                        "pattern": "(.*)",
+                        "result": {
+                          "color": "red",
+                          "index": 2,
+                          "text": "$1"
+                        }
+                      },
+                      "type": "regex"
+                    }
+                  ]
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-5": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "roborock"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "last_routine.name",
+                            "text": "Program",
+                            "type": "string"
+                          },
+                          {
+                            "selector": "last_routine.started_at",
+                            "text": "Started",
+                            "type": "timestamp"
+                          }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@ROBOROCK_URL@@/status",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET"
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "The last routine started from this dashboard and when. Routines started in the Roborock app are not shown.",
+          "id": 5,
+          "links": [],
+          "title": "Last program",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "noValue": "None yet"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Started"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dateTimeFromNow"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-6": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "roborock"
+                      },
+                      "group": "yesoreyeram-infinity-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "columns": [
+                          {
+                            "selector": "connection",
+                            "text": "Connection",
+                            "type": "string"
+                          }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "url": "@@ROBOROCK_URL@@/status",
+                        "url_options": {
+                          "data": "",
+                          "method": "GET"
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Local: the controller talks to the vacuum on the LAN. Cloud: only through the Roborock cloud, which is slower but works. Unreachable: neither.",
+          "id": 6,
+          "links": [],
+          "title": "Connection",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "mappings": [
+                    {
+                      "options": {
+                        "cloud": {
+                          "color": "yellow",
+                          "index": 1,
+                          "text": "Cloud"
+                        },
+                        "local": {
+                          "color": "green",
+                          "index": 0,
+                          "text": "Local"
+                        },
+                        "unreachable": {
+                          "color": "red",
+                          "index": 2,
+                          "text": "Unreachable"
+                        }
+                      },
+                      "type": "value"
+                    }
+                  ],
+                  "noValue": "Controller down"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-7": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "roborock_state == 1",
+                        "instant": false,
+                        "legendFormat": "{{state}}",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "roborock_state from Prometheus.",
+          "id": 7,
+          "links": [],
+          "title": "State history",
+          "vizConfig": {
+            "group": "state-timeline",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "fillOpacity": 80,
+                    "lineWidth": 0
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "alignValue": "left",
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "mergeValues": true,
+                "rowHeight": 0.9,
+                "showValue": "never",
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-8": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "Prometheus"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "roborock_battery_percent",
+                        "instant": false,
+                        "legendFormat": "Battery",
+                        "range": true
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "roborock_battery_percent from Prometheus.",
+          "id": 8,
+          "links": [],
+          "title": "Battery history",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "fillOpacity": 10,
+                    "lineWidth": 2,
+                    "showPoints": "never",
+                    "spanNulls": false
+                  },
+                  "max": 100,
+                  "min": 0,
+                  "unit": "percent"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "RowsLayout",
+      "spec": {
+        "rows": [
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-1"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 1,
+                  "rowHeight": 170,
+                  "rowHeightMode": "custom"
+                }
+              },
+              "title": "Programs"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-2"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-3"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-4"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-5"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-6"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 5,
+                  "rowHeightMode": "short"
+                }
+              },
+              "title": "Status"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-7"
+                        }
+                      }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-8"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 2,
+                  "rowHeightMode": "standard"
+                }
+              },
+              "title": "History"
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
+    "liveNow": false,
+    "preload": true,
+    "tags": [
+      "vacuum"
+    ],
+    "timeSettings": {
+      "autoRefresh": "10s",
+      "autoRefreshIntervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h"
+      ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-24h",
+      "hideTimepicker": false,
+      "timezone": "browser",
+      "to": "now"
+    },
+    "title": "Vacuum - Control",
+    "variables": []
+  }
+}

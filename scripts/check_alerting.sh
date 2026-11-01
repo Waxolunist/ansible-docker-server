@@ -41,5 +41,6 @@ expect_route car alertname=PsaLoginLost area=car severity=critical
 expect_route energy alertname=GridImportHigh area=energy severity=warning
 expect_route data alertname=DataStale_data_power_live area=data severity=warning
 expect_route security alertname=Test area=security severity=warning
+expect_route home alertname=VacuumError area=home severity=warning
 expect_route infra alertname=NoArea
 echo "routes OK"

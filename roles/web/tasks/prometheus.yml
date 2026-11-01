@@ -7,10 +7,3 @@
       group: "65534"
       recurse: yes
     become: true
-  - name: Write configuration prometheus
-    template:
-      src: prometheus/prometheus_yml.j2
-      dest: "{{ docker.paths.configs }}prometheus/prometheus.yml"
-      mode: 0644
-      backup: yes
-    register: prometheus_config

@@ -1,0 +1,20 @@
+apiVersion: 1
+
+# The Roborock vacuum's API (roborock-controller) behind Traefik on the Pi, for
+# the routine buttons and the live status on the "Vacuum" dashboard. The
+# buttons call it by uid through /api/ds/query, so keep the uid.
+datasources:
+  - name: roborock
+    uid: roborock
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    isDefault: false
+    editable: false
+    basicAuth: true
+    basicAuthUser: {{ vault_roborock_proxy_username | to_json }}
+    jsonData:
+      auth_method: basicAuth
+      allowedHosts:
+        - {{ vault_roborock_url | to_json }}
+    secureJsonData:
+      basicAuthPassword: {{ vault_roborock_proxy_password | to_json }}

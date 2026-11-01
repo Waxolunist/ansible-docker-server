@@ -578,3 +578,103 @@ tests:
               description: "sql_exporter does not report the newest row of data_gasprices, so DataStale cannot fire for it."
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"
+
+  - name: VacuumError fires for a vacuum error and names it
+    interval: 1m
+    input_series:
+      - series: 'roborock_error{job="roborock",instance="Pi",error="none"}'
+        values: '1x3 _x10'
+      - series: 'roborock_error{job="roborock",instance="Pi",error="main_brush_jammed"}'
+        values: '_x3 1x10'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: VacuumError
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: VacuumError
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: roborock, instance: Pi, error: main_brush_jammed}
+            exp_annotations:
+              summary: "The vacuum reports an error: main_brush_jammed"
+              description: "The Roborock vacuum has been stopped by the error main_brush_jammed for 2 minutes. It waits where it stopped until the cause is removed."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vacuumerror"
+
+  - name: VacuumDockError fires after 5 minutes of a dock error
+    interval: 1m
+    input_series:
+      - series: 'roborock_dock_error{job="roborock",instance="Pi",error="water_empty"}'
+        values: '1x10'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: VacuumDockError
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: VacuumDockError
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: roborock, instance: Pi, error: water_empty}
+            exp_annotations:
+              summary: "The vacuum's dock reports water_empty"
+              description: "The dock has reported water_empty for 5 minutes, e.g. an empty clean water tank, a full dirty water tank or a missing dust bag. Mopping or emptying stops until it is fixed."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vacuumdockerror"
+
+  - name: VacuumUnreachable fires after 15 minutes without a status
+    interval: 1m
+    input_series:
+      - series: 'roborock_up{job="roborock",instance="Pi"}'
+        values: '1x5 0x20'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: VacuumUnreachable
+        exp_alerts: []
+      - eval_time: 21m
+        alertname: VacuumUnreachable
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: roborock, instance: Pi}
+            exp_annotations:
+              summary: "The vacuum controller cannot reach the vacuum"
+              description: "roborock-controller has not read the vacuum's status for 15 minutes, neither on the LAN nor through the Roborock cloud. The buttons on the dashboard do not work meanwhile."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vacuumunreachable"
+
+  - name: VacuumCommandFailed fires on the first failure and clears after 10 minutes
+    interval: 1m
+    input_series:
+      - series: 'roborock_commands_total{job="roborock",instance="Pi",command="routine",result="failure"}'
+        values: '0x5 1x20'
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: VacuumCommandFailed
+        exp_alerts: []
+      - eval_time: 7m
+        alertname: VacuumCommandFailed
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: roborock, instance: Pi, command: routine, result: failure}
+            exp_annotations:
+              summary: "A routine command to the vacuum failed"
+              description: "1 routine command(s) failed in the last 10 minutes, so a button on the dashboard did not do what it said."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vacuumcommandfailed"
+      - eval_time: 20m
+        alertname: VacuumCommandFailed
+        exp_alerts: []
+
+  - name: VacuumCloudLoginRejected fires at once
+    interval: 1m
+    input_series:
+      - series: 'roborock_cloud_auth_ok{job="roborock",instance="Pi"}'
+        values: '1x3 0x5'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: VacuumCloudLoginRejected
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: VacuumCloudLoginRejected
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: roborock, instance: Pi}
+            exp_annotations:
+              summary: "The Roborock cloud rejected the vacuum controller's login"
+              description: "roborock-controller's credentials are no longer accepted. Routines cannot be listed or started until it logs in again."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vacuumcloudloginrejected"

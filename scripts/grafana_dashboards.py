@@ -42,6 +42,7 @@ PLACEHOLDERS = {
     "@@PSA_URL@@": "vault_psa_url",
     "@@PSA_VIN@@": "vault_psa_vin",
     "@@GOE_URL@@": "vault_goe_url",
+    "@@ROBOROCK_URL@@": "vault_roborock_url",
 }
 
 SSH_HOST = os.environ.get("GRAFANA_SSH_HOST", "devops@v-collaborate.com")
