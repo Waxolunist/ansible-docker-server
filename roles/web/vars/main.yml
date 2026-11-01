@@ -265,8 +265,8 @@
   # Where the circles of the energy flow panel link to. Any Grafana path or URL.
   grafana_flow_links:
     pv: /d/cekyf6g8gyupse
-    grid: /d/del1obdfglfy8f
-    battery: /d/cekyf6g8gyupse
-    household: /d/bekag75iz9on4e
+    grid: /d/solar-analysis
+    battery: /d/solar-analysis
+    household: /d/solar-analysis
     wallbox: /d/chw95zv
     car: /d/chw95zv
