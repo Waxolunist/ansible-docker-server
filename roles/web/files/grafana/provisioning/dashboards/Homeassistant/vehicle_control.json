@@ -3048,6 +3048,64 @@
             "version": "12.0.0"
           }
         }
+      },
+      "panel-30": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafana"
+                      },
+                      "group": "datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "randomWalk"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Resets every weekday of the charging plan: no journey start, no load to 100 %.",
+          "id": 30,
+          "links": [],
+          "title": "Clear charging plans",
+          "vizConfig": {
+            "group": "speakyourcode-button-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "buttons": [
+                  {
+                    "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                    "query": "{\n \"datasource\": {\n  \"uid\": \"c17a467f-0417-4c81-b598-1bf916d7bba7\",\n  \"type\": \"grafana-postgresql-datasource\"\n },\n \"editorMode\": \"code\",\n \"format\": \"table\",\n \"rawQuery\": true,\n \"rawSql\": \"update settings_charging_plan set journey_start = null, load_to_full = false;\"\n}",
+                    "text": "Clear all plans",
+                    "variant": "destructive"
+                  }
+                ],
+                "orientation": "vertical"
+              }
+            },
+            "version": "0.3.2"
+          }
+        }
       }
     },
     "layout": {
@@ -3260,6 +3318,15 @@
                                   "element": {
                                     "kind": "ElementReference",
                                     "name": "panel-23"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-30"
                                   }
                                 }
                               }
