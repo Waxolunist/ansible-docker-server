@@ -214,6 +214,19 @@
     delay: 10
     when: "'postgres_exporter' in web_containers"
 
+  - name: Postgres exporter - Create the pg_stat_statements extension
+    command: >-
+      docker exec web_timescaledb
+      psql -v ON_ERROR_STOP=1 -q -U {{ vault_timescale_pg_user }} -d timescale_home
+      -c "CREATE EXTENSION IF NOT EXISTS pg_stat_statements"
+    become: yes
+    register: pg_stat_statements_extension
+    changed_when: "'already exists' not in pg_stat_statements_extension.stderr"
+    until: pg_stat_statements_extension.rc == 0
+    retries: 6
+    delay: 10
+    when: "'postgres_exporter' in web_containers"
+
   # Authelia reads its configuration once at startup. compose runs with
   # recreate: never, so access rule changes would otherwise sit on disk
   # unapplied. The users database is watched and needs no restart.
