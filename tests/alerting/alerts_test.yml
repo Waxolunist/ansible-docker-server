@@ -472,8 +472,6 @@ tests:
     input_series:
       - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_power_live"}'
         values: '0x40'
-      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_solar_power"}'
-        values: '0x40'
       - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_spotdata"}'
         values: '15000x40'
     alert_rule_test:
@@ -524,12 +522,6 @@ tests:
       - series: 'vehicle_ignition_running{job="collector",instance="10.8.0.2:9105"}'
         values: '0x20'
       - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_power_live"}'
-        values: '99999999999x20'
-      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_solar_power"}'
-        values: '99999999999x20'
-      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_solar_energy"}'
-        values: '99999999999x20'
-      - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_battery_stats"}'
         values: '99999999999x20'
       - series: 'data_newest_row_timestamp_seconds{job="sql_exporter",instance="sql-exporter:9399",table="data_goe_status_eto"}'
         values: '99999999999x20'

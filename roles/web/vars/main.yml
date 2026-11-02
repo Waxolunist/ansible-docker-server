@@ -213,7 +213,7 @@
       ChargingControlJob: 30m
       ChargingModeJob: 30m
       SohInfoJob: 30m
-      SolarInfoJob: 30m
+      CloudPowerJob: 30m
       GoeSignaller: 1h
       SmartmeterInfoJob: 3h
       SpotDataJob: 3h
@@ -223,18 +223,6 @@
       - table: data_power_live
         column: time
         stale_after: 10m
-        dashboard: cekyf6g8gyupse
-      - table: data_solar_power
-        column: time
-        stale_after: 30m
-        dashboard: cekyf6g8gyupse
-      - table: data_solar_energy
-        column: time
-        stale_after: 30m
-        dashboard: cekyf6g8gyupse
-      - table: data_battery_stats
-        column: time
-        stale_after: 30m
         dashboard: cekyf6g8gyupse
       - table: data_goe_status_eto
         column: time
