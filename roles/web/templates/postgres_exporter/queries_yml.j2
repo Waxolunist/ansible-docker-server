@@ -25,3 +25,29 @@ pg_connections_by_client:
     - count:
         usage: GAUGE
         description: Number of connections matching this combination
+
+pg_stat_statements_max:
+  query: |
+    SELECT
+      pg_get_userbyid(s.userid)  AS "user",
+      d.datname                  AS datname,
+      s.queryid::text            AS queryid,
+      s.max_exec_time / 1000.0   AS exec_seconds
+    FROM pg_stat_statements s
+    JOIN pg_database d ON d.oid = s.dbid
+    WHERE s.queryid IS NOT NULL
+    ORDER BY s.total_exec_time DESC
+    LIMIT 200
+  metrics:
+    - user:
+        usage: LABEL
+        description: Database username
+    - datname:
+        usage: LABEL
+        description: Database name
+    - queryid:
+        usage: LABEL
+        description: pg_stat_statements query id
+    - exec_seconds:
+        usage: GAUGE
+        description: Longest single execution since the statistics were last reset

@@ -155,6 +155,7 @@
     - grafana
     - alertmanager
     - matrix-receiver
+    - postgres-exporter
     - sql-exporter
     - cadvisor
     - node-exporter

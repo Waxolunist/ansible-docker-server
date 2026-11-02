@@ -12,3 +12,10 @@
       dest: "{{ docker.paths.configs }}postgres_exporter/queries.yml"
       mode: 0644
       backup: yes
+    register: postgres_exporter_queries
+  - name: Postgres Exporter - Restart when its queries changed
+    command: docker restart web_postgres-exporter
+    become: yes
+    register: postgres_exporter_restart
+    failed_when: postgres_exporter_restart.rc != 0 and 'No such container' not in postgres_exporter_restart.stderr
+    when: postgres_exporter_queries.changed
