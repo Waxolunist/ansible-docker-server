@@ -1766,6 +1766,305 @@
             "version": "13.2.4"
           }
         }
+      },
+      "panel-19": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "BfDiy2hMk"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(topk(20, (sum by (queryid, user) (increase(pg_stat_statements_seconds_total{datname=\"timescale_home\"}[$__range])) / sum by (queryid, user) (increase(pg_stat_statements_calls_total{datname=\"timescale_home\"}[$__range]))) > 0)) * on (queryid) group_left (query) topk by (queryid) (1, max by (queryid, query) (pg_stat_statements_query_id))",
+                        "format": "table",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "BfDiy2hMk"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(sum by (queryid, user) (increase(pg_stat_statements_calls_total{datname=\"timescale_home\"}[$__range])) and on (queryid, user) topk(20, (sum by (queryid, user) (increase(pg_stat_statements_seconds_total{datname=\"timescale_home\"}[$__range])) / sum by (queryid, user) (increase(pg_stat_statements_calls_total{datname=\"timescale_home\"}[$__range]))) > 0)) * on (queryid) group_left (query) topk by (queryid) (1, max by (queryid, query) (pg_stat_statements_query_id))",
+                        "format": "table",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "BfDiy2hMk"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(sum by (queryid, user) (increase(pg_stat_statements_seconds_total{datname=\"timescale_home\"}[$__range])) and on (queryid, user) topk(20, (sum by (queryid, user) (increase(pg_stat_statements_seconds_total{datname=\"timescale_home\"}[$__range])) / sum by (queryid, user) (increase(pg_stat_statements_calls_total{datname=\"timescale_home\"}[$__range]))) > 0)) * on (queryid) group_left (query) topk by (queryid) (1, max by (queryid, query) (pg_stat_statements_query_id))",
+                        "format": "table",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "BfDiy2hMk"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(sum by (queryid, user) (increase(pg_stat_statements_rows_total{datname=\"timescale_home\"}[$__range])) and on (queryid, user) topk(20, (sum by (queryid, user) (increase(pg_stat_statements_seconds_total{datname=\"timescale_home\"}[$__range])) / sum by (queryid, user) (increase(pg_stat_statements_calls_total{datname=\"timescale_home\"}[$__range]))) > 0)) * on (queryid) group_left (query) topk by (queryid) (1, max by (queryid, query) (pg_stat_statements_query_id))",
+                        "format": "table",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "D"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "BfDiy2hMk"
+                      },
+                      "group": "prometheus",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "(max by (queryid, user) (pg_stat_statements_max_exec_seconds{datname=\"timescale_home\"}) and on (queryid, user) topk(20, (sum by (queryid, user) (increase(pg_stat_statements_seconds_total{datname=\"timescale_home\"}[$__range])) / sum by (queryid, user) (increase(pg_stat_statements_calls_total{datname=\"timescale_home\"}[$__range]))) > 0)) * on (queryid) group_left (query) topk by (queryid) (1, max by (queryid, query) (pg_stat_statements_query_id))",
+                        "format": "table",
+                        "instant": true,
+                        "legendFormat": "",
+                        "range": false
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "E"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "merge",
+                  "kind": "merge",
+                  "spec": {
+                    "options": {}
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "instance": true,
+                        "job": true,
+                        "server": true
+                      },
+                      "indexByName": {
+                        "Value #A": 0,
+                        "Value #E": 1,
+                        "Value #B": 2,
+                        "Value #C": 3,
+                        "Value #D": 4,
+                        "user": 5,
+                        "query": 6,
+                        "queryid": 7
+                      },
+                      "renameByName": {
+                        "Value #A": "Mean",
+                        "Value #B": "Calls",
+                        "Value #C": "Total",
+                        "Value #D": "Rows",
+                        "user": "User",
+                        "query": "Statement",
+                        "queryid": "Query id",
+                        "Value #E": "Max since reset"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "The 20 statements with the longest mean execution time in the picked range, from pg_stat_statements through postgres_exporter. Total is the time all calls in the range took together, Rows the rows returned or changed. Max since reset is the longest single execution since the statistics were last reset, not just in the range: pg_stat_statements keeps only that one maximum. The exporter only reports the 200 statements with the most total time since the reset, so a rarely run slow statement can be missing. Statements first seen inside the range miss their first scrape.",
+          "id": 19,
+          "links": [],
+          "title": "Slowest statements",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    }
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Mean"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Max since reset"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Total"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Calls"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Rows"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "short"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Statement"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.inspect",
+                        "value": true
+                      },
+                      {
+                        "id": "custom.wrapText",
+                        "value": true
+                      },
+                      {
+                        "id": "custom.minWidth",
+                        "value": 400
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Mean"
+                  }
+                ]
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
       }
     },
     "layout": {
@@ -2096,6 +2395,47 @@
                 }
               },
               "title": "Logins"
+            }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "hideHeader": true,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-19"
+                                  },
+                                  "height": 16,
+                                  "width": 24,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Statements"
             }
           }
         ]

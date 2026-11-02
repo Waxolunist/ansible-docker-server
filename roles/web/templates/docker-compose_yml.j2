@@ -638,6 +638,8 @@ services:
       - max_parallel_workers=2
       - -c
       - max_parallel_workers_per_gather=1
+      - -c
+      - shared_preload_libraries=timescaledb,pg_stat_statements
     networks:
       - grafana
     environment:
@@ -724,6 +726,10 @@ services:
     command:
       - --no-collector.stat_user_tables
       - --no-collector.statio_user_tables
+      - --collector.stat_statements
+      - --collector.stat_statements.include_query
+      - --collector.stat_statements.query_length=1000
+      - --collector.stat_statements.limit=200
     expose:
       - 9187
     environment:
