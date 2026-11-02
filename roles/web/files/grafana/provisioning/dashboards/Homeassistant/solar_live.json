@@ -481,7 +481,7 @@
               "transformations": []
             }
           },
-          "description": "PV production since midnight: the inverter's AC counter plus battery charge minus discharge (data_solar_production), updated every 5 minutes. The FusionSolar app can differ by around 5%; that is expected.",
+          "description": "PV production since midnight (data_solar_production): the measured PV input power of the live monitor, in 5-minute steps. Battery losses don't reduce it. The FusionSolar app can differ by around 5%; that is expected.",
           "id": 4,
           "links": [],
           "title": "Today production",
