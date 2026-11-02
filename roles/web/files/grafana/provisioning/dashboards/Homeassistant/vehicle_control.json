@@ -1833,7 +1833,7 @@
               "transformations": []
             }
           },
-          "description": "Starts (frc 2, force on) or stops (frc 1, force off) charging on the go-e charger at once. The automatic charging control may undo it within 5 minutes.",
+          "description": "Starts (frc 2, force on) or stops (frc 1, force off) charging on the go-e charger at once. The automatic charging control may undo it within 5 minutes; while charge full now is on, a stop is undone within a minute.",
           "id": 24,
           "links": [],
           "title": "Charging",
@@ -3106,6 +3106,165 @@
             "version": "0.3.2"
           }
         }
+      },
+      "panel-31": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select case when value::boolean then 'On' else 'Off' end as charge_now\nfrom settings_config\nwhere key = 'charge_now';"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Whether charge full now is on (settings_config key charge_now). While it is on and a car is plugged into the go-e, the collector forces charging on and checks every minute that it still is, resuming it if the wallbox was stopped. The threshold, the charging plan, preconditioning and the go-e signaller are ignored; only the charging mode (speed) still applies. It switches off by itself within a minute when the go-e reports no car, so pressing On with no car plugged in shows Off again shortly after.",
+          "id": 31,
+          "links": [],
+          "title": "Charge full now state",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "mappings": [
+                    {
+                      "options": {
+                        "On": {
+                          "color": "green",
+                          "index": 0
+                        },
+                        "Off": {
+                          "color": "text",
+                          "index": 1
+                        }
+                      },
+                      "type": "value"
+                    }
+                  ],
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "text",
+                        "value": 0
+                      }
+                    ]
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-32": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "grafana"
+                      },
+                      "group": "datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "queryType": "randomWalk"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Switches charge full now on or off. It writes only the charge_now setting; the collector acts on it within a minute. Off hands control back to the normal charging control at once.",
+          "id": 32,
+          "links": [],
+          "title": "Charge full now",
+          "vizConfig": {
+            "group": "speakyourcode-button-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "buttons": [
+                  {
+                    "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                    "query": "{\n \"datasource\": {\n  \"uid\": \"c17a467f-0417-4c81-b598-1bf916d7bba7\",\n  \"type\": \"grafana-postgresql-datasource\"\n },\n \"editorMode\": \"code\",\n \"format\": \"table\",\n \"rawQuery\": true,\n \"rawSql\": \"update settings_config set value = 'true' where key = 'charge_now';\"\n}",
+                    "text": "Charge full now: on",
+                    "variant": "primary"
+                  },
+                  {
+                    "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                    "query": "{\n \"datasource\": {\n  \"uid\": \"c17a467f-0417-4c81-b598-1bf916d7bba7\",\n  \"type\": \"grafana-postgresql-datasource\"\n },\n \"editorMode\": \"code\",\n \"format\": \"table\",\n \"rawQuery\": true,\n \"rawSql\": \"update settings_config set value = 'false' where key = 'charge_now';\"\n}",
+                    "text": "Charge full now: off",
+                    "variant": "destructive"
+                  }
+                ],
+                "orientation": "vertical"
+              }
+            },
+            "version": "0.3.2"
+          }
+        }
       }
     },
     "layout": {
@@ -3362,6 +3521,24 @@
                                   "element": {
                                     "kind": "ElementReference",
                                     "name": "panel-20"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-32"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-31"
                                   }
                                 }
                               }
