@@ -11,12 +11,46 @@
     "elements": {
       "panel-90": "@@ENERGY_FLOW_PANEL@@"
     },
+    "layout": {
+      "kind": "RowsLayout",
+      "spec": {
+        "rows": [
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "fillScreen": true,
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "fillScreen": true,
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-90"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 1,
+                  "rowHeightMode": "standard"
+                }
+              },
+              "title": "Energy flow"
+            }
+          }
+        ]
+      }
+    },
+    "links": [],
     "liveNow": false,
     "preload": false,
-    "links": [],
     "tags": [],
-    "title": "Home",
-    "variables": [],
     "timeSettings": {
       "autoRefresh": "10s",
       "autoRefreshIntervals": [
@@ -32,41 +66,7 @@
       "timezone": "browser",
       "to": "now"
     },
-    "layout": {
-      "kind": "RowsLayout",
-      "spec": {
-        "rows": [
-          {
-            "kind": "RowsLayoutRow",
-            "spec": {
-              "collapse": false,
-              "fillScreen": true,
-              "hideHeader": true,
-              "title": "Energy flow",
-              "layout": {
-                "kind": "AutoGridLayout",
-                "spec": {
-                  "columnWidthMode": "standard",
-                  "fillScreen": true,
-                  "maxColumnCount": 1,
-                  "rowHeightMode": "standard",
-                  "items": [
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-90"
-                        }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        ]
-      }
-    }
+    "title": "Home",
+    "variables": []
   }
 }

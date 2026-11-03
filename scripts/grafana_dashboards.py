@@ -32,6 +32,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import yaml
+
 REPO = Path(__file__).resolve().parent.parent
 DASHBOARDS_DIR = REPO / "roles/web/files/grafana/provisioning/dashboards"
 VAULT_FILE = REPO / "group_vars/web/vault.yml"
@@ -44,6 +46,10 @@ PLACEHOLDERS = {
     "@@GOE_URL@@": "vault_goe_url",
     "@@ROBOROCK_URL@@": "vault_roborock_url",
 }
+
+FLOW_PANEL_FILE = REPO / "roles/web/files/grafana/flow/energy_flow_panel.json"
+FLOW_LINKS_FILE = REPO / "roles/web/vars/main.yml"
+FLOW_PANEL_PLACEHOLDER = "@@ENERGY_FLOW_PANEL@@"
 
 SSH_HOST = os.environ.get("GRAFANA_SSH_HOST", "devops@v-collaborate.com")
 CONTAINER = "web_grafana"
@@ -186,6 +192,49 @@ def clean(kind, data):
     return data
 
 
+def find_key(node, key):
+    if isinstance(node, dict):
+        if key in node:
+            return node[key]
+        for value in node.values():
+            found = find_key(value, key)
+            if found is not None:
+                return found
+    return None
+
+
+def load_flow_panel():
+    links = find_key(yaml.safe_load(FLOW_LINKS_FILE.read_text()), "grafana_flow_links")
+    if not links:
+        sys.exit(f"grafana_flow_links not found in {FLOW_LINKS_FILE.relative_to(REPO)}")
+    text = FLOW_PANEL_FILE.read_text()
+    for name, target in links.items():
+        text = text.replace(f"@@FLOW_LINK_{name.upper()}@@", target)
+    return json.loads(text)
+
+
+def without_plugin_version(panel):
+    panel = json.loads(json.dumps(panel))
+    panel.get("spec", {}).get("vizConfig", {}).pop("version", None)
+    return panel
+
+
+def restore_flow_panel(kind, data, flow_panel):
+    if kind != "v2":
+        return []
+    expected = without_plugin_version(flow_panel)
+    changed = []
+    elements = data["spec"].get("elements") or {}
+    for name, element in elements.items():
+        if not isinstance(element, dict):
+            continue
+        if without_plugin_version(element) == expected:
+            elements[name] = FLOW_PANEL_PLACEHOLDER
+        elif element.get("spec", {}).get("title") == flow_panel["spec"]["title"]:
+            changed.append(name)
+    return changed
+
+
 def render(data, secrets):
     text = json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     for placeholder, value in secrets.items():
@@ -225,6 +274,7 @@ def cmd_pull(api, args, vault):
         if not vault.get(var):
             sys.exit(f"{var} not found in {VAULT_FILE.name}, refusing to write unscrubbed files")
         secrets[placeholder] = vault[var]
+    flow_panel = load_flow_panel()
 
     files = local_files()
     items = api.dashboards()
@@ -239,7 +289,9 @@ def cmd_pull(api, args, vault):
         local_path, local_version = files.get(uid, (None, None))
         prefer_v2 = local_version if (local_version or "").startswith(V2_PREFIX) else None
         kind, data = api.dashboard(uid, prefer_v2)
-        text = render(clean(kind, data), secrets)
+        data = clean(kind, data)
+        edited_flow = restore_flow_panel(kind, data, flow_panel)
+        text = render(data, secrets)
 
         directory = target_dir(api, item)
         if local_path and local_path.parent == directory:
@@ -251,6 +303,9 @@ def cmd_pull(api, args, vault):
                 path = directory / f"{slug(item['title'])}_{uid}.json"
 
         rel = path.relative_to(DASHBOARDS_DIR)
+        for name in edited_flow:
+            print(f"warning    {rel}: {name} differs from {FLOW_PANEL_FILE.relative_to(REPO)}, "
+                  f"kept in full; move the change into that file")
         if path.exists() and path.read_text() == text:
             print(f"unchanged  {rel}")
             continue

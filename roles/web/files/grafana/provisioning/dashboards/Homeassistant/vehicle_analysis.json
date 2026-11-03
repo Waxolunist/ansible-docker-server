@@ -2892,6 +2892,10 @@
       {
         "kind": "ConstantVariable",
         "spec": {
+          "current": {
+            "text": "",
+            "value": ""
+          },
           "hide": "hideVariable",
           "name": "battery_kwh",
           "query": "46",
