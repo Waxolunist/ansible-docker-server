@@ -183,7 +183,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 9 | `grafana-pg` | `postgres:18-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
 | 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `grafana_ui`, `grafana`, `prometheus` | `graph.v-collaborate.com` |
 | 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
-| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
+| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16.15-ts2.31.0` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
 | 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
 | 14 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
 | 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |

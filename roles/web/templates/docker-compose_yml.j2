@@ -611,7 +611,7 @@ services:
     restart: unless-stopped
 
   timescaledb:
-    image: timescale/timescaledb-ha:pg16
+    image: timescale/timescaledb-ha:pg16.15-ts2.31.0
     container_name: web_timescaledb
     mem_limit: 2560m
     memswap_limit: 2560m
