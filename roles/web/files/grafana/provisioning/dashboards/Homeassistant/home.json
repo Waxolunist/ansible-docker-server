@@ -5,7 +5,27 @@
     "name": "home"
   },
   "spec": {
-    "annotations": [],
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "builtIn": true,
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
+        }
+      }
+    ],
     "cursorSync": "Off",
     "editable": true,
     "elements": {
@@ -30,7 +50,21 @@
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
-                "defaults": {},
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  }
+                },
                 "overrides": []
               },
               "options": {
@@ -51,7 +85,7 @@
                 "externalStyles": [],
                 "helpers": "",
                 "renderMode": "allRows",
-                "styles": "& {\n  --rain: #3d8bfd;\n}\n\n& .dt-row {\n  height: 100%;\n  padding: 0;\n}\n\n& .side {\n  height: 100%;\n  container-type: size;\n  display: flex;\n  flex-direction: column;\n  gap: 1.5cqh;\n  text-align: center;\n  overflow: hidden;\n}\n\n& .time {\n  font-size: min(24cqw, 17cqh);\n  font-weight: 600;\n  line-height: 1;\n  font-variant-numeric: tabular-nums;\n}\n\n& .date {\n  font-size: min(6cqw, 4.5cqh);\n  opacity: 0.8;\n}\n\n& .weather {\n  flex: 1;\n  min-height: 0;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-evenly;\n  gap: 1.5cqh;\n  font-size: min(3.6cqw, 2.8cqh);\n}\n\n& .muted {\n  opacity: 0.7;\n}\n\n& .rain {\n  color: var(--rain);\n}\n\n& .stale {\n  opacity: 0.5;\n}\n\n& .now {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 3cqw;\n}\n\n& .now .icon {\n  font-size: min(15cqw, 11cqh);\n  line-height: 1;\n}\n\n& .now .temp {\n  font-size: min(15cqw, 11cqh);\n  font-weight: 600;\n  line-height: 1;\n}\n\n& .now .details {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-start;\n  text-align: left;\n  line-height: 1.35;\n}\n\n& .now .cond {\n  font-size: 1.4em;\n  font-weight: 600;\n}\n\n& .hours {\n  display: grid;\n  grid-template-columns: repeat(8, 1fr);\n}\n\n& .hour {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  line-height: 1.3;\n}\n\n& .hour .icon {\n  font-size: 1.8em;\n}\n\n& .hour .t {\n  font-weight: 600;\n}\n\n& .days {\n  display: grid;\n  grid-template-columns: auto auto 1fr auto auto;\n  column-gap: 2.5cqw;\n  row-gap: 0.6cqh;\n  align-items: center;\n  text-align: left;\n}\n\n& .day {\n  display: contents;\n}\n\n& .day .name {\n  font-weight: 600;\n}\n\n& .day .icon {\n  font-size: 1.5em;\n}\n\n& .day .t,\n& .day .rain {\n  text-align: right;\n  white-space: nowrap;\n}\n\n& .source,\n& .note {\n  font-size: 0.8em;\n}\n",
+                "styles": "& {\n  --rain: #3d8bfd;\n}\n\n& .dt-row {\n  height: 100%;\n  padding: 0;\n}\n\n& .side {\n  height: 100%;\n  container-type: size;\n  display: flex;\n  flex-direction: column;\n  gap: 1.5cqh;\n  text-align: center;\n  overflow: hidden;\n}\n\n& .time {\n  font-size: min(24cqw, 17cqh);\n  font-weight: 600;\n  line-height: 1;\n  font-variant-numeric: tabular-nums;\n}\n\n& .date {\n  font-size: min(6cqw, 4.5cqh);\n  opacity: 0.8;\n}\n\n& .weather {\n  flex: 1;\n  min-height: 0;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-evenly;\n  gap: 1.5cqh;\n  font-size: min(3.6cqw, 2.8cqh);\n}\n\n& .muted {\n  opacity: 0.7;\n}\n\n& .rain {\n  color: var(--rain);\n}\n\n& .stale {\n  opacity: 0.5;\n}\n\n& .now {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 3cqw;\n}\n\n& .now .icon {\n  font-size: min(15cqw, 11cqh);\n  line-height: 1;\n}\n\n& .now .temp {\n  font-size: min(15cqw, 11cqh);\n  font-weight: 600;\n  line-height: 1;\n}\n\n& .now .details {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-start;\n  text-align: left;\n  line-height: 1.35;\n}\n\n& .now .cond {\n  font-size: 1.4em;\n  font-weight: 600;\n}\n\n& .hours {\n  display: grid;\n  grid-template-columns: repeat(8, 1fr);\n}\n\n& .hour {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  line-height: 1.3;\n}\n\n& .hour .icon {\n  font-size: 1.8em;\n}\n\n& .hour .t {\n  font-weight: 600;\n}\n\n& .days {\n  display: grid;\n  grid-template-columns: auto auto 1fr auto auto;\n  column-gap: 2.5cqw;\n  row-gap: 0.6cqh;\n  align-items: center;\n  text-align: left;\n  margin-inline: 1em;\n}\n\n& .day {\n  display: contents;\n}\n\n& .day .name {\n  font-weight: 600;\n}\n\n& .day .icon {\n  font-size: 1.5em;\n}\n\n& .day .t,\n& .day .rain {\n  text-align: right;\n  white-space: nowrap;\n}\n\n& .source,\n& .note {\n  font-size: 0.8em;\n}\n",
                 "wrap": true
               }
             },
