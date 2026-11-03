@@ -50,6 +50,8 @@ PLACEHOLDERS = {
 FLOW_PANEL_FILE = REPO / "roles/web/files/grafana/flow/energy_flow_panel.json"
 FLOW_LINKS_FILE = REPO / "roles/web/vars/main.yml"
 FLOW_PANEL_PLACEHOLDER = "@@ENERGY_FLOW_PANEL@@"
+QUICK_RANGES_FILE = REPO / "roles/web/files/grafana/quick_ranges.json"
+QUICK_RANGES_PLACEHOLDER = "@@QUICK_RANGES@@"
 
 SSH_HOST = os.environ.get("GRAFANA_SSH_HOST", "devops@v-collaborate.com")
 CONTAINER = "web_grafana"
@@ -235,6 +237,17 @@ def restore_flow_panel(kind, data, flow_panel):
     return changed
 
 
+def restore_quick_ranges(kind, data, quick_ranges):
+    if kind == "v2":
+        settings, key = data["spec"].get("timeSettings") or {}, "quickRanges"
+    else:
+        settings, key = data.get("timepicker") or {}, "quick_ranges"
+    if settings.get(key) == quick_ranges:
+        settings[key] = QUICK_RANGES_PLACEHOLDER
+        return False
+    return bool(settings.get(key))
+
+
 def render(data, secrets):
     text = json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False) + "\n"
     for placeholder, value in secrets.items():
@@ -275,6 +288,7 @@ def cmd_pull(api, args, vault):
             sys.exit(f"{var} not found in {VAULT_FILE.name}, refusing to write unscrubbed files")
         secrets[placeholder] = vault[var]
     flow_panel = load_flow_panel()
+    quick_ranges = json.loads(QUICK_RANGES_FILE.read_text())
 
     files = local_files()
     items = api.dashboards()
@@ -291,6 +305,7 @@ def cmd_pull(api, args, vault):
         kind, data = api.dashboard(uid, prefer_v2)
         data = clean(kind, data)
         edited_flow = restore_flow_panel(kind, data, flow_panel)
+        edited_ranges = restore_quick_ranges(kind, data, quick_ranges)
         text = render(data, secrets)
 
         directory = target_dir(api, item)
@@ -305,6 +320,9 @@ def cmd_pull(api, args, vault):
         rel = path.relative_to(DASHBOARDS_DIR)
         for name in edited_flow:
             print(f"warning    {rel}: {name} differs from {FLOW_PANEL_FILE.relative_to(REPO)}, "
+                  f"kept in full; move the change into that file")
+        if edited_ranges:
+            print(f"warning    {rel}: quick ranges differ from {QUICK_RANGES_FILE.relative_to(REPO)}, "
                   f"kept in full; move the change into that file")
         if path.exists() and path.read_text() == text:
             print(f"unchanged  {rel}")

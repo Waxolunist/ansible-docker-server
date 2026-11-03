@@ -14706,6 +14706,7 @@
     "to": "now"
   },
   "timepicker": {
+    "quick_ranges": "@@QUICK_RANGES@@",
     "refresh_intervals": [
       "5s",
       "10s",

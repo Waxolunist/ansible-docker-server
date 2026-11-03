@@ -4880,6 +4880,7 @@
       "fiscalYearStartMonth": 0,
       "from": "now-24h",
       "hideTimepicker": false,
+      "quickRanges": "@@QUICK_RANGES@@",
       "timezone": "browser",
       "to": "now"
     },

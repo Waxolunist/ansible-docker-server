@@ -2839,6 +2839,7 @@
       "fiscalYearStartMonth": 0,
       "from": "now-7d",
       "hideTimepicker": false,
+      "quickRanges": "@@QUICK_RANGES@@",
       "timezone": "Europe/Vienna",
       "to": "now",
       "weekStart": "monday"

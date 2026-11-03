@@ -998,10 +998,38 @@
         ]
       }
     },
-    "links": [],
+    "links": [
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Home",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/home"
+      },
+      {
+        "asDropdown": true,
+        "icon": "external link",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [
+          "homeassistant"
+        ],
+        "targetBlank": false,
+        "title": "Homeassistant",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
+      }
+    ],
     "liveNow": false,
     "preload": true,
     "tags": [
+      "homeassistant",
       "vacuum"
     ],
     "timeSettings": {
@@ -1019,6 +1047,7 @@
       "fiscalYearStartMonth": 0,
       "from": "now-24h",
       "hideTimepicker": false,
+      "quickRanges": "@@QUICK_RANGES@@",
       "timezone": "browser",
       "to": "now"
     },

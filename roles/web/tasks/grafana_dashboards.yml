@@ -65,12 +65,14 @@
   # repository are written as @@NAME@@ placeholders and filled in here.
   # "@@ENERGY_FLOW_PANEL@@" is replaced by the shared panel in
   # grafana/flow/energy_flow_panel.json, whose @@FLOW_LINK_*@@ placeholders
-  # are filled from grafana_flow_links.
+  # are filled from grafana_flow_links. "@@QUICK_RANGES@@" is replaced by the
+  # time picker's list in grafana/quick_ranges.json.
   - name: Grafana - Write dashboards
     copy:
       content: >-
         {%- set ns = namespace(text=lookup('file', item.src, rstrip=False)
-            | replace('"@@ENERGY_FLOW_PANEL@@"', lookup('file', 'grafana/flow/energy_flow_panel.json', rstrip=False))) -%}
+            | replace('"@@ENERGY_FLOW_PANEL@@"', lookup('file', 'grafana/flow/energy_flow_panel.json', rstrip=False))
+            | replace('"@@QUICK_RANGES@@"', lookup('file', 'grafana/quick_ranges.json', rstrip=False))) -%}
         {%- for name, target in grafana_flow_links.items() -%}
         {%- set ns.text = ns.text | replace('@@FLOW_LINK_' ~ (name | upper) ~ '@@', target) -%}
         {%- endfor -%}

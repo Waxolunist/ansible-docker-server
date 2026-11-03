@@ -7955,6 +7955,18 @@
     },
     "links": [
       {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Home",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/home"
+      },
+      {
         "asDropdown": true,
         "icon": "external link",
         "includeVars": false,
@@ -7991,6 +8003,7 @@
       "fiscalYearStartMonth": 0,
       "from": "now-6h",
       "hideTimepicker": true,
+      "quickRanges": "@@QUICK_RANGES@@",
       "timezone": "browser",
       "to": "now"
     },

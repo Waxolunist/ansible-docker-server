@@ -4519,6 +4519,18 @@
     },
     "links": [
       {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Home",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/home"
+      },
+      {
         "asDropdown": true,
         "icon": "external link",
         "includeVars": false,
@@ -4531,18 +4543,6 @@
         "tooltip": "",
         "type": "dashboards",
         "url": ""
-      },
-      {
-        "asDropdown": false,
-        "icon": "dashboard",
-        "includeVars": false,
-        "keepTime": false,
-        "tags": [],
-        "targetBlank": false,
-        "title": "Home",
-        "tooltip": "",
-        "type": "link",
-        "url": "/d/home"
       }
     ],
     "liveNow": false,
@@ -4561,8 +4561,9 @@
         "1h"
       ],
       "fiscalYearStartMonth": 0,
-      "from": "now-7d",
+      "from": "now-3y",
       "hideTimepicker": false,
+      "quickRanges": "@@QUICK_RANGES@@",
       "timezone": "Europe/Vienna",
       "to": "now",
       "weekStart": "monday"
