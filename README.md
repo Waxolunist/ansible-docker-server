@@ -62,17 +62,30 @@ The motivation for the separation of system and site is that system is run with 
 Upgrade Timescale
 -----------------
 
-After upgrading timescale, probably you have to update the extensions.
+The image tag in `roles/web/templates/docker-compose_yml.j2` is pinned to an exact
+PostgreSQL minor and TimescaleDB version (`pg16.15-ts2.31.0`), so an upgrade is a
+deliberate tag change. Pick the newest `pg<major>.<minor>-ts<version>` tag on Docker Hub
+and read the TimescaleDB changelog from the running version to the target first.
 
-Log in in docker:
+1. Take a full backup with `backup_databases.sh`. An extension update can't be undone in
+   place; rollback is a restore.
+2. Render the new compose file and recreate only the database container:
 
-    docker compose exec timescaledb psql -U timescale -d timescale_home
+       docker compose up -d --no-deps timescaledb
 
-    ALTER EXTENSION timescaledb UPDATE;
-    ALTER EXTENSION timescaledb_toolkit UPDATE;
-    SELECT extname, extversion FROM pg_extension;
-    CREATE SCHEMA IF NOT EXISTS timescaledb_experimental;
-    exit
+3. Update the extensions in every database that has them (`timescale_home` and
+   `postgres`). `-X` skips `~/.psqlrc`, so `ALTER EXTENSION timescaledb UPDATE` is the
+   first command of the session, as TimescaleDB requires:
+
+       docker compose exec timescaledb psql -X -U timescale -d timescale_home
+
+       ALTER EXTENSION timescaledb UPDATE;
+       ALTER EXTENSION timescaledb_toolkit UPDATE;
+       CREATE SCHEMA IF NOT EXISTS timescaledb_experimental;
+       SELECT extname, extversion FROM pg_extension;
+       \q
+
+   Repeat with `-d postgres`.
 
 Restoring backup
 ================
