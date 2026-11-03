@@ -9,7 +9,56 @@
     "cursorSync": "Off",
     "editable": true,
     "elements": {
-      "panel-90": "@@ENERGY_FLOW_PANEL@@"
+      "panel-90": "@@ENERGY_FLOW_PANEL@@",
+      "panel-91": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Time (24 h) and date from the browser's clock, current weather, the next 24 hours in 3-hour steps and today and the next four days from the Open-Meteo forecast API (no key), at the plant's coordinates (vault_open_meteo_location). The browser fetches it directly, at most every 15 minutes (every minute while no data has arrived), whatever the dashboard refresh; faded with the error in the footer when the last update failed. Rain shows the probability from 10 % up and the daily amount.",
+          "id": 91,
+          "links": [],
+          "title": "Clock and weather",
+          "vizConfig": {
+            "group": "marcusolsson-dynamictext-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "afterRender": "const root = context.element.querySelector('.side');\nconst time = root.querySelector('.time');\nconst date = root.querySelector('.date');\nconst weather = root.querySelector('.weather');\n\nconst tick = () => {\n  const now = new Date();\n  time.textContent = clockTime(now);\n  date.textContent = now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });\n};\n\nconst conditions = {\n  0: ['☀️', 'Clear', '🌙'],\n  1: ['🌤️', 'Mainly clear', '🌙'],\n  2: ['⛅', 'Partly cloudy', '☁️'],\n  3: ['☁️', 'Overcast'],\n  45: ['🌫️', 'Fog'],\n  48: ['🌫️', 'Rime fog'],\n  51: ['🌦️', 'Light drizzle'],\n  53: ['🌦️', 'Drizzle'],\n  55: ['🌧️', 'Dense drizzle'],\n  56: ['🌧️', 'Freezing drizzle'],\n  57: ['🌧️', 'Freezing drizzle'],\n  61: ['🌦️', 'Light rain'],\n  63: ['🌧️', 'Rain'],\n  65: ['🌧️', 'Heavy rain'],\n  66: ['🌧️', 'Freezing rain'],\n  67: ['🌧️', 'Freezing rain'],\n  71: ['🌨️', 'Light snow'],\n  73: ['🌨️', 'Snow'],\n  75: ['❄️', 'Heavy snow'],\n  77: ['🌨️', 'Snow grains'],\n  80: ['🌦️', 'Light showers'],\n  81: ['🌧️', 'Showers'],\n  82: ['⛈️', 'Violent showers'],\n  85: ['🌨️', 'Snow showers'],\n  86: ['🌨️', 'Heavy snow showers'],\n  95: ['⛈️', 'Thunderstorm'],\n  96: ['⛈️', 'Thunderstorm, hail'],\n  99: ['⛈️', 'Thunderstorm, hail'],\n};\nconst icon = (code, day = 1) => {\n  const c = conditions[code] || ['❔'];\n  return day || !c[2] ? c[0] : c[2];\n};\nconst label = (code) => (conditions[code] || [, 'Unknown'])[1];\nconst compass = (deg) => ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(deg / 45) % 8];\nconst round = (v) => Math.round(v);\nconst clockTime = (t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });\nconst rain = (amount, probability) => [\n  amount >= 0.05 ? amount.toFixed(1) + ' mm' : '',\n  probability >= 10 ? probability + ' %' : '',\n].filter(Boolean).join(' · ');\n\nconst url = 'https://api.open-meteo.com/v1/forecast?@@OPEN_METEO_LOCATION@@'\n  + '&timezone=auto&timeformat=unixtime&forecast_days=5&forecast_hours=24'\n  + '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,is_day,precipitation,wind_speed_10m,wind_gusts_10m,wind_direction_10m'\n  + '&hourly=temperature_2m,weather_code,is_day,precipitation_probability,precipitation'\n  + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max';\nconst cache = window.homeWeather || (window.homeWeather = {});\n\nconst load = async () => {\n  const wait = (cache.data ? 15 : 1) * 60000;\n  if (!cache.pending && Date.now() - (cache.tried || 0) > wait) {\n    cache.tried = Date.now();\n    cache.pending = fetch(url)\n      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status + ' ' + r.statusText))))\n      .then((d) => { cache.data = d; cache.error = null; })\n      .catch((e) => { cache.error = e.message; })\n      .finally(() => { cache.pending = null; });\n  }\n  await cache.pending;\n  return cache.data;\n};\n\nconst draw = (d) => {\n  const c = d.current;\n  const h = d.hourly;\n  const dd = d.daily;\n  const hours = [];\n  for (let i = 2; i < h.time.length; i += 3) {\n    hours.push(`<div class=\"hour\">\n      <span class=\"muted\">${clockTime(h.time[i] * 1000)}</span>\n      <span class=\"icon\">${icon(h.weather_code[i], h.is_day[i])}</span>\n      <span class=\"t\">${round(h.temperature_2m[i])}°</span>\n      <span class=\"rain\">${rain(0, h.precipitation_probability[i])}</span>\n    </div>`);\n  }\n  const days = dd.time.map((t, i) => `<div class=\"day\">\n      <span class=\"name\">${i === 0 ? 'Today' : new Date(t * 1000).toLocaleDateString([], { weekday: 'short' })}</span>\n      <span class=\"icon\">${icon(dd.weather_code[i])}</span>\n      <span class=\"cond muted\">${label(dd.weather_code[i])}</span>\n      <span class=\"t\"><b>${round(dd.temperature_2m_max[i])}°</b> <span class=\"muted\">${round(dd.temperature_2m_min[i])}°</span></span>\n      <span class=\"rain\">${rain(dd.precipitation_sum[i], dd.precipitation_probability_max[i])}</span>\n    </div>`);\n  weather.innerHTML = `<div class=\"now ${cache.error ? 'stale' : ''}\">\n      <span class=\"icon\">${icon(c.weather_code, c.is_day)}</span>\n      <span class=\"temp\">${round(c.temperature_2m)}°</span>\n      <span class=\"details\">\n        <span class=\"cond\">${label(c.weather_code)}</span>\n        <span>Feels like ${round(c.apparent_temperature)}° · ${c.relative_humidity_2m} %</span>\n        <span>Wind ${round(c.wind_speed_10m)} km/h ${compass(c.wind_direction_10m)}, gusts ${round(c.wind_gusts_10m)}</span>\n        <span class=\"rain\">${c.precipitation > 0 ? c.precipitation.toFixed(1) + ' mm now' : ''}</span>\n      </span>\n    </div>\n    <div class=\"hours\">${hours.join('')}</div>\n    <div class=\"days\">${days.join('')}</div>\n    <div class=\"source muted\">Open-Meteo, ${clockTime(c.time * 1000)}${cache.error ? ' · update failed: ' + cache.error : ''}</div>`;\n};\n\nconst update = async () => {\n  const d = await load();\n  if (d) {\n    draw(d);\n  } else if (cache.error) {\n    weather.innerHTML = `<div class=\"note\">No weather: ${cache.error}</div>`;\n  }\n};\n\ntick();\nupdate();\nconst clockTimer = setInterval(tick, 1000);\nconst weatherTimer = setInterval(update, 60000);\n\nreturn () => {\n  clearInterval(clockTimer);\n  clearInterval(weatherTimer);\n};\n",
+                "content": "<div class=\"side\">\n  <div class=\"time\"></div>\n  <div class=\"date\"></div>\n  <div class=\"weather\"><div class=\"note\">Loading weather…</div></div>\n</div>",
+                "contentPartials": [],
+                "defaultContent": "<div class=\"side\">\n  <div class=\"time\"></div>\n  <div class=\"date\"></div>\n  <div class=\"weather\"><div class=\"note\">Loading weather…</div></div>\n</div>",
+                "editor": {
+                  "format": "auto",
+                  "height": 200,
+                  "language": "html"
+                },
+                "editors": [
+                  "styles",
+                  "afterRender"
+                ],
+                "externalScripts": [],
+                "externalStyles": [],
+                "helpers": "",
+                "renderMode": "allRows",
+                "styles": "& {\n  --rain: #3d8bfd;\n}\n\n& .dt-row {\n  height: 100%;\n  padding: 0;\n}\n\n& .side {\n  height: 100%;\n  container-type: size;\n  display: flex;\n  flex-direction: column;\n  gap: 1.5cqh;\n  text-align: center;\n  overflow: hidden;\n}\n\n& .time {\n  font-size: min(24cqw, 17cqh);\n  font-weight: 600;\n  line-height: 1;\n  font-variant-numeric: tabular-nums;\n}\n\n& .date {\n  font-size: min(6cqw, 4.5cqh);\n  opacity: 0.8;\n}\n\n& .weather {\n  flex: 1;\n  min-height: 0;\n  display: flex;\n  flex-direction: column;\n  justify-content: space-evenly;\n  gap: 1.5cqh;\n  font-size: min(3.6cqw, 2.8cqh);\n}\n\n& .muted {\n  opacity: 0.7;\n}\n\n& .rain {\n  color: var(--rain);\n}\n\n& .stale {\n  opacity: 0.5;\n}\n\n& .now {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 3cqw;\n}\n\n& .now .icon {\n  font-size: min(15cqw, 11cqh);\n  line-height: 1;\n}\n\n& .now .temp {\n  font-size: min(15cqw, 11cqh);\n  font-weight: 600;\n  line-height: 1;\n}\n\n& .now .details {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-start;\n  text-align: left;\n  line-height: 1.35;\n}\n\n& .now .cond {\n  font-size: 1.4em;\n  font-weight: 600;\n}\n\n& .hours {\n  display: grid;\n  grid-template-columns: repeat(8, 1fr);\n}\n\n& .hour {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  line-height: 1.3;\n}\n\n& .hour .icon {\n  font-size: 1.8em;\n}\n\n& .hour .t {\n  font-weight: 600;\n}\n\n& .days {\n  display: grid;\n  grid-template-columns: auto auto 1fr auto auto;\n  column-gap: 2.5cqw;\n  row-gap: 0.6cqh;\n  align-items: center;\n  text-align: left;\n}\n\n& .day {\n  display: contents;\n}\n\n& .day .name {\n  font-weight: 600;\n}\n\n& .day .icon {\n  font-size: 1.5em;\n}\n\n& .day .t,\n& .day .rain {\n  text-align: right;\n  white-space: nowrap;\n}\n\n& .source,\n& .note {\n  font-size: 0.8em;\n}\n",
+                "wrap": true
+              }
+            },
+            "version": "6.3.0"
+          }
+        }
+      }
     },
     "layout": {
       "kind": "RowsLayout",
@@ -35,9 +84,18 @@
                           "name": "panel-90"
                         }
                       }
+                    },
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-91"
+                        }
+                      }
                     }
                   ],
-                  "maxColumnCount": 1,
+                  "maxColumnCount": 2,
                   "rowHeightMode": "standard"
                 }
               },

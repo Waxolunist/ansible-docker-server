@@ -45,6 +45,7 @@ PLACEHOLDERS = {
     "@@PSA_VIN@@": "vault_psa_vin",
     "@@GOE_URL@@": "vault_goe_url",
     "@@ROBOROCK_URL@@": "vault_roborock_url",
+    "@@OPEN_METEO_LOCATION@@": "vault_open_meteo_location",
 }
 
 FLOW_PANEL_FILE = REPO / "roles/web/files/grafana/flow/energy_flow_panel.json"
