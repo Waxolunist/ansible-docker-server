@@ -485,7 +485,7 @@
               "transformations": []
             }
           },
-          "description": "The energy of all trips divided by their distance, grouped by the trip's average speed in 10 km/h bands (bands with at least 10 trips). Town traffic and motorway speed both cost more than the middle.",
+          "description": "The energy of all trips divided by their distance, grouped by the trip's average speed in 10 km/h bands (bands with at least 10 trips). Town traffic and motorway speed both cost more than the middle. Not a time series, so Aggregate by does not apply.",
           "id": 12,
           "links": [],
           "title": "Consumption by average speed",
@@ -595,7 +595,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with trips as (\n    select date_trunc('month', start_at at time zone 'Europe/Vienna')::date as month,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n)\nselect (w.month + 14)::timestamp at time zone 'Europe/Vienna' as time,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom agg_1month_what_if w\nleft join trips t on t.month = w.month\ncross join overall o\nwhere w.km > 0\n  and w.month >= date_trunc('month', $__timeFrom()::timestamptz at time zone 'Europe/Vienna')\n  and w.month < $__timeTo()::timestamptz at time zone 'Europe/Vienna'\norder by time;"
+                        "rawSql": "with trips as (\n    select time_bucket('1 ${grain}', (start_at at time zone 'Europe/Vienna')::date) as bucket,\n           sum(consumption) as kwh,\n           sum(distance) as km\n    from data_vehicle_trips\n    where distance > 0 and consumption > 0\n    group by 1\n), overall as (\n    select sum(kwh) / sum(km) * 100 as kwh_per_100km from trips\n), w as (\n    select time_bucket('1 ${grain}', day) as bucket,\n           sum(km) as km, sum(price_fuel) as price_fuel, sum(price_car) as price_car, sum(energy_car) as energy_car\n    from agg_1day_what_if\n    where $__timeFilter(time)\n    group by 1\n)\nselect (w.bucket + (w.bucket + interval '1 ${grain}' - w.bucket) / 2) at time zone 'Europe/Vienna' as time,\n       w.price_fuel / w.km * 100 as \"Combustion car\",\n       w.price_car / nullif(w.energy_car, 0) * coalesce(t.kwh / t.km * 100, o.kwh_per_100km) as \"EV\"\nfrom w\nleft join trips t using (bucket)\ncross join overall o\nwhere w.km > 0\norder by time;"
                       },
                       "version": "v0"
                     },
@@ -620,7 +620,7 @@
               ]
             }
           },
-          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, from agg_1month_what_if. EV: the average price per kWh paid for home charging that month (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. Months without trips use the average consumption over all trips. The trip consumption leaves out charging losses. The red line is a polynomial regression (degree 5) over the EV bars, as on Average Consumption.",
+          "description": "Combustion car: the reference car's fuel (km x l/100 km x the day's fuel price) per driven km, per ${grain} from agg_1day_what_if. EV: the average price per kWh paid for home charging in that ${grain} (grid share at the hourly price, PV energy free) times the car's consumption from its trips (data_vehicle_trips, kWh/100 km), so km charged away from home are priced as if charged at home. A ${grain} without trips uses the average consumption over all trips. The trip consumption leaves out charging losses. The red line is a polynomial regression (degree 5) over the EV bars, as on Average Consumption.",
           "id": 14,
           "links": [],
           "title": "Cost per 100 km: combustion car vs EV",
@@ -952,7 +952,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time_bucket('1 week', a.time, 'Europe/Vienna') as time, percentile_cont(0.5) within group (order by a.autonomy / l.level * 100) as \"Range at 100 %\"\nfrom data_vehicle_energy_autonomy a\njoin data_vehicle_energy_level l using (vehicle_id, time)\nwhere $__timeFilter(a.time) and $__timeFilter(l.time) and l.level between 30 and 100\ngroup by 1\norder by 1;"
+                        "rawSql": "select time_bucket('1 ${grain}', a.time, 'Europe/Vienna') as time, percentile_cont(0.5) within group (order by a.autonomy / l.level * 100) as \"Range at 100 %\"\nfrom data_vehicle_energy_autonomy a\njoin data_vehicle_energy_level l using (vehicle_id, time)\nwhere $__timeFilter(a.time) and $__timeFilter(l.time) and l.level between 30 and 100\ngroup by 1\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -977,7 +977,7 @@
               ]
             }
           },
-          "description": "Weekly median of the car's range estimate scaled to a full battery (range divided by charge level, for levels between 30 and 100 %). The estimate follows the temperature and the recent driving style. The red line is a polynomial regression (degree 4).",
+          "description": "Median per ${grain} of the car's range estimate scaled to a full battery (range divided by charge level, for levels between 30 and 100 %). The estimate follows the temperature and the recent driving style. The red line is a polynomial regression (degree 4).",
           "id": 21,
           "links": [],
           "title": "Estimated range at 100 %",
@@ -1442,7 +1442,7 @@
               ]
             }
           },
-          "description": "Daily maximum of the odometer reading. The red line is a linear regression over the time range; its slope is the Yearly mileage above.",
+          "description": "Daily maximum of the odometer reading. The red line is a linear regression over the time range; its slope is the Yearly mileage above. Not affected by Aggregate by: the reading only grows, so the daily maximum is the finest useful grain.",
           "id": 30,
           "links": [],
           "title": "Odometer",
@@ -1969,7 +1969,7 @@
               "transformations": []
             }
           },
-          "description": "One point per minute while a car is connected and the charging mode is auto. Grid import stays under the limit by lowering the charger's step; the step is raised again only after five minutes of room.",
+          "description": "One point per minute while a car is connected and the charging mode is auto. Grid import stays under the limit by lowering the charger's step; the step is raised again only after five minutes of room. Not affected by Aggregate by: the limit applies per minute, so the raw points are shown.",
           "id": 40,
           "links": [],
           "title": "Auto charging: grid import against the limit",
@@ -2129,7 +2129,7 @@
               "transformations": []
             }
           },
-          "description": "Every minute the auto mode changed the charger's step: the readings it used and the step it chose. Room = limit - (grid import - charger power).",
+          "description": "Every minute the auto mode changed the charger's step: the readings it used and the step it chose. Room = limit - (grid import - charger power). Not affected by Aggregate by: one row per change.",
           "id": 41,
           "links": [],
           "title": "Auto charging: step changes",
