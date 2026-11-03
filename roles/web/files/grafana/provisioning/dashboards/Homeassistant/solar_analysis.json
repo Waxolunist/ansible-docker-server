@@ -792,7 +792,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time,\n       case when metered then energy_consumed end as energy_consumed,\n       case when metered then energy_feeded end as energy_feeded,\n       energy_produced,\n       case when metered then price_consumed end as price_consumed,\n       case when metered then price_feeded end as price_feeded,\n       case when metered then price_feeded + price_self_consumption end as price_production\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\norder by time;",
+                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(energy_consumed) filter (where metered) as energy_consumed,\n       sum(energy_feeded) filter (where metered) as energy_feeded,\n       sum(energy_produced) as energy_produced,\n       sum(price_consumed) filter (where metered) as price_consumed,\n       sum(price_feeded) filter (where metered) as price_feeded,\n       sum(price_feeded + price_self_consumption) filter (where metered) as price_production\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;",
                         "sql": {
                           "columns": [
                             {
@@ -842,7 +842,7 @@
               ]
             }
           },
-          "description": "Hourly grid import, feed-in and PV production; the price series (hidden from the chart, in the legend and tooltip) are the hourly values in €. Hours the smart meter has not delivered yet show production only.",
+          "description": "Grid import, feed-in and PV production per ${bucket} (the bucket follows the time range); the price series (hidden from the chart, in the legend and tooltip) are the values in €. Hours the smart meter has not delivered yet show production only.",
           "id": 18,
           "links": [],
           "title": "Measured data",
@@ -1078,7 +1078,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time, energy_self_consumption as \"Self-consumption\", energy_consumed as \"Grid import\" from agg_1day_energy_priced where $__timeFilter(time) and metered_hours > 0 order by time;"
+                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(energy_self_consumption) filter (where metered) as \"Self-consumption\",\n       sum(energy_consumed) filter (where metered) as \"Grid import\"\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\nhaving bool_or(metered)\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -1090,7 +1090,7 @@
               "transformations": []
             }
           },
-          "description": "Daily consumption split into what the PV supplied directly (self-consumption) and what came from the grid. Days without smart meter data are left out.",
+          "description": "Consumption per ${bucket} (the bucket follows the time range), split into what the PV supplied directly (self-consumption) and what came from the grid. Buckets without smart meter data are left out.",
           "id": 19,
           "links": [],
           "title": "Consumption by source",
@@ -1278,7 +1278,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time, energy_self_consumption as \"Self-consumption\", energy_feeded as \"Feed-in\", energy_self_consumption / nullif(energy_self_consumption + energy_feeded, 0) as \"Self-use share\" from agg_1day_energy_priced where $__timeFilter(time) and metered_hours > 0 order by time;"
+                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(energy_self_consumption) filter (where metered) as \"Self-consumption\",\n       sum(energy_feeded) filter (where metered) as \"Feed-in\",\n       sum(energy_self_consumption) filter (where metered)\n         / nullif(sum(energy_self_consumption + energy_feeded) filter (where metered), 0) as \"Self-use share\"\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\nhaving bool_or(metered)\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -1290,7 +1290,7 @@
               "transformations": []
             }
           },
-          "description": "Daily PV yield split into self-consumption and feed-in, with the self-use share on the right axis.",
+          "description": "PV yield per ${bucket} (the bucket follows the time range), split into self-consumption and feed-in, with the self-use share on the right axis.",
           "id": 20,
           "links": [],
           "title": "Where the PV energy goes",
@@ -1444,7 +1444,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time, price_feeded as \"Feed-in revenue\", price_self_consumption as \"Avoided grid cost\", price_consumed as \"Grid cost\" from agg_1day_energy_priced where $__timeFilter(time) and metered_hours > 0 order by time;"
+                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(price_feeded) filter (where metered) as \"Feed-in revenue\",\n       sum(price_self_consumption) filter (where metered) as \"Avoided grid cost\",\n       sum(price_consumed) filter (where metered) as \"Grid cost\"\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\nhaving bool_or(metered)\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -1456,10 +1456,10 @@
               "transformations": []
             }
           },
-          "description": "What the PV earned per day: feed-in revenue plus the grid cost avoided by self-consumption, against the day's grid cost (line).",
+          "description": "What the PV earned per ${bucket} (the bucket follows the time range): feed-in revenue plus the grid cost avoided by self-consumption, against the grid cost (line).",
           "id": 21,
           "links": [],
-          "title": "Daily value of the PV",
+          "title": "Value of the PV",
           "vizConfig": {
             "group": "timeseries",
             "kind": "VizConfig",
@@ -1595,7 +1595,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select extract(hour from time at time zone 'Europe/Vienna')::int as hour,\n       avg(energy_produced) as \"Production\",\n       avg(energy_used) as \"Consumption\",\n       avg(energy_consumed) as \"Grid import\"\nfrom agg_1h_energy_priced where $__timeFilter(time) and metered\ngroup by 1\norder by 1;"
+                        "rawSql": "select lpad(h::text, 2, '0') || ':00' as \"Hour\", \"Production\", \"Consumption\", \"Grid import\"\nfrom (\n  select extract(hour from time at time zone 'Europe/Vienna')::int as h,\n         avg(energy_produced) as \"Production\",\n         avg(energy_used) as \"Consumption\",\n         avg(energy_consumed) as \"Grid import\"\n  from agg_1h_energy_priced where $__timeFilter(time) and metered\n  group by 1\n) x\norder by h;"
                       },
                       "version": "v0"
                     },
@@ -1692,8 +1692,9 @@
                   "mode": "multi",
                   "sort": "none"
                 },
-                "xField": "hour",
-                "xTickLabelRotation": 0
+                "xField": "Hour",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
               }
             },
             "version": "12.0.0"
@@ -1721,7 +1722,7 @@
                         "editorMode": "code",
                         "format": "time_series",
                         "rawQuery": true,
-                        "rawSql": "select time_bucket('1 hour', time) as time,\n       avg(pv_kw) as \"PV\", avg(house_kw) as \"House\", avg(grid_kw) as \"Grid\",\n       avg(battery_kw) as \"Battery\", avg(battery_soc) as \"Battery SOC\"\nfrom data_power_live\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;"
+                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       avg(pv_kw) as \"PV\", avg(house_kw) as \"House\", avg(grid_kw) as \"Grid\",\n       avg(battery_kw) as \"Battery\", avg(battery_soc) as \"Battery SOC\"\nfrom data_power_live\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -1733,7 +1734,7 @@
               "transformations": []
             }
           },
-          "description": "Hourly average power from the live monitor (data_power_live): PV, house, grid (positive = import) and battery (positive = charging), with the battery charge level on the right axis.",
+          "description": "Average power per ${bucket} (the bucket follows the time range) from the live monitor (data_power_live): PV, house, grid (positive = import) and battery (positive = charging), with the battery charge level on the right axis.",
           "id": 23,
           "links": [],
           "title": "Power profile",
@@ -1911,7 +1912,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time,\n  energy_consumed as \"Grid consumption\",\n  case when energy_inverter > 0 then energy_self_consumption end as \"Self consumption\",\n  case when energy_inverter > 0 then energy_used end as \"Total consumption\"\nfrom agg_1month_energy_priced\norder by time;",
+                        "rawSql": "select to_char(c.month, 'Mon YY') as \"Month\",\n       case when c.energy_inverter > 0 then c.energy_used end as \"Consumption\",\n       case when p.energy_inverter > 0 then p.energy_used end as \"A year before\"\nfrom agg_1month_energy_priced c\nleft join agg_1month_energy_priced p on p.month = c.month - interval '1 year'\nwhere c.time >= (date_trunc('month', now() at time zone 'Europe/Vienna') - interval '11 months') at time zone 'Europe/Vienna'\norder by c.month;",
                         "sql": {
                           "columns": [
                             {
@@ -1938,127 +1939,44 @@
               ],
               "queryOptions": {
                 "hideTimeOverride": true,
-                "timeFrom": "18M",
-                "timeShift": "1y/M+15M"
+                "timeFrom": "12M"
               },
-              "transformations": [
-                {
-                  "group": "regression",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "degree": 5,
-                      "modelType": "polynomial",
-                      "predictionCount": 100,
-                      "xFieldName": "time",
-                      "yFieldName": "Grid consumption"
-                    }
-                  }
-                }
-              ]
+              "transformations": []
             }
           },
-          "description": "",
+          "description": "Household consumption (grid import plus self-consumption, car included) per month over the last 12 months, next to the same month a year earlier. The current month is the month to date.",
           "id": 24,
           "links": [],
-          "title": "Consumption",
+          "title": "Consumption vs. a year before",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "barchart",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "dark-red",
-                    "mode": "fixed"
+                    "mode": "palette-classic"
                   },
                   "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
                     "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.8,
-                    "drawStyle": "line",
-                    "fillOpacity": 0,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": true,
-                      "tooltip": true,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 5,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "never",
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
+                    "fillOpacity": 80,
+                    "lineWidth": 0
                   },
+                  "decimals": 0,
                   "min": 0,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  },
                   "unit": "kwatth"
                 },
                 "overrides": [
                   {
                     "matcher": {
-                      "id": "byFrameRefID",
-                      "options": "A"
+                      "id": "byName",
+                      "options": "Consumption"
                     },
                     "properties": [
                       {
-                        "id": "custom.drawStyle",
-                        "value": "bars"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 100
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": false,
-                          "tooltip": false,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "custom.stacking",
-                        "value": {
-                          "group": "A",
-                          "mode": "normal"
-                        }
-                      },
-                      {
                         "id": "color",
                         "value": {
-                          "fixedColor": "green",
+                          "fixedColor": "blue",
                           "mode": "fixed"
                         }
                       }
@@ -2067,72 +1985,38 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "Self consumption"
+                      "options": "A year before"
                     },
                     "properties": [
                       {
                         "id": "color",
                         "value": {
-                          "fixedColor": "yellow",
+                          "fixedColor": "super-light-blue",
                           "mode": "fixed"
                         }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Total consumption"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.stacking",
-                        "value": {
-                          "group": "A",
-                          "mode": "none"
-                        }
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": false,
-                          "tooltip": false,
-                          "viz": true
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "time"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "time: DD.MM.YYYY"
                       }
                     ]
                   }
                 ]
               },
               "options": {
+                "barWidth": 0.9,
+                "groupWidth": 0.8,
                 "legend": {
-                  "calcs": [
-                    "mean",
-                    "median",
-                    "max",
-                    "lastNotNull"
-                  ],
-                  "displayMode": "table",
+                  "displayMode": "list",
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "showValue": "never",
+                "stacking": "none",
                 "tooltip": {
                   "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
-                }
+                },
+                "xField": "Month",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
               }
             },
             "version": "12.0.0"
@@ -2160,7 +2044,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with base as (\n  select time,\n    case when energy_inverter > 0 then energy_self_consumption end as energy_self_consumption,\n    energy_feeded\n  from agg_1month_energy_priced\n  where metered_hours > 0\n)\nselect time, energy_self_consumption, energy_feeded,\n  energy_self_consumption + energy_feeded as \"Total\",\n  energy_self_consumption / nullif(energy_self_consumption + energy_feeded, 0) as selfusage_percentage\nfrom base\nwhere $__timeFilter(time)\norder by time;",
+                        "rawSql": "select to_char(c.month, 'Mon YY') as \"Month\",\n       case when c.energy_inverter > 0 then c.energy_produced end as \"Production\",\n       case when p.energy_inverter > 0 then p.energy_produced end as \"A year before\"\nfrom agg_1month_energy_priced c\nleft join agg_1month_energy_priced p on p.month = c.month - interval '1 year'\nwhere c.time >= (date_trunc('month', now() at time zone 'Europe/Vienna') - interval '11 months') at time zone 'Europe/Vienna'\norder by c.month;",
                         "sql": {
                           "columns": [
                             {
@@ -2187,114 +2071,44 @@
               ],
               "queryOptions": {
                 "hideTimeOverride": true,
-                "timeFrom": "18M",
-                "timeShift": "1y/M+15M"
+                "timeFrom": "12M"
               },
               "transformations": []
             }
           },
-          "description": "",
+          "description": "PV production per month over the last 12 months, next to the same month a year earlier. The current month is the month to date.",
           "id": 25,
           "links": [],
-          "title": "Production",
+          "title": "Production vs. a year before",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "barchart",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "blue",
-                    "mode": "fixed"
+                    "mode": "palette-classic"
                   },
                   "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
                     "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.8,
-                    "drawStyle": "bars",
-                    "fillOpacity": 100,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 0,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "never",
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
+                    "fillOpacity": 80,
+                    "lineWidth": 0
                   },
+                  "decimals": 0,
                   "min": 0,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  },
                   "unit": "kwatth"
                 },
                 "overrides": [
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "energy_feeded"
+                      "options": "Production"
                     },
                     "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Grid feeded"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "time"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "time: DD.MM.YYYY"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy_self_consumption"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Self consumption"
-                      },
                       {
                         "id": "color",
                         "value": {
-                          "fixedColor": "yellow",
+                          "fixedColor": "#e8a400",
                           "mode": "fixed"
                         }
                       }
@@ -2303,97 +2117,38 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "Total"
+                      "options": "A year before"
                     },
                     "properties": [
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": false,
-                          "tooltip": false,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "custom.stacking",
-                        "value": {
-                          "group": "A",
-                          "mode": "none"
-                        }
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Total yield"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "selfusage_percentage"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": true,
-                          "tooltip": false,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "unit",
-                        "value": "percentunit"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 5
-                      },
                       {
                         "id": "color",
                         "value": {
-                          "fixedColor": "red",
+                          "fixedColor": "super-light-yellow",
                           "mode": "fixed"
                         }
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Share self consumption"
                       }
                     ]
                   }
                 ]
               },
               "options": {
+                "barWidth": 0.9,
+                "groupWidth": 0.8,
                 "legend": {
-                  "calcs": [
-                    "mean",
-                    "median",
-                    "max",
-                    "lastNotNull",
-                    "sum"
-                  ],
-                  "displayMode": "table",
+                  "displayMode": "list",
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "showValue": "never",
+                "stacking": "none",
                 "tooltip": {
                   "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
-                }
+                },
+                "xField": "Month",
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
               }
             },
             "version": "12.0.0"
@@ -2421,7 +2176,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- One row per month, stamped at local midnight on the 1st. Smart meter rows are stamped at the end of their quarter.\nwith mp as (\n  select id, timezone from master_smartmeter_metering_point where feeding = false\n), sm as (\n  select e.time - interval '15 minutes' as quarter, e.energy * 4 as kw\n  from data_smartmeter_energy e\n  join mp on mp.id = e.metering_point_id\n), live as (\n  select time_bucket('15 minutes', time) as quarter, avg(greatest(grid_kw, 0)) as kw\n  from data_power_live\n  where time >= (select max(e.time) from data_smartmeter_energy e join mp on mp.id = e.metering_point_id)\n    and time < time_bucket('15 minutes', now())\n  group by 1\n), q as (\n  select * from sm\n  union all\n  select * from live\n)\nselect date_trunc('month', quarter, (select timezone from mp)) as time,\n  max(kw) as \"Max grid import\"\nfrom q\ngroup by 1\norder by 1\n",
+                        "rawSql": "-- One row per month, stamped at local midnight on the 1st. Smart meter rows are stamped at the end of their quarter.\nwith mp as (\n  select id, timezone from master_smartmeter_metering_point where feeding = false\n), sm as (\n  select e.time - interval '15 minutes' as quarter, e.energy * 4 as kw\n  from data_smartmeter_energy e\n  join mp on mp.id = e.metering_point_id\n  where e.time > (date_trunc('month', now() at time zone 'Europe/Vienna') - interval '11 months') at time zone 'Europe/Vienna'\n), live as (\n  select time_bucket('15 minutes', time) as quarter, avg(greatest(grid_kw, 0)) as kw\n  from data_power_live\n  where time >= (select max(e.time) from data_smartmeter_energy e join mp on mp.id = e.metering_point_id)\n    and time < time_bucket('15 minutes', now())\n  group by 1\n), q as (\n  select * from sm\n  union all\n  select * from live\n)\nselect date_trunc('month', quarter, (select timezone from mp)) as time,\n  max(kw) as \"Max grid import\"\nfrom q\ngroup by 1\norder by 1\n",
                         "sql": {
                           "columns": [
                             {
@@ -2448,8 +2203,7 @@
               ],
               "queryOptions": {
                 "hideTimeOverride": true,
-                "timeFrom": "18M",
-                "timeShift": "1y/M+15M"
+                "timeFrom": "12M"
               },
               "transformations": []
             }
@@ -2614,7 +2368,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time, energy_self_consumption / nullif(energy_used, 0) as \"Autarky\" from agg_1month_energy_priced where energy_inverter > 0 order by time;"
+                        "rawSql": "select time, energy_self_consumption / nullif(energy_used, 0) as \"Autarky\" from agg_1month_energy_priced where energy_inverter > 0 and time >= (date_trunc('month', now() at time zone 'Europe/Vienna') - interval '11 months') at time zone 'Europe/Vienna' order by time;"
                       },
                       "version": "v0"
                     },
@@ -2624,8 +2378,7 @@
               ],
               "queryOptions": {
                 "hideTimeOverride": true,
-                "timeFrom": "18M",
-                "timeShift": "1y/M+15M"
+                "timeFrom": "12M"
               },
               "transformations": []
             }
@@ -3208,7 +2961,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where $__timeFilter(time) group by 1),\nmeasured as (\n  select time_bucket('1 hour', time) as t from data_solar_energy\n  where $__timeFilter(time) and time < (select min(time) from data_power_live)\n  union\n  select time_bucket('1 hour', time) from data_power_live where $__timeFilter(time)),\npv as (\n  select p.time as t, p.energy_produced as pv_kw\n  from agg_1h_energy_priced p\n  join measured m on m.t = p.time\n  where $__timeFilter(p.time)),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect to_char(make_date(2000, m, 1), 'Mon') as \"Month\",\n       sum(pv_kw) filter (where y = this_year - 0) / nullif(sum(gti) filter (where y = this_year - 0) / 1000, 0) / 3.6 * 100 as \"This year\",\n       sum(pv_kw) filter (where y = this_year - 1) / nullif(sum(gti) filter (where y = this_year - 1) / 1000, 0) / 3.6 * 100 as \"Last year\",\n       sum(pv_kw) filter (where y = this_year - 2) / nullif(sum(gti) filter (where y = this_year - 2) / 1000, 0) / 3.6 * 100 as \"2 years ago\",\n       sum(pv_kw) filter (where y = this_year - 3) / nullif(sum(gti) filter (where y = this_year - 3) / 1000, 0) / 3.6 * 100 as \"3 years ago\"\nfrom (select extract(month from t at time zone 'Europe/Vienna')::int as m,\n             extract(year from t at time zone 'Europe/Vienna')::int as y,\n             extract(year from now() at time zone 'Europe/Vienna')::int as this_year,\n             pv_kw, gti\n      from h) x\ngroup by m\norder by m;"
+                        "rawSql": "with irr as (\n  select time_bucket('1 hour', time - interval '1 second') as t, avg(gti) as gti\n  from data_irradiance where time >= (date_trunc('year', now() at time zone 'Europe/Vienna') - interval '3 years') at time zone 'Europe/Vienna' group by 1),\nmeasured as (\n  select time_bucket('1 hour', time) as t from data_solar_energy\n  where time >= (date_trunc('year', now() at time zone 'Europe/Vienna') - interval '3 years') at time zone 'Europe/Vienna' and time < (select min(time) from data_power_live)\n  union\n  select time_bucket('1 hour', time) from data_power_live where time >= (date_trunc('year', now() at time zone 'Europe/Vienna') - interval '3 years') at time zone 'Europe/Vienna'),\npv as (\n  select p.time as t, p.energy_produced as pv_kw\n  from agg_1h_energy_priced p\n  join measured m on m.t = p.time\n  where p.time >= (date_trunc('year', now() at time zone 'Europe/Vienna') - interval '3 years') at time zone 'Europe/Vienna'),\nh as (\n  select irr.t, irr.gti, pv.pv_kw from irr join pv using (t) where irr.gti > 20)\nselect to_char(make_date(2000, m, 1), 'Mon') as \"Month\",\n       sum(pv_kw) filter (where y = this_year - 0) / nullif(sum(gti) filter (where y = this_year - 0) / 1000, 0) / 3.6 * 100 as \"This year\",\n       sum(pv_kw) filter (where y = this_year - 1) / nullif(sum(gti) filter (where y = this_year - 1) / 1000, 0) / 3.6 * 100 as \"Last year\",\n       sum(pv_kw) filter (where y = this_year - 2) / nullif(sum(gti) filter (where y = this_year - 2) / 1000, 0) / 3.6 * 100 as \"2 years ago\",\n       sum(pv_kw) filter (where y = this_year - 3) / nullif(sum(gti) filter (where y = this_year - 3) / 1000, 0) / 3.6 * 100 as \"3 years ago\"\nfrom (select extract(month from t at time zone 'Europe/Vienna')::int as m,\n             extract(year from t at time zone 'Europe/Vienna')::int as y,\n             extract(year from now() at time zone 'Europe/Vienna')::int as this_year,\n             pv_kw, gti\n      from h) x\ngroup by m\norder by m;"
                       },
                       "version": "v0"
                     },
@@ -3220,7 +2973,7 @@
               "transformations": []
             }
           },
-          "description": "Performance ratio per calendar month, one column per year, so the same season is compared with itself; lower columns in later years point to real degradation or soiling. Months without data are empty, and the current month is incomplete. Only the last four years are shown, and the picked time range limits which months have data.",
+          "description": "Performance ratio per calendar month, one column per year (the current year and the three before it, independent of the time picker), so the same season is compared with itself; lower columns in later years point to real degradation or soiling. Months without data are empty, and the current month is incomplete.",
           "id": 31,
           "links": [],
           "title": "Monthly performance ratio by year",
@@ -4414,15 +4167,6 @@
                                               "name": "panel-30"
                                             }
                                           }
-                                        },
-                                        {
-                                          "kind": "AutoGridLayoutItem",
-                                          "spec": {
-                                            "element": {
-                                              "kind": "ElementReference",
-                                              "name": "panel-31"
-                                            }
-                                          }
                                         }
                                       ],
                                       "maxColumnCount": 2,
@@ -4499,13 +4243,42 @@
                                       "rowHeightMode": "custom"
                                     }
                                   },
-                                  "title": "Months"
+                                  "title": "Last year"
+                                }
+                              },
+                              {
+                                "kind": "RowsLayoutRow",
+                                "spec": {
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": false,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-31"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 1,
+                                      "rowHeight": 340,
+                                      "rowHeightMode": "custom"
+                                    }
+                                  },
+                                  "title": "Performance ratio by year"
                                 }
                               }
                             ]
                           }
                         },
-                        "title": "Months"
+                        "title": "Last year"
                       }
                     }
                   ]
@@ -4569,6 +4342,44 @@
       "weekStart": "monday"
     },
     "title": "Solar - Analysis",
-    "variables": []
+    "variables": [
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allowCustomValue": false,
+          "current": {
+            "text": "month",
+            "value": "month"
+          },
+          "definition": "select case\n  when $__timeTo()::timestamptz - $__timeFrom()::timestamptz <= interval '3 days' then 'hour'\n  when $__timeTo()::timestamptz - $__timeFrom()::timestamptz <= interval '93 days' then 'day'\n  when $__timeTo()::timestamptz - $__timeFrom()::timestamptz <= interval '2 years' then 'week'\n  else 'month' end",
+          "description": "Bucket of the Period tab's time series: hour up to 3 days, day up to 93 days, week up to 2 years, month beyond",
+          "hide": "hideVariable",
+          "includeAll": false,
+          "label": "Resolution",
+          "multi": false,
+          "name": "bucket",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+            },
+            "group": "grafana-postgresql-datasource",
+            "kind": "DataQuery",
+            "spec": {
+              "editorMode": "code",
+              "format": "table",
+              "rawQuery": true,
+              "rawSql": "select case\n  when $__timeTo()::timestamptz - $__timeFrom()::timestamptz <= interval '3 days' then 'hour'\n  when $__timeTo()::timestamptz - $__timeFrom()::timestamptz <= interval '93 days' then 'day'\n  when $__timeTo()::timestamptz - $__timeFrom()::timestamptz <= interval '2 years' then 'week'\n  else 'month' end",
+              "refId": "bucket"
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "disabled"
+        }
+      }
+    ]
   }
 }

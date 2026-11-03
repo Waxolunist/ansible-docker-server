@@ -706,7 +706,7 @@
         "1d"
       ],
       "fiscalYearStartMonth": 0,
-      "from": "now-6h",
+      "from": "now/d",
       "hideTimepicker": true,
       "quickRanges": "@@QUICK_RANGES@@",
       "timezone": "browser",
