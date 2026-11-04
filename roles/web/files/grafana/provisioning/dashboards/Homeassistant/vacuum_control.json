@@ -6,7 +6,7 @@
   },
   "spec": {
     "annotations": [],
-    "cursorSync": "Off",
+    "cursorSync": "Crosshair",
     "editable": true,
     "elements": {
       "panel-1": {
@@ -157,7 +157,7 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "text",
+                    "fixedColor": "#ccccdb3b",
                     "mode": "fixed"
                   },
                   "mappings": [
@@ -209,7 +209,7 @@
                           "text": "Going to wash the mop"
                         },
                         "idle": {
-                          "color": "text",
+                          "color": "#ccccdb3b",
                           "index": 2,
                           "text": "Idle"
                         },
@@ -271,6 +271,10 @@
                   "values": false
                 },
                 "showPercentChange": false,
+                "text": {
+                  "titleSize": 14,
+                  "valueSize": 26
+                },
                 "textMode": "value",
                 "wideLayout": true
               }
@@ -326,7 +330,7 @@
               "transformations": []
             }
           },
-          "description": "",
+          "description": "Battery level in percent, from /status.",
           "id": 3,
           "links": [],
           "title": "Battery",
@@ -363,6 +367,14 @@
                 "overrides": []
               },
               "options": {
+                "barShape": "flat",
+                "barWidthFactor": 0.5,
+                "effects": {
+                  "barGlow": false,
+                  "centerGlow": false,
+                  "gradient": false
+                },
+                "endpointMarker": "point",
                 "minVizHeight": 75,
                 "minVizWidth": 75,
                 "orientation": "auto",
@@ -373,9 +385,14 @@
                   "fields": "",
                   "values": false
                 },
+                "segmentCount": 1,
+                "segmentSpacing": 0.3,
+                "shape": "gauge",
                 "showThresholdLabels": false,
-                "showThresholdMarkers": false,
-                "sizing": "auto"
+                "showThresholdMarkers": true,
+                "sizing": "auto",
+                "sparkline": false,
+                "textMode": "auto"
               }
             },
             "version": "13.2.4"
@@ -493,6 +510,10 @@
                   "values": false
                 },
                 "showPercentChange": false,
+                "text": {
+                  "titleSize": 14,
+                  "valueSize": 26
+                },
                 "textMode": "value_and_name",
                 "wideLayout": true
               }
@@ -564,7 +585,7 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "text",
+                    "fixedColor": "#ccccdb3b",
                     "mode": "fixed"
                   },
                   "noValue": "None yet"
@@ -598,6 +619,10 @@
                   "values": false
                 },
                 "showPercentChange": false,
+                "text": {
+                  "titleSize": 14,
+                  "valueSize": 26
+                },
                 "textMode": "value_and_name",
                 "wideLayout": true
               }
@@ -664,7 +689,7 @@
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "fixedColor": "text",
+                    "fixedColor": "#ccccdb3b",
                     "mode": "fixed"
                   },
                   "mappings": [
@@ -707,6 +732,10 @@
                   "values": false
                 },
                 "showPercentChange": false,
+                "text": {
+                  "titleSize": 14,
+                  "valueSize": 26
+                },
                 "textMode": "value",
                 "wideLayout": true
               }
@@ -865,7 +894,8 @@
             "version": "13.2.4"
           }
         }
-      }
+      },
+      "panel-90": "@@ENERGY_FLOW_PANEL@@"
     },
     "layout": {
       "kind": "RowsLayout",
@@ -875,6 +905,7 @@
             "kind": "RowsLayoutRow",
             "spec": {
               "collapse": false,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
@@ -885,27 +916,28 @@
                       "spec": {
                         "element": {
                           "kind": "ElementReference",
-                          "name": "panel-1"
+                          "name": "panel-90"
                         }
                       }
                     }
                   ],
                   "maxColumnCount": 1,
-                  "rowHeight": 170,
+                  "rowHeight": 150,
                   "rowHeightMode": "custom"
                 }
               },
-              "title": "Programs"
+              "title": "Energy flow"
             }
           },
           {
             "kind": "RowsLayoutRow",
             "spec": {
               "collapse": false,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
-                  "columnWidthMode": "standard",
+                  "columnWidthMode": "narrow",
                   "items": [
                     {
                       "kind": "AutoGridLayoutItem",
@@ -964,10 +996,41 @@
             "kind": "RowsLayoutRow",
             "spec": {
               "collapse": false,
+              "hideHeader": true,
               "layout": {
                 "kind": "AutoGridLayout",
                 "spec": {
                   "columnWidthMode": "standard",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-1"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 1,
+                  "rowHeight": 170,
+                  "rowHeightMode": "custom"
+                }
+              },
+              "title": "Programs"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "fillScreen": true,
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "fillScreen": true,
                   "items": [
                     {
                       "kind": "AutoGridLayoutItem",
