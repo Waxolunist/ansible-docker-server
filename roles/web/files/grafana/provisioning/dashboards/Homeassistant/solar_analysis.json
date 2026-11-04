@@ -781,293 +781,6 @@
           }
         }
       },
-      "panel-18": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                      },
-                      "group": "grafana-postgresql-datasource",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "format": "table",
-                        "rawQuery": true,
-                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(energy_consumed) filter (where metered) as energy_consumed,\n       sum(energy_feeded) filter (where metered) as energy_feeded,\n       sum(energy_produced) as energy_produced,\n       sum(price_consumed) filter (where metered) as price_consumed,\n       sum(price_feeded) filter (where metered) as price_feeded,\n       sum(price_feeded + price_self_consumption) filter (where metered) as price_production\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {},
-              "transformations": [
-                {
-                  "group": "organize",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "excludeByName": {},
-                      "includeByName": {},
-                      "indexByName": {
-                        "energy_consumed": 1,
-                        "energy_feeded": 2,
-                        "energy_produced": 3,
-                        "price_consumed": 4,
-                        "price_feeded": 5,
-                        "price_production": 6,
-                        "time": 0
-                      },
-                      "renameByName": {}
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "description": "Grid import, feed-in and PV production per ${bucket} (the bucket follows the time range); the price series (hidden from the chart, in the legend and tooltip) are the values in €. Hours the smart meter has not delivered yet show production only.",
-          "id": 18,
-          "links": [],
-          "title": "Measured data",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "color": {
-                    "mode": "palette-classic"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.6,
-                    "drawStyle": "line",
-                    "fillOpacity": 61,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": false,
-                      "tooltip": false,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "auto",
-                    "showValues": false,
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  },
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  },
-                  "unit": "kwatth"
-                },
-                "overrides": [
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy_produced"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 19
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 1
-                      },
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "custom.stacking",
-                        "value": {
-                          "group": "A",
-                          "mode": "none"
-                        }
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "red",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "displayName",
-                        "value": "Production"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy_consumed"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Consumption"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "energy_feeded"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Feeding"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byRegexp",
-                      "options": "/price_.*/"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "currencyEUR"
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": false,
-                          "tooltip": false,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.showPoints",
-                        "value": "never"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "price_consumed"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Consumption"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "price_feeded"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Feeding"
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "price_production"
-                    },
-                    "properties": [
-                      {
-                        "id": "displayName",
-                        "value": "Production"
-                      }
-                    ]
-                  }
-                ]
-              },
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "max",
-                    "sum"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "multi",
-                  "sort": "none"
-                }
-              }
-            },
-            "version": "13.2.4"
-          }
-        }
-      },
       "panel-19": {
         "kind": "Panel",
         "spec": {
@@ -1325,7 +1038,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(energy_self_consumption) filter (where metered) as \"Self-consumption\",\n       sum(energy_feeded) filter (where metered) as \"Feed-in\",\n       sum(energy_self_consumption) filter (where metered)\n         / nullif(sum(energy_self_consumption + energy_feeded) filter (where metered), 0) as \"Self-use share\"\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\nhaving bool_or(metered)\norder by 1;"
+                        "rawSql": "select time_bucket('1 ${bucket}', time, 'Europe/Vienna') as time,\n       sum(energy_self_consumption) filter (where metered) as \"Self-consumption\",\n       sum(energy_feeded) filter (where metered) as \"Feed-in\",\n       sum(energy_produced) as \"Production\",\n       sum(energy_self_consumption) filter (where metered)\n         / nullif(sum(energy_self_consumption + energy_feeded) filter (where metered), 0) as \"Self-use share\"\nfrom agg_1h_energy_priced\nwhere $__timeFilter(time)\ngroup by 1\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -1337,7 +1050,7 @@
               "transformations": []
             }
           },
-          "description": "PV yield per ${bucket} (the bucket follows the time range), split into self-consumption and feed-in, with the self-use share on the right axis.",
+          "description": "Self-consumption and feed-in per ${bucket} (the bucket follows the time range) against PV production (line), with the self-use share on the right axis. The bars count energy leaving the inverter when it is used, the line what the panels delivered, so the bars can sit below the line (battery losses, charging) or above it (discharging). Hours the smart meter has not delivered yet show production only.",
           "id": 20,
           "links": [],
           "title": "Where the PV energy goes",
@@ -1426,6 +1139,40 @@
                         "id": "color",
                         "value": {
                           "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Production"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 2
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "#e8a400",
                           "mode": "fixed"
                         }
                       }
@@ -4281,34 +4028,6 @@
                                     }
                                   },
                                   "title": "Totals"
-                                }
-                              },
-                              {
-                                "kind": "RowsLayoutRow",
-                                "spec": {
-                                  "collapse": false,
-                                  "hideHeader": true,
-                                  "layout": {
-                                    "kind": "AutoGridLayout",
-                                    "spec": {
-                                      "columnWidthMode": "standard",
-                                      "items": [
-                                        {
-                                          "kind": "AutoGridLayoutItem",
-                                          "spec": {
-                                            "element": {
-                                              "kind": "ElementReference",
-                                              "name": "panel-18"
-                                            }
-                                          }
-                                        }
-                                      ],
-                                      "maxColumnCount": 1,
-                                      "rowHeight": 380,
-                                      "rowHeightMode": "custom"
-                                    }
-                                  },
-                                  "title": "Measured data"
                                 }
                               },
                               {
