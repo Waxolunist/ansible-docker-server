@@ -66,13 +66,12 @@
     template:
       src: backup_databases.j2.sh
       dest: "{{ docker_base_path }}/backup_databases.sh"
-      mode: 0755
-      backup: yes
+      mode: 0700
   - name: Create restore script
     template:
       src: restore_grafana.j2.sh
       dest: "{{ docker_base_path }}/restore_grafana.sh"
-      mode: 0755
+      mode: 0700
       backup: yes
   - name: Create TimescaleDB restore script
     template:

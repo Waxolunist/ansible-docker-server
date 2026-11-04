@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -o pipefail
+umask 077
+
 cd {{ docker_base_path }}
 
 # Create backup directory if it doesn't exist
@@ -12,49 +15,44 @@ TIMESTAMP=$(date +%d-%m-%Y_%H_%M_%S)
 BACKUP_OK=1
 TEXTFILE_DIR="{{ docker.paths.data }}node-exporter"
 
+gzip_has_data() {
+    gzip -t "$1" && [ "$(gzip -dc "$1" | head -c 1 | wc -c)" -eq 1 ]
+}
+
+check_backup() {
+    local label="$1" file="$2" dump_status="$3"
+    shift 3
+    if [ "${dump_status}" -eq 0 ] && [ -s "${file}" ] && "$@" "${file}" > /dev/null; then
+        echo "${label} backup successful: $(ls -lh "${file}")"
+    else
+        echo "ERROR: ${label} backup failed, is empty or is corrupt!"
+        rm -f "${file}"
+        BACKUP_OK=0
+    fi
+}
+
 echo "Starting database backups at $(date)"
 
 # Backup Grafana database
 echo "Backing up Grafana database..."
 GRAFANA_BACKUP="/backup/dump_grafana_${TIMESTAMP}.sql.gz"
 docker compose exec -T grafana-pg pg_dump -c -U '{{ vault_grafana_pg_user }}' -d grafana | gzip -9 > "${GRAFANA_BACKUP}"
-
-# Check if Grafana backup was successful
-if [ -s "${GRAFANA_BACKUP}" ]; then
-    echo "Grafana backup successful: $(ls -lh "${GRAFANA_BACKUP}")"
-else
-    echo "ERROR: Grafana backup failed or is empty!"
-    rm -f "${GRAFANA_BACKUP}"
-    BACKUP_OK=0
-fi
+DUMP_STATUS=$?
+check_backup "Grafana" "${GRAFANA_BACKUP}" "${DUMP_STATUS}" gzip_has_data
 
 # Backup TimescaleDB database
 echo "Backing up TimescaleDB database..."
 TIMESCALE_BACKUP="/backup/dump_timescale_${TIMESTAMP}.sql.gz"
 docker compose exec -T timescaledb pg_dump -Fc --no-owner --no-privileges -U '{{ vault_timescale_pg_user }}' -d 'timescale_home' | gzip -9 > "${TIMESCALE_BACKUP}"
-
-# Check if TimescaleDB backup was successful
-if [ -s "${TIMESCALE_BACKUP}" ]; then
-    echo "TimescaleDB backup successful: $(ls -lh "${TIMESCALE_BACKUP}")"
-else
-    echo "ERROR: TimescaleDB backup failed or is empty!"
-    rm -f "${TIMESCALE_BACKUP}"
-    BACKUP_OK=0
-fi
+DUMP_STATUS=$?
+check_backup "TimescaleDB" "${TIMESCALE_BACKUP}" "${DUMP_STATUS}" gzip_has_data
 
 # Backup PhotoPrism MariaDB database
 echo "Backing up PhotoPrism MariaDB database..."
 PHOTOPRISM_BACKUP="/backup/dump_photoprism_${TIMESTAMP}.sql.gz"
-docker compose exec -T photoprism-mariadb mariadb-dump -u root -p'{{ vault_photoprism_db_root_password }}' --single-transaction --routines --triggers photoprism | gzip -9 > "${PHOTOPRISM_BACKUP}"
-
-# Check if PhotoPrism backup was successful
-if [ -s "${PHOTOPRISM_BACKUP}" ]; then
-    echo "PhotoPrism backup successful: $(ls -lh "${PHOTOPRISM_BACKUP}")"
-else
-    echo "ERROR: PhotoPrism backup failed or is empty!"
-    rm -f "${PHOTOPRISM_BACKUP}"
-    BACKUP_OK=0
-fi
+docker compose exec -T photoprism-mariadb sh -c 'MYSQL_PWD="$(cat /run/secrets/photoprism_db_root_password)" exec mariadb-dump -u root --single-transaction --routines --triggers photoprism' | gzip -9 > "${PHOTOPRISM_BACKUP}"
+DUMP_STATUS=$?
+check_backup "PhotoPrism" "${PHOTOPRISM_BACKUP}" "${DUMP_STATUS}" gzip_has_data
 
 # Backup Otterwiki (git repository with pages and attachments, plus the
 # SQLite database holding drafts and admin preferences). Archived from
@@ -62,30 +60,16 @@ fi
 echo "Backing up Otterwiki..."
 OTTERWIKI_BACKUP="/backup/dump_otterwiki_${TIMESTAMP}.tar.gz"
 docker compose exec -T otterwiki tar -C /app-data -czf - repository db.sqlite > "${OTTERWIKI_BACKUP}"
-
-# Check if Otterwiki backup was successful
-if [ -s "${OTTERWIKI_BACKUP}" ]; then
-    echo "Otterwiki backup successful: $(ls -lh "${OTTERWIKI_BACKUP}")"
-else
-    echo "ERROR: Otterwiki backup failed or is empty!"
-    rm -f "${OTTERWIKI_BACKUP}"
-    BACKUP_OK=0
-fi
+DUMP_STATUS=$?
+check_backup "Otterwiki" "${OTTERWIKI_BACKUP}" "${DUMP_STATUS}" tar tzf
 
 # Backup the Authelia users database. Users set their own passwords, so it
 # exists nowhere else. Read from inside the container, like Otterwiki.
 echo "Backing up Authelia users..."
 AUTHELIA_USERS_BACKUP="/backup/authelia_users_${TIMESTAMP}.yml"
-(umask 077 && docker compose exec -T authelia cat /users/users_database.yml > "${AUTHELIA_USERS_BACKUP}")
-
-# Check if Authelia users backup was successful
-if [ -s "${AUTHELIA_USERS_BACKUP}" ]; then
-    echo "Authelia users backup successful: $(ls -lh "${AUTHELIA_USERS_BACKUP}")"
-else
-    echo "ERROR: Authelia users backup failed or is empty!"
-    rm -f "${AUTHELIA_USERS_BACKUP}"
-    BACKUP_OK=0
-fi
+docker compose exec -T authelia cat /users/users_database.yml > "${AUTHELIA_USERS_BACKUP}"
+DUMP_STATUS=$?
+check_backup "Authelia users" "${AUTHELIA_USERS_BACKUP}" "${DUMP_STATUS}" test -s
 
 echo "Database backups completed at $(date)"
 

@@ -127,7 +127,7 @@ The [`debian`](roles/debian/tasks/main.yml) role performs base system configurat
 3. **Tool installation** — Installs `bash-completion` and `colorized-logs`
 4. **Python setup** — Installs Python 3 with pip and setuptools, sets Python 3 as the default via `update-alternatives`
 5. **Cleanup** — Removes unused packages via `autoremove`
-6. **Backup directory** — Creates `/backup` owned by the `devops` user
+6. **Backup directory** — Creates `/backup` owned by the `devops` user, mode `0700`
 
 ### Docker Role
 
@@ -745,9 +745,9 @@ The [`backup_databases.sh`](roles/web/templates/backup_databases.j2.sh) script r
 | PhotoPrism MariaDB | `photoprism-mariadb` | `mariadb-dump` | `dump_photoprism_DD-MM-YYYY_HH_MM_SS.sql.gz` |
 | Otterwiki git repository and SQLite database | `otterwiki` | `tar` of `/app-data` | `dump_otterwiki_DD-MM-YYYY_HH_MM_SS.tar.gz` |
 
-- Backups are stored in `/backup/` as gzip-compressed SQL dumps
-- Each backup is validated — empty files are removed
-- Old backups are automatically cleaned up after 7 days
+- Backups are stored unencrypted in `/backup/` as gzip-compressed SQL dumps. The directory is `0700` and the script runs with `umask 077`, so only `devops` and root can read them
+- Each backup is validated: the dump must exit 0, the file must not be empty, and `gzip -t` or `tar tzf` must pass. A file that fails is removed, and the run does not update `backup_last_success_timestamp_seconds`, so `BackupStale` fires
+- The last 20 backups per database are kept. A manual run counts as one of them
 
 ### Grafana Restore Procedure
 
@@ -820,7 +820,7 @@ The [`start.sh`](roles/web/templates/start_sh.j2.sh) script runs every 5 minutes
 |---|---|---|
 | Every 5 minutes | `start.sh` | Ensure containers are running |
 | Hourly at :17 | `otterwiki_pull.sh` | Pull wiki changes from GitHub, fallback for the push webhook |
-| Daily at 23:00 | `backup_databases.sh` | Database backups with 7-day retention |
+| Daily at 23:00 | `backup_databases.sh` | Database backups, last 20 kept per database |
 
 ---
 
