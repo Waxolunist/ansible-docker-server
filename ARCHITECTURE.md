@@ -872,7 +872,7 @@ Vault-encrypted variables used across the project include:
 1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, Grafana, cAdvisor, PicoClaw, and Code-Server
 2. **Grafana proxy auth** — Trusts Authelia's `Remote-User` header for seamless SSO
 3. **PhotoPrism native auth** — Uses its own password-based authentication
-4. **Registry native auth** — Not behind Authelia, because the Docker CLI can't follow its redirect. The registry answers with its own 401 and checks `configs/registry/secrets/htpasswd`, written from `vault_registry_htpasswd`, one line per user. All users have the same rights. Its images are not backed up, because they can be rebuilt
+4. **Registry native auth** — Not behind Authelia, because the Docker CLI can't follow its redirect. The registry answers with its own 401 and checks `configs/registry/secrets/htpasswd`, written from `vault_registry_htpasswd`, one line per user. All users have the same rights. Its images are not backed up, because they can be rebuilt. Traefik's default 60 s `readTimeout` applies, so a layer that takes longer to upload fails with `invalid content range` (about 635 MB in a test on 2026-11-04); this is accepted, as raising it would apply to every route on `websecure`
 5. **Code-Server** — `auth: none` in code-server config; Authelia is the sole authentication layer
 6. **Otterwiki proxy header auth** — Trusts Authelia's `Remote-User`, `Remote-Email` and `Remote-Groups` headers; permissions come from the `WIKI_USER` / `WIKI_ADMIN` groups
 
