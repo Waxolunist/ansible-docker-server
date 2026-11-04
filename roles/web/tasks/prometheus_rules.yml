@@ -34,7 +34,7 @@
   # unapplied. On a fresh host the container doesn't exist yet and starts with
   # the new files anyway.
   - name: Prometheus - Reload when its configuration or rules changed
-    command: docker kill --signal HUP web_prometheus
+    command: docker exec web_prometheus kill -HUP 1
     become: yes
     register: prometheus_reload
     failed_when: prometheus_reload.rc != 0 and 'No such container' not in prometheus_reload.stderr
