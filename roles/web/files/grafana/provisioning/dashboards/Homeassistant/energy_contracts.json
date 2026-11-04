@@ -2359,248 +2359,6 @@
           }
         }
       },
-      "panel-12": {
-        "kind": "Panel",
-        "spec": {
-          "data": {
-            "kind": "QueryGroup",
-            "spec": {
-              "queries": [
-                {
-                  "kind": "PanelQuery",
-                  "spec": {
-                    "hidden": false,
-                    "query": {
-                      "datasource": {
-                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
-                      },
-                      "group": "grafana-postgresql-datasource",
-                      "kind": "DataQuery",
-                      "spec": {
-                        "editorMode": "code",
-                        "format": "table",
-                        "rawQuery": true,
-                        "rawSql": "select time,\n  price_consumed + price_standing as \"Price\",\n  (price_consumed + price_standing) / nullif(energy_consumed, 0) as \"Price / kWh\"\nfrom agg_1month_energy_priced\nwhere metered_hours > 0\norder by time;",
-                        "sql": {
-                          "columns": [
-                            {
-                              "parameters": [],
-                              "type": "function"
-                            }
-                          ],
-                          "groupBy": [
-                            {
-                              "property": {
-                                "type": "string"
-                              },
-                              "type": "groupBy"
-                            }
-                          ],
-                          "limit": 50
-                        }
-                      },
-                      "version": "v0"
-                    },
-                    "refId": "A"
-                  }
-                }
-              ],
-              "queryOptions": {
-                "hideTimeOverride": true,
-                "timeFrom": "18M",
-                "timeShift": "1y/M+15M"
-              },
-              "transformations": [
-                {
-                  "group": "regression",
-                  "kind": "Transformation",
-                  "spec": {
-                    "options": {
-                      "degree": 5,
-                      "modelType": "polynomial",
-                      "predictionCount": 100,
-                      "xFieldName": "time",
-                      "yFieldName": "Price"
-                    }
-                  }
-                }
-              ]
-            }
-          },
-          "description": "",
-          "id": 12,
-          "links": [],
-          "title": "Grid Price Total",
-          "vizConfig": {
-            "group": "timeseries",
-            "kind": "VizConfig",
-            "spec": {
-              "fieldConfig": {
-                "defaults": {
-                  "color": {
-                    "fixedColor": "dark-red",
-                    "mode": "fixed"
-                  },
-                  "custom": {
-                    "axisBorderShow": false,
-                    "axisCenteredZero": false,
-                    "axisColorMode": "text",
-                    "axisLabel": "",
-                    "axisPlacement": "auto",
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.8,
-                    "drawStyle": "line",
-                    "fillOpacity": 0,
-                    "gradientMode": "none",
-                    "hideFrom": {
-                      "legend": true,
-                      "tooltip": true,
-                      "viz": false
-                    },
-                    "insertNulls": false,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 5,
-                    "pointSize": 5,
-                    "scaleDistribution": {
-                      "type": "linear"
-                    },
-                    "showPoints": "never",
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "none"
-                    },
-                    "thresholdsStyle": {
-                      "mode": "off"
-                    }
-                  },
-                  "min": 0,
-                  "thresholds": {
-                    "mode": "absolute",
-                    "steps": [
-                      {
-                        "color": "green",
-                        "value": 0
-                      },
-                      {
-                        "color": "red",
-                        "value": 80
-                      }
-                    ]
-                  },
-                  "unit": "currencyEUR"
-                },
-                "overrides": [
-                  {
-                    "matcher": {
-                      "id": "byFrameRefID",
-                      "options": "A"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "bars"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 100
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.hideFrom",
-                        "value": {
-                          "legend": false,
-                          "tooltip": false,
-                          "viz": false
-                        }
-                      },
-                      {
-                        "id": "custom.stacking",
-                        "value": {
-                          "group": "A",
-                          "mode": "none"
-                        }
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "green",
-                          "mode": "fixed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Price / kWh"
-                    },
-                    "properties": [
-                      {
-                        "id": "custom.drawStyle",
-                        "value": "line"
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 0
-                      },
-                      {
-                        "id": "custom.lineWidth",
-                        "value": 5
-                      },
-                      {
-                        "id": "custom.axisPlacement",
-                        "value": "right"
-                      },
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "yellow",
-                          "mode": "fixed"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "time"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "time: DD.MM.YYYY"
-                      }
-                    ]
-                  }
-                ]
-              },
-              "options": {
-                "legend": {
-                  "calcs": [
-                    "mean",
-                    "median",
-                    "max",
-                    "lastNotNull"
-                  ],
-                  "displayMode": "table",
-                  "placement": "bottom",
-                  "showLegend": true
-                },
-                "tooltip": {
-                  "hideZeros": false,
-                  "mode": "multi",
-                  "sort": "none"
-                }
-              }
-            },
-            "version": "12.0.0"
-          }
-        }
-      },
       "panel-17": {
         "kind": "Panel",
         "spec": {
@@ -4629,7 +4387,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_char(month, 'YYYY-MM') as month,\n       bill_to_date as \"Bill\",\n       bill_forecast - bill_to_date as \"Forecast rest of month\"\nfrom agg_1month_bill\nwhere month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\norder by month;"
+                        "rawSql": "with fit as (\n  select regr_slope(bill_to_date, extract(epoch from time)) as slope,\n         regr_intercept(bill_to_date, extract(epoch from time)) as intercept\n  from agg_1month_bill\n  where remaining_days = 0\n)\nselect time,\n       bill_to_date as \"Bill\",\n       bill_forecast - bill_to_date as \"Forecast rest of month\",\n       bill_to_date / nullif(energy_consumed, 0) as \"Price / kWh\",\n       intercept + slope * extract(epoch from time) as \"Trend\"\nfrom agg_1month_bill, fit\nwhere month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\norder by time;"
                       },
                       "version": "v0"
                     },
@@ -4637,33 +4395,56 @@
                   }
                 }
               ],
-              "queryOptions": {},
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "14M",
+                "timeShift": "0M/M+1M"
+              },
               "transformations": []
             }
           },
-          "description": "agg_1month_bill: the bill of each month (energy and standing charges, VAT included), and for the current month the forecast rest on top. See \"Electricity bill this month\".",
+          "description": "agg_1month_bill: the bill of each month (energy and standing charges, VAT included), and for the current month the forecast rest on top. See \"Electricity bill this month\". Price / kWh is the bill divided by the imported energy, standing charges included. Trend is a straight line fitted through all complete months since the first smart meter data, so the seasons do not tilt it.",
           "id": 27,
           "links": [],
           "title": "Bill per month",
           "vizConfig": {
-            "group": "barchart",
+            "group": "timeseries",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
+                  "color": {
+                    "fixedColor": "green",
+                    "mode": "fixed"
+                  },
+                  "custom": {
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.8,
+                    "drawStyle": "bars",
+                    "fillOpacity": 100,
+                    "lineWidth": 0,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
+                  },
                   "decimals": 0,
+                  "min": 0,
                   "unit": "suffix: €"
                 },
                 "overrides": [
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "month"
+                      "options": "time"
                     },
                     "properties": [
                       {
                         "id": "unit",
-                        "value": "none"
+                        "value": "time: YYYY-MM"
                       }
                     ]
                   },
@@ -4685,23 +4466,124 @@
                         "value": 30
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Price / kWh"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 3
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "suffix: €/kWh"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 3
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Trend"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 3
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "dark-red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineStyle",
+                        "value": {
+                          "dash": [
+                            10,
+                            10
+                          ],
+                          "fill": "dash"
+                        }
+                      }
+                    ]
                   }
                 ]
               },
               "options": {
                 "legend": {
-                  "displayMode": "list",
+                  "calcs": [
+                    "mean",
+                    "median",
+                    "max",
+                    "lastNotNull"
+                  ],
+                  "displayMode": "table",
                   "placement": "bottom",
                   "showLegend": true
                 },
-                "stacking": "normal",
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
-                },
-                "xField": "month",
-                "xTickLabelRotation": -45,
-                "xTickLabelSpacing": 0
+                }
               }
             },
             "version": "13.2.4"
@@ -6656,15 +6538,6 @@
                         "element": {
                           "kind": "ElementReference",
                           "name": "panel-27"
-                        }
-                      }
-                    },
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-12"
                         }
                       }
                     },
