@@ -470,7 +470,6 @@ Services protected by Authelia include:
 - **Prometheus** (`metrics.v-collaborate.com`)
 - **Grafana** (`graph.v-collaborate.com`) — also uses proxy authentication to auto-login users
 - **cAdvisor** (`cadvisor.v-collaborate.com`)
-- **Registry** (`registry.v-collaborate.com`)
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
 - **Otterwiki** (`wiki.v-collaborate.com`) — see below
@@ -853,6 +852,7 @@ Vault-encrypted variables used across the project include:
 | `vault_timescale_pg_user` / `vault_timescale_pg_password` | TimescaleDB credentials |
 | `vault_authelia_jwt_secret` / `vault_authelia_session_secret` | Authelia security tokens |
 | `vault_registry_http_secret` | Docker registry HTTP secret |
+| `vault_registry_htpasswd` | Docker registry users, one bcrypt htpasswd line each |
 | `vault_photoprism_admin_password` | PhotoPrism admin password |
 | `vault_photoprism_db_password` / `vault_photoprism_db_root_password` | PhotoPrism MariaDB credentials |
 | `vault_smtp_server_user` / `vault_smtp_server_password` | Gmail SMTP credentials for Grafana alerts and Authelia notifications |
@@ -861,7 +861,7 @@ Vault-encrypted variables used across the project include:
 
 - Services are segmented into Docker networks, limiting inter-service communication
 - Header logins are trusted from Traefik only: Grafana's `auth.proxy` whitelist is Traefik's fixed address on `web_grafana_ui`, so a forged `Remote-User` from any other container gets `401 auth-proxy.invalid-ip`
-- Services without a login of their own (Grafana, Otterwiki, code-server, PicoClaw, Prometheus, Alertmanager, cAdvisor, the registry) are not on `web_proxy`. Each reaches Traefik through a network shared with Traefik alone; the monitoring UIs and the registry share one, as Prometheus scrapes them anyway. Only services with their own login or nothing to protect stay on `web_proxy`, so a compromised PhotoPrism, Conduit or PicoClaw can't reach them directly. Such services set `traefik.docker.network`, because Traefik's default network is `web_proxy`
+- Services without a login of their own (Grafana, Otterwiki, code-server, PicoClaw, Prometheus, Alertmanager, cAdvisor) and the registry are not on `web_proxy`. Each reaches Traefik through a network shared with Traefik alone; the monitoring UIs and the registry share one, as Prometheus scrapes them anyway. Only services with their own login or nothing to protect stay on `web_proxy`, so a compromised PhotoPrism, Conduit or PicoClaw can't reach them directly. Such services set `traefik.docker.network`, because Traefik's default network is `web_proxy`
 - Only Traefik, Minecraft, TimescaleDB (on the WireGuard address only) and coturn expose ports to the host; the provider firewall is described in [FIREWALL.md](FIREWALL.md)
 - Backend databases (`grafana-pg`, `photoprism-mariadb`) are not accessible from the `proxy` network
 - Node Exporter has Traefik disabled (`traefik.enable=false`) and is only reachable within the `prometheus` network
@@ -869,10 +869,10 @@ Vault-encrypted variables used across the project include:
 
 ### Authentication Layers
 
-1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, Grafana, Registry, cAdvisor, PicoClaw, and Code-Server
+1. **Authelia forward authentication** — Protects Traefik dashboard, Prometheus, Grafana, cAdvisor, PicoClaw, and Code-Server
 2. **Grafana proxy auth** — Trusts Authelia's `Remote-User` header for seamless SSO
 3. **PhotoPrism native auth** — Uses its own password-based authentication
-4. **Registry** — Accessible via Traefik with TLS; secrets stored in a dedicated directory
+4. **Registry native auth** — Not behind Authelia, because the Docker CLI can't follow its redirect. The registry answers with its own 401 and checks `configs/registry/secrets/htpasswd`, written from `vault_registry_htpasswd`, one line per user. All users have the same rights. Its images are not backed up, because they can be rebuilt
 5. **Code-Server** — `auth: none` in code-server config; Authelia is the sole authentication layer
 6. **Otterwiki proxy header auth** — Trusts Authelia's `Remote-User`, `Remote-Email` and `Remote-Groups` headers; permissions come from the `WIKI_USER` / `WIKI_ADMIN` groups
 

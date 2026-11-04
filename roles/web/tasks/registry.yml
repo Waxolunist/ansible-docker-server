@@ -11,6 +11,14 @@
       state: directory
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
+  - name: Registry - Write htpasswd file
+    copy:
+      content: "{{ vault_registry_htpasswd }}"
+      dest: "{{ docker.paths.configs }}registry/secrets/htpasswd"
+      mode: '0600'
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+    diff: no
   - name: Registry - Setup garbage collection cron
     cron:
       name: "Registry garbage collection"

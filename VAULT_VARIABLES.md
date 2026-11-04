@@ -34,7 +34,8 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 
 | Variable | Used in | Docker secret | Description |
 |---|---|---|---|
-| `vault_registry_http_secret` | `registry/registry_yml.j2` | — | HMAC secret for registry token signing |
+| `vault_registry_http_secret` | `registry/registry_yml.j2` | — | Signs the registry's upload state |
+| `vault_registry_htpasswd` | `tasks/registry.yml` | — | Registry users as a YAML block, one bcrypt line each (`htpasswd -nB <user>`). The registry reloads the file without a restart |
 
 ### Authelia (auth gateway)
 

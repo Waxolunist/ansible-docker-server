@@ -21,6 +21,10 @@ http:
     prometheus:
       enabled: true
       path: /metrics
+auth:
+  htpasswd:
+    realm: registry
+    path: /secrets/htpasswd
 health:
   storagedriver:
     enabled: true
