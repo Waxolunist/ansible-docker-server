@@ -2863,7 +2863,7 @@
               "transformations": []
             }
           },
-          "description": "PV energy relative to what the 3.6 kWp plant would deliver at the irradiation on its panel plane, over the picked range: kWh produced / (kWh/m² of irradiation × 3.6 kWp), from the hours with both PV and irradiance data. A healthy plant typically reaches 70-85 %. The level depends on the assumed 30° south orientation, shading and the modelled irradiance, so watch the trend rather than the level; a drop over time points to soiling, shading or a fault.",
+          "description": "PV energy relative to what the 3.6 kWp plant would deliver at the irradiation on its panel plane, over the picked range: kWh produced / (kWh/m² of irradiation × 3.6 kWp), from the hours with both PV and irradiance data. A healthy plant typically reaches 70-85 %. The level depends on the modelled orientation (36° tilt, 60° west of south, both measured), shading and the modelled irradiance, so watch the trend rather than the level; a drop over time points to soiling, shading or a fault.",
           "id": 29,
           "links": [],
           "title": "Performance ratio",
