@@ -4627,9 +4627,9 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "time_series",
+                        "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select (month + interval '14 days')::timestamp at time zone 'Europe/Vienna' as time,\n       bill_to_date as \"Bill\",\n       bill_forecast - bill_to_date as \"Forecast rest of month\"\nfrom agg_1month_bill\nwhere $__timeFilter((month + interval '14 days')::timestamp at time zone 'Europe/Vienna')\norder by 1;"
+                        "rawSql": "select to_char(month, 'YYYY-MM') as month,\n       bill_to_date as \"Bill\",\n       bill_forecast - bill_to_date as \"Forecast rest of month\"\nfrom agg_1month_bill\nwhere month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\norder by month;"
                       },
                       "version": "v0"
                     },
@@ -4637,10 +4637,7 @@
                   }
                 }
               ],
-              "queryOptions": {
-                "hideTimeOverride": true,
-                "timeFrom": "13M"
-              },
+              "queryOptions": {},
               "transformations": []
             }
           },
@@ -4649,28 +4646,27 @@
           "links": [],
           "title": "Bill per month",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "barchart",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
-                  "custom": {
-                    "axisSoftMin": 0,
-                    "barAlignment": 0,
-                    "barWidthFactor": 0.8,
-                    "drawStyle": "bars",
-                    "fillOpacity": 80,
-                    "lineWidth": 1,
-                    "showPoints": "never",
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    }
-                  },
                   "decimals": 0,
                   "unit": "suffix: €"
                 },
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "month"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
@@ -4698,10 +4694,14 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "stacking": "normal",
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
-                }
+                },
+                "xField": "month",
+                "xTickLabelRotation": -45,
+                "xTickLabelSpacing": 0
               }
             },
             "version": "13.2.4"
