@@ -15,7 +15,7 @@
       backup: yes
     register: alertmanager_config
   - name: Alertmanager - Reload when its configuration changed
-    command: docker kill --signal HUP web_alertmanager
+    command: docker exec web_alertmanager kill -HUP 1
     become: yes
     register: alertmanager_reload
     failed_when: alertmanager_reload.rc != 0 and 'No such container' not in alertmanager_reload.stderr
