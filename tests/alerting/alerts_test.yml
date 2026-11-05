@@ -176,6 +176,84 @@ tests:
               dashboard: "https://graph.v-collaborate.com/d/container-status-page?var-container=web_grafana"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#containerrestartingfrequently"
 
+  - name: ContainerUnhealthy fires only for a lasting failure
+    interval: 1m
+    input_series:
+      - series: 'container_health_state{job="cadvisor",instance="VPS",name="web_setup-model",id="/docker/abc"}'
+        values: '1x5 0x20'
+      - series: 'container_health_state{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/def"}'
+        values: '1x25'
+      - series: 'container_health_state{job="cadvisor",instance="VPS",name="web_cadvisor",id="/docker/ghi"}'
+        values: '-1x25'
+      - series: 'container_health_state{job="cadvisor",instance="VPS",name="web_loki",id="/docker/old"}'
+        values: '0x25'
+      - series: 'container_health_state{job="cadvisor",instance="VPS",name="web_loki",id="/docker/new"}'
+        values: '1x25'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ContainerUnhealthy
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: ContainerUnhealthy
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, instance: VPS, name: web_setup-model}
+            exp_annotations:
+              summary: "Container web_setup-model is unhealthy"
+              description: "The Docker healthcheck of web_setup-model on VPS has been failing for 10 minutes, and autoheal has not fixed it."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page?var-container=web_setup-model"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#containerunhealthy"
+
+  - name: ContainerUnhealthy recovers while autoheal restarts the container
+    interval: 1m
+    input_series:
+      - series: 'container_health_state{job="cadvisor",instance="VPS",name="web_setup-model",id="/docker/abc"}'
+        values: '0 0 0 -1 -1 1x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: ContainerUnhealthy
+        exp_alerts: []
+
+  - name: ContainerStopped fires for a container that disappears, not for the others
+    interval: 1m
+    input_series:
+      - series: 'up{job="cadvisor",instance="VPS"}'
+        values: '1x40'
+      - series: 'up{job="cadvisor",instance="Pi"}'
+        values: '1x40'
+      - series: 'container_last_seen{job="cadvisor",instance="VPS",name="web_setup-model",id="/docker/abc"}'
+        values: '0+60x5 _x35'
+      - series: 'container_last_seen{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/def"}'
+        values: '0+60x40'
+      - series: 'container_last_seen{job="cadvisor",instance="VPS",name="quirky_darwin",id="/docker/ghi"}'
+        values: '0+60x5 _x35'
+      - series: 'container_last_seen{job="cadvisor",instance="Pi",name="peugeot",id="/docker/jkl"}'
+        values: '0+60x5 _x35'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: ContainerStopped
+        exp_alerts: []
+      - eval_time: 35m
+        alertname: ContainerStopped
+        exp_alerts:
+          - exp_labels: {severity: warning, area: infra, instance: VPS, name: web_setup-model}
+            exp_annotations:
+              summary: "Container web_setup-model is stopped"
+              description: "web_setup-model has been gone for 15 minutes. This alert ends by itself 24 hours after the container disappeared, so a removed service needs no silence."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page?var-container=web_setup-model"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#containerstopped"
+
+  - name: ContainerStopped stays quiet when cAdvisor itself is gone
+    interval: 1m
+    input_series:
+      - series: 'up{job="cadvisor",instance="VPS"}'
+        values: '1x5 0x35'
+      - series: 'container_last_seen{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/def"}'
+        values: '0+60x5 _x35'
+    alert_rule_test:
+      - eval_time: 35m
+        alertname: ContainerStopped
+        exp_alerts: []
+
   - name: PsaLoginLost fires only while the controller answers
     interval: 1m
     input_series:

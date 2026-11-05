@@ -72,6 +72,30 @@ groups:
           dashboard: "[[ status_page ]]?var-container={{ $labels.name }}"
           runbook: "[[ respond ]]containerrestartingfrequently"
 
+      - alert: ContainerUnhealthy
+        expr: max by (name, instance) (container_health_state{name!="",name!="/"}) == 0
+        for: 10m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "Container {{ $labels.name }} is unhealthy"
+          description: "The Docker healthcheck of {{ $labels.name }} on {{ $labels.instance }} has been failing for 10 minutes, and autoheal has not fixed it."
+          dashboard: "[[ status_page ]]?var-container={{ $labels.name }}"
+          runbook: "[[ respond ]]containerunhealthy"
+
+      - alert: ContainerStopped
+        expr: (container_up_bool{id="",instance="VPS",name=~"web_.+|[a-z-]+"} == 0) and on(instance) (up{job="cadvisor"} == 1)
+        for: 15m
+        labels:
+          severity: warning
+          area: infra
+        annotations:
+          summary: "Container {{ $labels.name }} is stopped"
+          description: "{{ $labels.name }} has been gone for 15 minutes. This alert ends by itself 24 hours after the container disappeared, so a removed service needs no silence."
+          dashboard: "[[ status_page ]]?var-container={{ $labels.name }}"
+          runbook: "[[ respond ]]containerstopped"
+
       - alert: FilesystemUsageHigh
         expr: 100 - (node_filesystem_avail_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs",mountpoint!~"/etc/.+"} / node_filesystem_size_bytes{fstype!~"tmpfs|ramfs|overlay|devtmpfs|squashfs",mountpoint!~"/etc/.+"} * 100) > 85
         for: 15m
@@ -182,6 +206,7 @@ groups:
 {% for metric, job in [
   ('traefik_tls_certs_not_after', 'traefik'),
   ('container_start_time_seconds', 'cadvisor'),
+  ('container_health_state', 'cadvisor'),
   ('node_filesystem_avail_bytes', 'node-metrics'),
   ('node_memory_MemAvailable_bytes', 'node-metrics'),
   ('node_memory_SwapFree_bytes', 'node-metrics'),
