@@ -3,3 +3,4 @@ tmp/
 .vault_pass
 tests/alerting/rendered/
 tests/alerting/smoke/receiver_password
+roles/web/files/setup_model/

@@ -103,6 +103,7 @@ services:
         ipv4_address: {{ traefik.grafana_ui_address }}
       monitoring_ui:
       code_ui:
+      setup_model_ui:
       picoclaw_ui:
     labels:
       - autoheal=true
@@ -1094,6 +1095,51 @@ services:
       start_period: 20s
     restart: unless-stopped
 
+  setup-model:
+    image: nginxinc/nginx-unprivileged:1.31.7-alpine
+    container_name: web_setup-model
+    mem_limit: 32M
+    cpus: 0.25
+    depends_on:
+      - reverse-proxy
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    expose:
+      - {{ setup_model.port }}
+    volumes:
+      - "{{ docker.paths.configs }}setup_model:/usr/share/nginx/html:ro"
+    networks:
+      - setup_model_ui
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.docker.network=web_setup_model_ui
+      - traefik.http.middlewares.setup-model-https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.setup-model-headers.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive
+      - traefik.http.middlewares.setup-model-headers.headers.contentSecurityPolicy=frame-ancestors 'none'
+      - traefik.http.services.setup-model.loadbalancer.server.port={{ setup_model.port }}
+      - traefik.http.routers.setup-model-secure.entrypoints=websecure
+      - traefik.http.routers.setup-model-secure.rule=Host(`{{ setup_model.domain }}`)
+      - traefik.http.routers.setup-model-secure.service=setup-model
+      - traefik.http.routers.setup-model-secure.tls=true
+      - traefik.http.routers.setup-model-secure.tls.certresolver=myresolver
+      - traefik.http.routers.setup-model-secure.middlewares=setup-model-headers,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.setup-model.entrypoints=web
+      - traefik.http.routers.setup-model.middlewares=setup-model-https-redirect
+      - traefik.http.routers.setup-model.rule=Host(`{{ setup_model.domain }}`)
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:{{ setup_model.port }}/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
 networks:
   proxy:
     name: web_proxy
@@ -1117,6 +1163,8 @@ networks:
     name: web_monitoring_ui
   code_ui:
     name: web_code_ui
+  setup_model_ui:
+    name: web_setup_model_ui
   picoclaw_ui:
     name: web_picoclaw_ui
 
