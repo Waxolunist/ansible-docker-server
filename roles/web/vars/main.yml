@@ -17,6 +17,7 @@
     - coturn
     - rendezvous
     - otterwiki
+    - setup_model
     - alertmanager
     - matrix_receiver
     - sql_exporter
@@ -106,6 +107,10 @@
       user: 12
       total: 1200
 
+  setup_model:
+    domain: "setup.{{ topleveldomain }}"
+    port: 8080
+
   rendezvous:
     domain: "hhfh.{{ topleveldomain }}"
     port: 8787
@@ -163,6 +168,7 @@
     - registry
     - prometheus
     - picoclaw
+    - setup-model
     - code-server
     - autoheal
     - coturn

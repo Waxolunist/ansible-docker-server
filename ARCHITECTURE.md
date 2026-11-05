@@ -175,7 +175,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 1 | `registry` | `registry:3.0.0` | Private Docker registry | — | `monitoring_ui` | `registry.v-collaborate.com` |
 | 2 | `autoheal` | `willfarrell/autoheal:latest@sha256:7ab2ddc7…` (pinned by digest: no version tags since 1.2.0 in 2021) | Automatic container restart on failure | — | — | — |
 | 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
-| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
+| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `setup_model_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
 | 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `monitoring_ui`, `prometheus` | `metrics.v-collaborate.com` |
 | 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
 | 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `monitoring_ui`, `prometheus` | `cadvisor.v-collaborate.com` |
@@ -197,6 +197,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 23 | `alertmanager` | `prom/alertmanager:v0.34.1` | Groups, routes and silences the Prometheus alerts | `10.8.0.1:9093` (WireGuard only) | `monitoring_ui`, `prometheus` | `alerts.v-collaborate.com` |
 | 24 | `matrix-receiver` | `metio/matrix-alertmanager-receiver:2026.9.23` | Posts the alerts to the Matrix rooms on Conduit | `10.8.0.1:12345` (WireGuard only) | `proxy`, `prometheus` | — |
 | 25 | `sql-exporter` | `burningalchemist/sql_exporter:0.24.11` | Age of the newest row of the `data_*` tables as metrics | — | `grafana`, `prometheus` | — |
+| 26 | `setup-model` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | Static page: the public 3D model of the home setup, no login | — | `setup_model_ui` | `setup.v-collaborate.com` |
 
 ### Service Dependencies
 
@@ -270,6 +271,11 @@ graph TB
         CS[code-server]
     end
 
+    subgraph setup_model_ui_net[web_setup_model_ui network]
+        RP8[reverse-proxy]
+        SM[setup-model]
+    end
+
     subgraph picoclaw_ui_net[web_picoclaw_ui network]
         RP6[reverse-proxy]
         PC[picoclaw]
@@ -310,6 +316,7 @@ graph TB
 | `grafana_ui` | `web_grafana_ui` | Traefik to Grafana. Subnet `172.20.1.0/24`, Traefik fixed at `172.20.1.2` (`traefik.grafana_ui_address`), others get addresses from `172.20.1.128/25` | reverse-proxy, grafana |
 | `monitoring_ui` | `web_monitoring_ui` | Traefik to the monitoring UIs and the registry; Prometheus scrapes Traefik and the registry here | reverse-proxy, prometheus, alertmanager, cadvisor, registry |
 | `code_ui` | `web_code_ui` | Traefik to code-server, which has no login of its own | reverse-proxy, code-server |
+| `setup_model_ui` | `web_setup_model_ui` | Traefik to the setup model's nginx | reverse-proxy, setup-model |
 | `picoclaw_ui` | `web_picoclaw_ui` | Traefik to PicoClaw, which reaches only the internet (Matrix through its public name) | reverse-proxy, picoclaw |
 | `prometheus` | auto-generated | Metrics collection and alerting | prometheus, node-exporter, cadvisor, postgres-exporter, sql-exporter, alertmanager, matrix-receiver, grafana (datasources), authelia (scraped on 9959) |
 | `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, promtail, postgres-exporter, sql-exporter |
@@ -474,6 +481,7 @@ Services protected by Authelia include:
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
 - **Otterwiki** (`wiki.v-collaborate.com`) — see below
+- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. That page is built in the private `home_docs` repository, whose build copies it to `roles/web/files/setup_model/`. That folder is gitignored, so build the page before running the playbook; without it the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`.
 
 ### Otterwiki
 
