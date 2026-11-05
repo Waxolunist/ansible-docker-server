@@ -65,6 +65,10 @@ access_control:
         - "group:{{ otterwiki.admin_group }}"
     - domain: "{{ otterwiki.domain }}"
       policy: deny
+    - domain: "{{ grafana.domain }}"
+      policy: one_factor
+      subject:
+        - "group:{{ grafana.user_group }}"
     - domain: "*.{{ topleveldomain }}"
       policy: one_factor
       subject:

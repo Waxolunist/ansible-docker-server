@@ -429,7 +429,8 @@ Traefik also handles personal domain redirects:
 - **Password hashing**: SHA-512 and Argon2id
 - **Access control**: Default deny policy, first matching rule wins:
   1. `wiki.v-collaborate.com` — one factor, groups `WIKI_USER` or `WIKI_ADMIN` only; everyone else is denied
-  2. `*.v-collaborate.com` — one factor, groups listed in `authelia_full_access_groups` ([vars](roles/web/vars/main.yml), currently `admins` and `Viewer`). A user in none of them, such as a wiki-only user, reaches nothing but the wiki
+  2. `graph.v-collaborate.com` — one factor, group `GRAFANA_USER`; everyone else falls through to the next rule
+  3. `*.v-collaborate.com` — one factor, groups listed in `authelia_full_access_groups` ([vars](roles/web/vars/main.yml), currently `admins` and `Viewer`). A user in none of them, such as a wiki-only or Grafana-only user, reaches nothing beyond the rules above
 - **Forward auth endpoint**: `/api/authz/forward-auth` (the pre-4.38 `/api/verify` is deprecated). The shared `auth@docker` middleware passes `Remote-User`, `Remote-Groups`, `Remote-Email` and `Remote-Name`; the login portal URL comes from `session.cookies[].authelia_url`
 - **Restart on change**: Authelia reads its configuration at startup only; `tasks/main.yml` restarts it when the file changed. The users database is watched (`file.watch`), so user changes apply without a restart, and `refresh_interval: 1m` ends a disabled user's sessions within a minute
 - **Upgrades**: Authelia is in `recreate_when_changed` ([vars](roles/web/vars/main.yml)), so bumping `authelia.image` recreates it on the next playbook run. Before that, `tasks/authelia.yml` copies the database to `/backup/authelia_db_<old version>_<timestamp>.sqlite3`: the new version migrates the schema on start, and an older version cannot open the migrated database. To roll back, restore that file to `data/authelia/db.sqlite3` and revert the image
@@ -651,7 +652,7 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 - **Dynamic dashboards**: Feature toggle `dashboardNewLayouts`, so dashboards are saved in the v2 schema
 - **Authentication**: Login form disabled; uses Authelia proxy authentication via the `Remote-User` header
 - **Auto sign-up**: Enabled — new users authenticated by Authelia are automatically created
-- **Default role**: `Editor` for auto-assigned users
+- **Default role**: `Viewer` for auto-assigned users, so a `GRAFANA_USER` cannot edit dashboards
 - **Sign-out**: Redirects to Authelia logout endpoint
 - **SMTP**: Gmail SMTP for alert notifications
 - **Alertmanager data source**: provisioned from [`alertmanager.yml.j2`](roles/web/templates/grafana/provisioning/datasources/alertmanager.yml.j2) (uid `alertmanager`, `handleGrafanaManagedAlerts: false`), so Grafana shows the Prometheus alerts. Grafana restarts when it changes.
