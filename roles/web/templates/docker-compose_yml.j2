@@ -1122,13 +1122,14 @@ services:
       - traefik.http.middlewares.setup-model-https-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.setup-model-headers.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive
       - traefik.http.middlewares.setup-model-headers.headers.contentSecurityPolicy=frame-ancestors 'none'
+      - traefik.http.middlewares.setup-model-compress.compress=true
       - traefik.http.services.setup-model.loadbalancer.server.port={{ setup_model.port }}
       - traefik.http.routers.setup-model-secure.entrypoints=websecure
       - traefik.http.routers.setup-model-secure.rule=Host(`{{ setup_model.domain }}`)
       - traefik.http.routers.setup-model-secure.service=setup-model
       - traefik.http.routers.setup-model-secure.tls=true
       - traefik.http.routers.setup-model-secure.tls.certresolver=myresolver
-      - traefik.http.routers.setup-model-secure.middlewares=setup-model-headers,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.setup-model-secure.middlewares=setup-model-compress,setup-model-headers,security-headers@docker,rate-limit@docker
       - traefik.http.routers.setup-model.entrypoints=web
       - traefik.http.routers.setup-model.middlewares=setup-model-https-redirect
       - traefik.http.routers.setup-model.rule=Host(`{{ setup_model.domain }}`)

@@ -482,7 +482,7 @@ Services protected by Authelia include:
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
 - **Otterwiki** (`wiki.v-collaborate.com`) — see below
-- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. That page is built in the private `home_docs` repository, whose build copies it to `roles/web/files/setup_model/`. That folder is gitignored, so build the page before running the playbook; without it the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`.
+- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. That page is built in the private `home_docs` repository, whose build copies it to `roles/web/files/setup_model/`. That folder is gitignored, so build the page before running the playbook; without it the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`. nginx has no compression of its own: Traefik's `compress` middleware on this router does it.
 
 ### Otterwiki
 
