@@ -75,6 +75,7 @@ A run without `--tags` deploys everything. Tagged task files can also be deploye
 | Tag | Task file | Deploys |
 |---|---|---|
 | `grafana_dashboards` | [`grafana_dashboards.yml`](roles/web/tasks/grafana_dashboards.yml) | Everything in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), including subdirectories and the dashboard provider. Restarts Grafana only when the provider or the go-e datasource changed. |
+| `setup_model_page` | [`setup_model_page.yml`](roles/web/tasks/setup_model_page.yml) | The public setup model page and its `robots.txt`. nginx serves them from a mounted folder, so nothing restarts. |
 
 ```bash
 ansible-playbook web.yml --tags grafana_dashboards
