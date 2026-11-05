@@ -16,7 +16,7 @@
 # let the user set their own via "Reset password" on the login page.
 #
 # Groups: admins and Viewer reach every protected service, WIKI_USER and
-# WIKI_ADMIN the wiki (see roles/web/vars/main.yml).
+# WIKI_ADMIN the wiki, GRAFANA_USER Grafana (see roles/web/vars/main.yml).
 
 set -euo pipefail
 

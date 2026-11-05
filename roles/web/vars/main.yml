@@ -44,6 +44,7 @@
     grafana_ui_address: "172.20.1.2"
   grafana:
     domain: "graph.{{ topleveldomain }}"
+    user_group: GRAFANA_USER
   minecraft:
     port: 25565
   cadvisor:
