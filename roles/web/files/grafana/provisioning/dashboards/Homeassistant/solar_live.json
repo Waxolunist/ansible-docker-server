@@ -448,7 +448,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "-- data_solar_production is the PV production counter (kWh): the inverter's\n-- AC counter without battery charge/discharge since the Modbus switch, dips\n-- dropped (TASK-085). Production since the start of the range = the counter\n-- minus the last one before the range, or the first one in it.\nselect time,\n       energy - coalesce(\n         (select max(energy) from data_solar_production\n          where time < $__timeFrom() and time >= $__timeFrom()::timestamptz - interval '7 days'),\n         first_value(energy) over (order by time)) as energy\nfrom data_solar_production\nwhere $__timeFilter(time)\norder by time;",
+                        "rawSql": "-- data_solar_production is the PV production counter (kWh): the inverter's\n-- AC counter without battery charge/discharge since the Modbus switch, dips\n-- dropped (TASK-085). Production since the start of the range = the counter\n-- minus the last one before the range, or the first one in it.\nwith production as materialized (\n  select time, energy from data_solar_production\n  where time >= $__timeFrom()::timestamptz - interval '7 days' and time <= $__timeTo())\nselect time,\n       energy - coalesce(\n         (select max(energy) from production where time < $__timeFrom()),\n         first_value(energy) over (order by time)) as energy\nfrom production\nwhere $__timeFilter(time)\norder by time;",
                         "sql": {
                           "columns": [
                             {

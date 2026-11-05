@@ -638,6 +638,7 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 [postgres-exporter v0.17.1](roles/web/templates/postgres_exporter/queries_yml.j2) exposes TimescaleDB connection data to Prometheus:
 
 - Connects as `grafana_ro` (read-only role) using a Docker secret for the password
+- The `database` collector is off: its `pg_database_size()` on every database took about half of all database time (it stats the files of ~2,500 chunks) and nothing reads `pg_database_size_bytes`. The healthcheck requests `/`, not `/metrics`, because a request to `/metrics` runs every collector (TASK-186)
 - Runs a custom query against `pg_stat_activity` grouped by `client_addr / username / datname / state`, producing the `pg_connections_by_client_count` metric
 - Requires `pg_monitor` granted to `grafana_ro` (for `pg_stat_activity`, all query texts in `pg_stat_statements` and the WAL collector's `pg_ls_waldir()`), applied by the "Postgres exporter - Grant pg_monitor to its database role" task in `roles/web/tasks/main.yml` on every deploy
 - The `stat_statements` collector exports `pg_stat_statements` as counters (`pg_stat_statements_seconds_total`, `_calls_total`, `_rows_total` per `queryid` and `user`) plus `pg_stat_statements_query_id` with the statement text (up to 1000 characters). It reports the 200 statements with the most total time since the last reset; the Statements tab of the TimescaleDB Connection Monitor ranks them by mean time over the picked range (TASK-022)
