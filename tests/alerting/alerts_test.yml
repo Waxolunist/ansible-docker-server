@@ -748,3 +748,55 @@ tests:
               description: "roborock-controller's credentials are no longer accepted. Routines cannot be listed or started until it logs in again."
               dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vacuumcloudloginrejected"
+
+  - name: VehicleSocStale fires while charging on an old level, not while idle
+    interval: 1m
+    input_series:
+      - series: 'vehicle_battery_level_age_seconds{job="collector",instance="10.8.0.2:9105"}'
+        values: '600+60x40'
+      - series: 'goe_car_state{job="collector",instance="10.8.0.2:9105"}'
+        values: '2x30 4x10'
+    alert_rule_test:
+      - eval_time: 22m
+        alertname: VehicleSocStale
+        exp_alerts: []
+      - eval_time: 30m
+        alertname: VehicleSocStale
+        exp_alerts:
+          - exp_labels: {severity: warning, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car has not reported its battery level for 40m 0s while charging"
+              description: "The newest REST or MQTT level is older than 30 minutes and the go-e is charging. The charging control decides on the estimate from the go-e energy, and the wake-up job asks the car for its level."
+              dashboard: "https://graph.v-collaborate.com/d/chw95zv"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#vehiclesocstale"
+      - eval_time: 38m
+        alertname: VehicleSocStale
+        exp_alerts: []
+
+  - name: CarChargedPastThreshold fires past threshold plus 5 %, not for a wanted charge to full
+    interval: 1m
+    input_series:
+      - series: 'vehicle_battery_level_effective_percent{job="collector",instance="10.8.0.2:9105"}'
+        values: '80+0.5x30'
+      - series: 'charging_threshold_percent{job="collector",instance="10.8.0.2:9105"}'
+        values: '80x30'
+      - series: 'vehicle_charge_to_full_wanted{job="collector",instance="10.8.0.2:9105"}'
+        values: '0x20 1x10'
+      - series: 'goe_car_state{job="collector",instance="10.8.0.2:9105"}'
+        values: '2x30'
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: CarChargedPastThreshold
+        exp_alerts: []
+      - eval_time: 16m
+        alertname: CarChargedPastThreshold
+        exp_alerts:
+          - exp_labels: {severity: warning, area: car, job: collector, instance: "10.8.0.2:9105"}
+            exp_annotations:
+              summary: "The car charges past the charging threshold without a reason"
+              description: "The battery is at 88 %, more than 5 % above the charging threshold, and still charging, although no charge to full is planned and charge full now is off."
+              dashboard: "https://graph.v-collaborate.com/d/chw95zv"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#carchargedpastthreshold"
+      - eval_time: 25m
+        alertname: CarChargedPastThreshold
+        exp_alerts: []
