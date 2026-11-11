@@ -50,7 +50,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select last(level, time) as level from data_vehicle_energy_level where vehicle_id = 1;",
+                        "rawSql": "select level from data_vehicle_soc where vehicle_id = 1 and source = 'rest' order by time desc limit 1;",
                         "sql": {
                           "columns": [
                             {
@@ -72,6 +72,120 @@
                       "version": "v0"
                     },
                     "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select level as mqtt from data_vehicle_soc where vehicle_id = 1 and source = 'mqtt' order by time desc limit 1;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select level as estimate from data_vehicle_soc where vehicle_id = 1 and source = 'estimate' and time > now() - interval '5 minutes' order by time desc limit 1;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "D"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select level as effective from data_vehicle_soc where vehicle_id = 1 and source = 'effective' and time > now() - interval '5 minutes' order by time desc limit 1;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "E"
                   }
                 },
                 {
@@ -117,7 +231,7 @@
               "transformations": []
             }
           },
-          "description": "Level: the battery level in percent the car last reported.\n\nRange: the remaining range in km the car estimates for that level. It depends on the recent driving and the temperature, so it moves without the level changing.\n\nBoth are the newest values the collector stored; it reads the car controller's cached status every 5 minutes.",
+          "description": "Level: the battery level in percent the car last reported to the Stellantis API (REST).\n\nMQTT: soc_batt from the car's newest MQTT event. It moves in steps of about 11 % but often arrives during a charge, when the REST level stays where it was at the start.\n\nEstimate (only while plugged in): the newest of the two readings plus the energy the go-e has delivered since, times the vehicle's soc_gain_factor per battery_kwh / 100.\n\nDecides on: the level the charging control uses, the higher of the newest reading and the estimate.\n\nRange: the remaining range in km the car estimates for its level.\n\n\"Last Update\" shows when the car itself last reported a level.",
           "id": 1,
           "links": [],
           "title": "Battery Level",
@@ -245,6 +359,42 @@
                             }
                           ]
                         }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "mqtt"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "MQTT"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "estimate"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Estimate"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "effective"
+                    },
+                    "properties": [
+                      {
+                        "id": "displayName",
+                        "value": "Decides on"
                       }
                     ]
                   }
@@ -844,7 +994,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold,\n  (select value from settings_config where key = 'grid_import_limit_kw') as grid_import_limit_kw,\n  (select value from settings_config where key = 'grid_import_alert_kw') as grid_import_alert_kw,\n  (select value from settings_config where key = 'grid_import_raise_margin_kw') as grid_import_raise_margin_kw;",
+                        "rawSql": "select\n  (select value::boolean from settings_config where key = 'goesignaller_enable') as value,\n  (select value from settings_config where key = 'charging_mode') as charging_mode,\n  (select value from settings_config where key = 'charging_threshold') as charging_threshold,\n  (select value from settings_config where key = 'grid_import_limit_kw') as grid_import_limit_kw,\n  (select value from settings_config where key = 'grid_import_alert_kw') as grid_import_alert_kw,\n  (select value from settings_config where key = 'grid_import_raise_margin_kw') as grid_import_raise_margin_kw,\n  (select value::integer from settings_config where key = 'soc_fresh_minutes') as soc_fresh_minutes,\n  (select value::integer from settings_config where key = 'soc_refresh_minutes') as soc_refresh_minutes,\n  (select value::integer from settings_config where key = 'soc_wake_margin_percent') as soc_wake_margin_percent,\n  (select value::integer from settings_config where key = 'wakeup_budget') as wakeup_budget;",
                         "sql": {
                           "columns": [
                             {
@@ -918,8 +1068,8 @@
                       "value": "value"
                     },
                     "section": "",
-                    "title": "Enable Goe-Signaller",
-                    "tooltip": "",
+                    "title": "Wake the car for its level",
+                    "tooltip": "While charging below the threshold: wake the car (or, if it doesn't answer, stop the charge briefly) so it reports a fresh battery level. Stored as goesignaller_enable.",
                     "type": "boolean",
                     "uid": "e2a4926f-25f7-4691-b6ab-9470b5d4d173",
                     "unit": "",
@@ -1104,6 +1254,78 @@
                     "uid": "a3c91d57-2e84-4f6b-b0d9-7c15e8a2f640",
                     "unit": "kW",
                     "value": 0.3
+                  },
+                  {
+                    "id": "soc_fresh_minutes",
+                    "labelWidth": 30,
+                    "max": 60,
+                    "min": 1,
+                    "queryField": {
+                      "label": "A:soc_fresh_minutes",
+                      "refId": "A",
+                      "value": "soc_fresh_minutes"
+                    },
+                    "section": "",
+                    "title": "Level counts as fresh for",
+                    "tooltip": "A car reading younger than this lets the charging control start a charge without an estimate",
+                    "type": "number",
+                    "uid": "d04a78da-bc0c-43e3-917a-02b6ea1ab1ee",
+                    "unit": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "soc_refresh_minutes",
+                    "labelWidth": 30,
+                    "max": 240,
+                    "min": 5,
+                    "queryField": {
+                      "label": "A:soc_refresh_minutes",
+                      "refId": "A",
+                      "value": "soc_refresh_minutes"
+                    },
+                    "section": "",
+                    "title": "Ask for a level after",
+                    "tooltip": "While charging, wake the car once its newest reading is older than this; also the pause after the car did not answer",
+                    "type": "number",
+                    "uid": "215f795b-ca0e-4f7c-8945-520b4ada2427",
+                    "unit": "min",
+                    "value": 0
+                  },
+                  {
+                    "id": "soc_wake_margin_percent",
+                    "labelWidth": 30,
+                    "max": 20,
+                    "min": 0,
+                    "queryField": {
+                      "label": "A:soc_wake_margin_percent",
+                      "refId": "A",
+                      "value": "soc_wake_margin_percent"
+                    },
+                    "section": "",
+                    "title": "Ask earlier within",
+                    "tooltip": "Once the estimate is this close to the threshold, wake the car as soon as its reading is no longer fresh",
+                    "type": "number",
+                    "uid": "ea3d8b1f-20b3-4be0-8aa3-49b02cb96abf",
+                    "unit": "%",
+                    "value": 0
+                  },
+                  {
+                    "id": "wakeup_budget",
+                    "labelWidth": 30,
+                    "max": 5,
+                    "min": 0,
+                    "queryField": {
+                      "label": "A:wakeup_budget",
+                      "refId": "A",
+                      "value": "wakeup_budget"
+                    },
+                    "section": "",
+                    "title": "Wake-ups per 20 minutes",
+                    "tooltip": "The collector's share of the car controller's limit of 6 wake-ups per 20 minutes; 0 means only stops",
+                    "type": "number",
+                    "uid": "b5a4f418-3458-4a49-8ead-7ca8610e0c62",
+                    "unit": "",
+                    "value": 0
                   }
                 ],
                 "initial": {
@@ -1159,7 +1381,7 @@
                     "editorMode": "code",
                     "format": "table",
                     "rawQuery": true,
-                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n    when 'grid_import_limit_kw' then '${payload.grid_import_limit_kw}'\n    when 'grid_import_alert_kw' then '${payload.grid_import_alert_kw}'\n    when 'grid_import_raise_margin_kw' then '${payload.grid_import_raise_margin_kw}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold', 'grid_import_limit_kw', 'grid_import_alert_kw', 'grid_import_raise_margin_kw');",
+                    "rawSql": "update\n  settings_config\nset\n  value = case key\n    when 'goesignaller_enable' then '${payload.value}'\n    when 'charging_mode' then '${payload.charging_mode}'\n    when 'charging_threshold' then '${payload.charging_threshold}'\n    when 'grid_import_limit_kw' then '${payload.grid_import_limit_kw}'\n    when 'grid_import_alert_kw' then '${payload.grid_import_alert_kw}'\n    when 'grid_import_raise_margin_kw' then '${payload.grid_import_raise_margin_kw}'\n    when 'soc_fresh_minutes' then '${payload.soc_fresh_minutes}'\n    when 'soc_refresh_minutes' then '${payload.soc_refresh_minutes}'\n    when 'soc_wake_margin_percent' then '${payload.soc_wake_margin_percent}'\n    when 'wakeup_budget' then '${payload.wakeup_budget}'\n  end\nwhere\n  key in ('goesignaller_enable', 'charging_mode', 'charging_threshold', 'grid_import_limit_kw', 'grid_import_alert_kw', 'grid_import_raise_margin_kw', 'soc_fresh_minutes', 'soc_refresh_minutes', 'soc_wake_margin_percent', 'wakeup_budget');",
                     "refId": "A",
                     "sql": {
                       "columns": [
@@ -2225,7 +2447,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "round(((clamp_min(95 - vehicle_battery_level_percent, 0) * 0.5 / (avg_over_time(power_goe_watts[2m]) / 1000) + (100 - clamp_min(vehicle_battery_level_percent, 95)) * 0.5 / clamp_max(avg_over_time(power_goe_watts[2m]) / 1000, 2.5)) * 3600 and avg_over_time(power_goe_watts[2m]) > 500), 60) or on() vector(-1)",
+                        "expr": "round(vehicle_time_to_full_seconds >= 0, 60) or on() vector(-1)",
                         "instant": true,
                         "legendFormat": "Time to full",
                         "range": false
@@ -2730,7 +2952,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select last(time, time) as time from data_vehicle_energy_level where vehicle_id = 1;",
+                        "rawSql": "select max(time) as time from data_vehicle_soc where vehicle_id = 1 and source in ('rest', 'mqtt');",
                         "sql": {
                           "columns": [
                             {
@@ -2772,7 +2994,7 @@
               ]
             }
           },
-          "description": "When the collector last stored a battery level, in Vienna time. It reads the car controller's cached status every 5 minutes, and the controller refreshes it from the Stellantis API every 2 minutes, so the time is the collector's run, not when the car itself last sent data. If it is more than about 5 minutes old, the collector or the car controller has stopped delivering.",
+          "description": "When the car last reported its battery level, by the car's own clock: the newer of the REST reading time (energy updated_at) and the date of the newest MQTT event. During a charge the car often stops reporting; the charging control then decides on the estimate.",
           "id": 3,
           "links": [],
           "title": "Last Update",
@@ -3038,6 +3260,247 @@
               }
             },
             "version": "0.3.2"
+          }
+        }
+      },
+      "panel-33": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select battery_kwh, taper_from_percent, taper_kw, soc_gain_factor from master_vehicles where id = 1;",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Battery data of the car, stored with the vehicle (master_vehicles). kWh per percent is battery_kwh / 100. soc_gain_factor corrects that for what the car really gains per kWh the go-e delivers: 1.15 was fitted on 22 charges from September to November 2026 (about 2.3 % per kWh). It is used by the estimate; the time-to-full model uses battery_kwh, taper_from_percent and taper_kw.",
+          "id": 33,
+          "links": [],
+          "title": "Vehicle battery",
+          "vizConfig": {
+            "group": "volkovlabs-form-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "buttonGroup": {
+                  "orientation": "center",
+                  "size": "md"
+                },
+                "confirmModal": {
+                  "body": "Please confirm to update changed values",
+                  "cancel": "Cancel",
+                  "columns": {
+                    "include": [
+                      "name",
+                      "oldValue",
+                      "newValue"
+                    ],
+                    "name": "Label",
+                    "newValue": "New Value",
+                    "oldValue": "Old Value"
+                  },
+                  "confirm": "Confirm",
+                  "elementDisplayMode": "modified",
+                  "title": "Configuration saved"
+                },
+                "elementValueChanged": "",
+                "elements": [
+                  {
+                    "id": "battery_kwh",
+                    "labelWidth": 30,
+                    "max": 150,
+                    "min": 10,
+                    "queryField": {
+                      "label": "A:battery_kwh",
+                      "refId": "A",
+                      "value": "battery_kwh"
+                    },
+                    "section": "",
+                    "title": "Battery capacity",
+                    "tooltip": "Nominal capacity; kWh per percent is this / 100",
+                    "type": "number",
+                    "uid": "fe2eaeaa-0791-4175-8639-a87e2514c391",
+                    "unit": "kWh",
+                    "value": 0
+                  },
+                  {
+                    "id": "taper_from_percent",
+                    "labelWidth": 30,
+                    "max": 100,
+                    "min": 50,
+                    "queryField": {
+                      "label": "A:taper_from_percent",
+                      "refId": "A",
+                      "value": "taper_from_percent"
+                    },
+                    "section": "",
+                    "title": "Slow charging from",
+                    "tooltip": "Level from which the car charges at the taper power only",
+                    "type": "number",
+                    "uid": "ad32202c-7e36-406a-85ef-607612547307",
+                    "unit": "%",
+                    "value": 0
+                  },
+                  {
+                    "id": "taper_kw",
+                    "labelWidth": 30,
+                    "max": 11,
+                    "min": 0.5,
+                    "queryField": {
+                      "label": "A:taper_kw",
+                      "refId": "A",
+                      "value": "taper_kw"
+                    },
+                    "section": "",
+                    "title": "Taper power",
+                    "tooltip": "Power the car draws above the taper level",
+                    "type": "number",
+                    "uid": "33930d68-925f-466c-94d6-3fe9fa4c08f6",
+                    "unit": "kW",
+                    "value": 0
+                  },
+                  {
+                    "id": "soc_gain_factor",
+                    "labelWidth": 30,
+                    "max": 1.5,
+                    "min": 0.5,
+                    "queryField": {
+                      "label": "A:soc_gain_factor",
+                      "refId": "A",
+                      "value": "soc_gain_factor"
+                    },
+                    "section": "",
+                    "title": "SoC gain factor",
+                    "tooltip": "Measured percent gained per delivered kWh, relative to 100 / battery_kwh",
+                    "type": "number",
+                    "uid": "10b4fcf3-92b8-49d1-8bbb-38b3534d7b04",
+                    "unit": "",
+                    "value": 0
+                  }
+                ],
+                "initial": {
+                  "code": "console.log(context.panel.data, context.panel.response, context.panel.initial, context.panel.elements);\n\nreturn;\n\n/**\n * Data Source\n * Requires form elements to be defined\n */\nconst dataQuery = context.utils.toDataQueryResponse(context.panel.response);\nconsole.log(dataQuery);",
+                  "contentType": "application/json",
+                  "getPayload": "return {}",
+                  "highlight": false,
+                  "highlightColor": "red",
+                  "method": "query",
+                  "payload": {}
+                },
+                "layout": {
+                  "orientation": "horizontal",
+                  "padding": 10,
+                  "sectionVariant": "default",
+                  "variant": "single"
+                },
+                "reset": {
+                  "backgroundColor": "purple",
+                  "foregroundColor": "yellow",
+                  "icon": "process",
+                  "text": "Reset",
+                  "variant": "hidden"
+                },
+                "resetAction": {
+                  "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
+                  "confirm": false,
+                  "getPayload": "return {}",
+                  "mode": "initial",
+                  "payload": {}
+                },
+                "saveDefault": {
+                  "icon": "save",
+                  "text": "Save Default",
+                  "variant": "hidden"
+                },
+                "submit": {
+                  "backgroundColor": "purple",
+                  "foregroundColor": "yellow",
+                  "icon": "cloud-upload",
+                  "text": "Submit",
+                  "variant": "primary"
+                },
+                "sync": true,
+                "update": {
+                  "code": "if (context.panel.response) {\n  context.grafana.notifySuccess(['Update', 'Values updated successfully.']);\n  context.grafana.refresh();\n} else {\n  context.grafana.notifyError(['Update', 'An error occurred updating values.']);\n}",
+                  "confirm": false,
+                  "contentType": "application/json",
+                  "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                  "getPayload": "const payload = {};\n\ncontext.panel.elements.forEach((element) => {\n  payload[element.id] = `${element.value}`;\n})\n\nconsole.log('console payload update > ', payload)\n/**\n * Data Source payload\n */\nreturn payload;",
+                  "method": "datasource",
+                  "payload": {
+                    "editorMode": "code",
+                    "format": "table",
+                    "rawQuery": true,
+                    "rawSql": "update master_vehicles\nset\n  battery_kwh = ${payload.battery_kwh},\n  taper_from_percent = ${payload.taper_from_percent},\n  taper_kw = ${payload.taper_kw},\n  soc_gain_factor = ${payload.soc_gain_factor}\nwhere id = 1;",
+                    "refId": "A",
+                    "sql": {
+                      "columns": [
+                        {
+                          "parameters": [],
+                          "type": "function"
+                        }
+                      ],
+                      "groupBy": [
+                        {
+                          "property": {
+                            "type": "string"
+                          },
+                          "type": "groupBy"
+                        }
+                      ],
+                      "limit": 50
+                    }
+                  },
+                  "payloadMode": "custom"
+                },
+                "updateEnabled": "auto"
+              }
+            },
+            "version": "5.1.0"
           }
         }
       },
@@ -3577,6 +4040,15 @@
                                   "element": {
                                     "kind": "ElementReference",
                                     "name": "panel-22"
+                                  }
+                                }
+                              },
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-33"
                                   }
                                 }
                               }

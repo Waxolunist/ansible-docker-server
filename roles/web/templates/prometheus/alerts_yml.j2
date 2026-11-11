@@ -382,6 +382,30 @@ groups:
           description: "The car reports a battery level of {{ $value | printf \"%.0f\" }} % and is plugged in."
           dashboard: "[[ dash ]]chw95zv"
           runbook: "[[ respond ]]carbatteryfull"
+
+      - alert: VehicleSocStale
+        expr: vehicle_battery_level_age_seconds > 1800 and on() goe_car_state == 2
+        for: 5m
+        labels:
+          severity: warning
+          area: car
+        annotations:
+          summary: "The car has not reported its battery level for {{ $value | humanizeDuration }} while charging"
+          description: "The newest REST or MQTT level is older than 30 minutes and the go-e is charging. The charging control decides on the estimate from the go-e energy, and the wake-up job asks the car for its level."
+          dashboard: "[[ dash ]]chw95zv"
+          runbook: "[[ respond ]]vehiclesocstale"
+
+      - alert: CarChargedPastThreshold
+        expr: vehicle_battery_level_effective_percent >= charging_threshold_percent + 5 and vehicle_charge_to_full_wanted == 0 and goe_car_state == 2
+        for: 5m
+        labels:
+          severity: warning
+          area: car
+        annotations:
+          summary: "The car charges past the charging threshold without a reason"
+          description: "The battery is at {{ $value | printf \"%.0f\" }} %, more than 5 % above the charging threshold, and still charging, although no charge to full is planned and charge full now is off."
+          dashboard: "[[ dash ]]chw95zv"
+          runbook: "[[ respond ]]carchargedpastthreshold"
 {% for metric, area in [
   ('collector_job_failures_total', 'data'),
   ('power_grid_watts', 'energy'),
@@ -392,6 +416,10 @@ groups:
   ('vehicle_plugged', 'car'),
   ('vehicle_plugged_away', 'car'),
   ('vehicle_battery_level_percent', 'car'),
+  ('vehicle_battery_level_effective_percent', 'car'),
+  ('vehicle_battery_level_age_seconds', 'car'),
+  ('charging_threshold_percent', 'car'),
+  ('vehicle_charge_to_full_wanted', 'car'),
 ] %}
 
       - alert: MetricMissing_[[ metric ]]
