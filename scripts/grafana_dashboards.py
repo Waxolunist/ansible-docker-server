@@ -45,7 +45,8 @@ PLACEHOLDERS = {
     "@@PSA_VIN@@": "vault_psa_vin",
     "@@GOE_URL@@": "vault_goe_url",
     "@@ROBOROCK_URL@@": "vault_roborock_url",
-    "@@OPEN_METEO_LOCATION@@": "vault_open_meteo_location",
+    "@@OPEN_METEO_LOCATION_RAGGENDORF@@": "vault_open_meteo_location_raggendorf",
+    "@@OPEN_METEO_LOCATION_PODERSDORF@@": "vault_open_meteo_location_podersdorf",
 }
 
 FLOW_PANEL_FILE = REPO / "roles/web/files/grafana/flow/energy_flow_panel.json"
