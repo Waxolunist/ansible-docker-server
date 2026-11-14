@@ -4673,6 +4673,767 @@
           }
         }
       },
+      "panel-29": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select id,\n       metering_point_number,\n       name,\n       site,\n       provider,\n       feeding::text as feeding\nfrom master_smartmeter_metering_point\norder by site, id;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select 'raggendorf' as value, 'Raggendorf' as label\nunion all\nselect 'podersdorf', 'Podersdorf';"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "Sites"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select 'evn' as value, 'EVN (Netz NÖ)' as label\nunion all\nselect 'netz_burgenland', 'Netz Burgenland';"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "Providers"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select 'false' as value, 'Consumption' as label\nunion all\nselect 'true', 'Feed-in';"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "Directions"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "master_smartmeter_metering_point: one row per metering point. Site and provider decide which job fetches it (EVN: SmartmeterInfoJob, Netz Burgenland: its own job) and which views count it (the Raggendorf price, bill and what-if views read Raggendorf only). Contracts hang on the row. Rows can't be deleted here, since data and contracts refer to them. The numbers are kept only in the database, never in git.",
+          "id": 29,
+          "links": [],
+          "title": "Metering points",
+          "vizConfig": {
+            "group": "volkovlabs-table-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "columnManagerCustomIcon": "",
+                "columnManagerNativeIcon": "table",
+                "externalExport": {
+                  "enabled": false,
+                  "request": {
+                    "datasource": "",
+                    "payload": {}
+                  }
+                },
+                "isColumnManagerAvailable": false,
+                "isColumnManagerShowCustomIcon": false,
+                "nestedObjects": [],
+                "openColumnManagerMode": "group",
+                "saveUserPreference": false,
+                "showFiltersInColumnManager": false,
+                "showSortingInColumnManager": false,
+                "tables": [
+                  {
+                    "actionsColumnConfig": {
+                      "alignment": "start",
+                      "fontSize": "sm",
+                      "label": "",
+                      "width": {
+                        "auto": false,
+                        "value": 100
+                      }
+                    },
+                    "addRow": {
+                      "enabled": true,
+                      "permission": {
+                        "mode": "userRole",
+                        "userRole": [
+                          "Admin",
+                          "Editor"
+                        ]
+                      },
+                      "request": {
+                        "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                        "payload": {
+                          "editorMode": "code",
+                          "format": "table",
+                          "rawQuery": true,
+                          "rawSql": "insert into master_smartmeter_metering_point (id, metering_point_number, feeding, name, site, provider)\nselect coalesce(max(id), 0) + 1, ${payload.metering_point_number:sqlstring}, ${payload.feeding:sqlstring}::boolean,\n       ${payload.name:sqlstring}, ${payload.site:sqlstring}, ${payload.provider:sqlstring}\nfrom master_smartmeter_metering_point;",
+                          "refId": "A",
+                          "sql": {
+                            "columns": [
+                              {
+                                "parameters": [],
+                                "type": "function"
+                              }
+                            ],
+                            "groupBy": [
+                              {
+                                "property": {
+                                  "type": "string"
+                                },
+                                "type": "groupBy"
+                              }
+                            ],
+                            "limit": 50
+                          }
+                        }
+                      }
+                    },
+                    "deleteRow": {
+                      "enabled": false,
+                      "permission": {
+                        "mode": "userRole",
+                        "userRole": [
+                          "Admin",
+                          "Editor"
+                        ]
+                      },
+                      "request": {
+                        "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                        "payload": {
+                          "editorMode": "code",
+                          "format": "table",
+                          "rawQuery": true,
+                          "rawSql": "delete from master_reference_car\nwhere id = ${payload.id};",
+                          "refId": "A",
+                          "sql": {
+                            "columns": [
+                              {
+                                "parameters": [],
+                                "type": "function"
+                              }
+                            ],
+                            "groupBy": [
+                              {
+                                "property": {
+                                  "type": "string"
+                                },
+                                "type": "groupBy"
+                              }
+                            ],
+                            "limit": 50
+                          }
+                        }
+                      }
+                    },
+                    "expanded": false,
+                    "highlightRowsOnHover": true,
+                    "items": [
+                      {
+                        "aggregation": "none",
+                        "appearance": {
+                          "alignment": "start",
+                          "background": {
+                            "applyToRow": false
+                          },
+                          "header": {
+                            "fontSize": "md"
+                          },
+                          "width": {
+                            "auto": true,
+                            "min": 20,
+                            "value": 100
+                          },
+                          "wrap": false
+                        },
+                        "columnTooltip": "",
+                        "edit": {
+                          "editor": {
+                            "type": "string"
+                          },
+                          "enabled": false,
+                          "permission": {
+                            "field": {
+                              "name": "",
+                              "source": ""
+                            },
+                            "mode": "userRole",
+                            "userRole": [
+                              "Admin",
+                              "Editor"
+                            ]
+                          }
+                        },
+                        "enabled": false,
+                        "field": {
+                          "name": "id",
+                          "source": "A"
+                        },
+                        "fileCell": {
+                          "size": "md",
+                          "text": "",
+                          "variant": "primary"
+                        },
+                        "filter": {
+                          "enabled": false,
+                          "mode": "client",
+                          "variable": ""
+                        },
+                        "footer": [],
+                        "gauge": {
+                          "mode": "basic",
+                          "valueDisplayMode": "text",
+                          "valueSize": 14
+                        },
+                        "group": false,
+                        "label": "",
+                        "newRowEdit": {
+                          "editor": {
+                            "type": "string"
+                          },
+                          "enabled": false
+                        },
+                        "objectId": "",
+                        "pin": "",
+                        "preformattedStyle": false,
+                        "scale": "auto",
+                        "showingRows": 20,
+                        "sort": {
+                          "descFirst": false,
+                          "enabled": false
+                        },
+                        "type": "auto"
+                      },
+                      {
+                        "aggregation": "none",
+                        "appearance": {
+                          "alignment": "start",
+                          "background": {
+                            "applyToRow": false
+                          },
+                          "header": {
+                            "fontSize": "md"
+                          },
+                          "width": {
+                            "auto": true,
+                            "min": 20,
+                            "value": 100
+                          },
+                          "wrap": false
+                        },
+                        "columnTooltip": "",
+                        "edit": {
+                          "editor": {
+                            "type": "string"
+                          },
+                          "enabled": true,
+                          "permission": {
+                            "field": {
+                              "name": "",
+                              "source": ""
+                            },
+                            "mode": "userRole",
+                            "userRole": [
+                              "Admin",
+                              "Editor"
+                            ]
+                          }
+                        },
+                        "enabled": true,
+                        "field": {
+                          "name": "metering_point_number",
+                          "source": "A"
+                        },
+                        "fileCell": {
+                          "size": "md",
+                          "text": "",
+                          "variant": "primary"
+                        },
+                        "filter": {
+                          "enabled": false,
+                          "mode": "client",
+                          "variable": ""
+                        },
+                        "footer": [],
+                        "gauge": {
+                          "mode": "basic",
+                          "valueDisplayMode": "text",
+                          "valueSize": 14
+                        },
+                        "group": false,
+                        "label": "Metering point number",
+                        "newRowEdit": {
+                          "editor": {
+                            "type": "string"
+                          },
+                          "enabled": true
+                        },
+                        "objectId": "",
+                        "pin": "",
+                        "preformattedStyle": false,
+                        "scale": "auto",
+                        "showingRows": 20,
+                        "sort": {
+                          "descFirst": false,
+                          "enabled": false
+                        },
+                        "type": "auto"
+                      },
+                      {
+                        "aggregation": "none",
+                        "appearance": {
+                          "alignment": "start",
+                          "background": {
+                            "applyToRow": false
+                          },
+                          "header": {
+                            "fontSize": "md"
+                          },
+                          "width": {
+                            "auto": true,
+                            "min": 20,
+                            "value": 100
+                          },
+                          "wrap": false
+                        },
+                        "columnTooltip": "",
+                        "edit": {
+                          "editor": {
+                            "type": "string"
+                          },
+                          "enabled": true,
+                          "permission": {
+                            "field": {
+                              "name": "",
+                              "source": ""
+                            },
+                            "mode": "userRole",
+                            "userRole": [
+                              "Admin",
+                              "Editor"
+                            ]
+                          }
+                        },
+                        "enabled": true,
+                        "field": {
+                          "name": "name",
+                          "source": "A"
+                        },
+                        "fileCell": {
+                          "size": "md",
+                          "text": "",
+                          "variant": "primary"
+                        },
+                        "filter": {
+                          "enabled": false,
+                          "mode": "client",
+                          "variable": ""
+                        },
+                        "footer": [],
+                        "gauge": {
+                          "mode": "basic",
+                          "valueDisplayMode": "text",
+                          "valueSize": 14
+                        },
+                        "group": false,
+                        "label": "Name",
+                        "newRowEdit": {
+                          "editor": {
+                            "type": "string"
+                          },
+                          "enabled": true
+                        },
+                        "objectId": "",
+                        "pin": "",
+                        "preformattedStyle": false,
+                        "scale": "auto",
+                        "showingRows": 20,
+                        "sort": {
+                          "descFirst": false,
+                          "enabled": false
+                        },
+                        "type": "auto"
+                      },
+                      {
+                        "aggregation": "none",
+                        "appearance": {
+                          "alignment": "start",
+                          "background": {
+                            "applyToRow": false
+                          },
+                          "header": {
+                            "fontSize": "md"
+                          },
+                          "width": {
+                            "auto": true,
+                            "min": 20,
+                            "value": 100
+                          },
+                          "wrap": false
+                        },
+                        "columnTooltip": "",
+                        "edit": {
+                          "editor": {
+                            "customValues": false,
+                            "queryOptions": {
+                              "label": "label",
+                              "source": "Sites",
+                              "value": "value"
+                            },
+                            "type": "select"
+                          },
+                          "enabled": true,
+                          "permission": {
+                            "field": {
+                              "name": "",
+                              "source": ""
+                            },
+                            "mode": "userRole",
+                            "userRole": [
+                              "Admin",
+                              "Editor"
+                            ]
+                          }
+                        },
+                        "enabled": true,
+                        "field": {
+                          "name": "site",
+                          "source": "A"
+                        },
+                        "fileCell": {
+                          "size": "md",
+                          "text": "",
+                          "variant": "primary"
+                        },
+                        "filter": {
+                          "enabled": false,
+                          "mode": "client",
+                          "variable": ""
+                        },
+                        "footer": [],
+                        "gauge": {
+                          "mode": "basic",
+                          "valueDisplayMode": "text",
+                          "valueSize": 14
+                        },
+                        "group": false,
+                        "label": "Site",
+                        "newRowEdit": {
+                          "editor": {
+                            "customValues": false,
+                            "queryOptions": {
+                              "label": "label",
+                              "source": "Sites",
+                              "value": "value"
+                            },
+                            "type": "select"
+                          },
+                          "enabled": true
+                        },
+                        "objectId": "",
+                        "pin": "",
+                        "preformattedStyle": false,
+                        "scale": "auto",
+                        "showingRows": 20,
+                        "sort": {
+                          "descFirst": false,
+                          "enabled": false
+                        },
+                        "type": "auto"
+                      },
+                      {
+                        "aggregation": "none",
+                        "appearance": {
+                          "alignment": "start",
+                          "background": {
+                            "applyToRow": false
+                          },
+                          "header": {
+                            "fontSize": "md"
+                          },
+                          "width": {
+                            "auto": true,
+                            "min": 20,
+                            "value": 100
+                          },
+                          "wrap": false
+                        },
+                        "columnTooltip": "",
+                        "edit": {
+                          "editor": {
+                            "customValues": false,
+                            "queryOptions": {
+                              "label": "label",
+                              "source": "Providers",
+                              "value": "value"
+                            },
+                            "type": "select"
+                          },
+                          "enabled": true,
+                          "permission": {
+                            "field": {
+                              "name": "",
+                              "source": ""
+                            },
+                            "mode": "userRole",
+                            "userRole": [
+                              "Admin",
+                              "Editor"
+                            ]
+                          }
+                        },
+                        "enabled": true,
+                        "field": {
+                          "name": "provider",
+                          "source": "A"
+                        },
+                        "fileCell": {
+                          "size": "md",
+                          "text": "",
+                          "variant": "primary"
+                        },
+                        "filter": {
+                          "enabled": false,
+                          "mode": "client",
+                          "variable": ""
+                        },
+                        "footer": [],
+                        "gauge": {
+                          "mode": "basic",
+                          "valueDisplayMode": "text",
+                          "valueSize": 14
+                        },
+                        "group": false,
+                        "label": "Provider",
+                        "newRowEdit": {
+                          "editor": {
+                            "customValues": false,
+                            "queryOptions": {
+                              "label": "label",
+                              "source": "Providers",
+                              "value": "value"
+                            },
+                            "type": "select"
+                          },
+                          "enabled": true
+                        },
+                        "objectId": "",
+                        "pin": "",
+                        "preformattedStyle": false,
+                        "scale": "auto",
+                        "showingRows": 20,
+                        "sort": {
+                          "descFirst": false,
+                          "enabled": false
+                        },
+                        "type": "auto"
+                      },
+                      {
+                        "aggregation": "none",
+                        "appearance": {
+                          "alignment": "start",
+                          "background": {
+                            "applyToRow": false
+                          },
+                          "header": {
+                            "fontSize": "md"
+                          },
+                          "width": {
+                            "auto": true,
+                            "min": 20,
+                            "value": 100
+                          },
+                          "wrap": false
+                        },
+                        "columnTooltip": "",
+                        "edit": {
+                          "editor": {
+                            "customValues": false,
+                            "queryOptions": {
+                              "label": "label",
+                              "source": "Directions",
+                              "value": "value"
+                            },
+                            "type": "select"
+                          },
+                          "enabled": true,
+                          "permission": {
+                            "field": {
+                              "name": "",
+                              "source": ""
+                            },
+                            "mode": "userRole",
+                            "userRole": [
+                              "Admin",
+                              "Editor"
+                            ]
+                          }
+                        },
+                        "enabled": true,
+                        "field": {
+                          "name": "feeding",
+                          "source": "A"
+                        },
+                        "fileCell": {
+                          "size": "md",
+                          "text": "",
+                          "variant": "primary"
+                        },
+                        "filter": {
+                          "enabled": false,
+                          "mode": "client",
+                          "variable": ""
+                        },
+                        "footer": [],
+                        "gauge": {
+                          "mode": "basic",
+                          "valueDisplayMode": "text",
+                          "valueSize": 14
+                        },
+                        "group": false,
+                        "label": "Direction",
+                        "newRowEdit": {
+                          "editor": {
+                            "customValues": false,
+                            "queryOptions": {
+                              "label": "label",
+                              "source": "Directions",
+                              "value": "value"
+                            },
+                            "type": "select"
+                          },
+                          "enabled": true
+                        },
+                        "objectId": "",
+                        "pin": "",
+                        "preformattedStyle": false,
+                        "scale": "auto",
+                        "showingRows": 20,
+                        "sort": {
+                          "descFirst": false,
+                          "enabled": false
+                        },
+                        "type": "auto"
+                      }
+                    ],
+                    "name": "Metering points",
+                    "pagination": {
+                      "defaultPageSize": 20,
+                      "enabled": false,
+                      "mode": "client"
+                    },
+                    "rowHighlight": {
+                      "backgroundColor": "transparent",
+                      "columnId": "",
+                      "enabled": false,
+                      "resetVariable": false,
+                      "scrollTo": "",
+                      "smooth": false,
+                      "variable": ""
+                    },
+                    "showHeader": true,
+                    "stripedRows": true,
+                    "update": {
+                      "datasource": "c17a467f-0417-4c81-b598-1bf916d7bba7",
+                      "payload": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "update master_smartmeter_metering_point\nset metering_point_number = ${payload.metering_point_number:sqlstring},\n    name = ${payload.name:sqlstring},\n    site = ${payload.site:sqlstring},\n    provider = ${payload.provider:sqlstring},\n    feeding = ${payload.feeding:sqlstring}::boolean\nwhere id = ${payload.id};",
+                        "refId": "A",
+                        "sql": {
+                          "columns": [
+                            {
+                              "parameters": [],
+                              "type": "function"
+                            }
+                          ],
+                          "groupBy": [
+                            {
+                              "property": {
+                                "type": "string"
+                              },
+                              "type": "groupBy"
+                            }
+                          ],
+                          "limit": 50
+                        }
+                      }
+                    }
+                  }
+                ],
+                "tabsSorting": false,
+                "toolbar": {
+                  "alignment": "left",
+                  "export": true,
+                  "exportFormats": [
+                    "csv",
+                    "xlsx"
+                  ]
+                }
+              }
+            },
+            "version": "3.6.8"
+          }
+        }
+      },
       "panel-3": {
         "kind": "Panel",
         "spec": {
@@ -6770,6 +7531,15 @@
                   "columnWidthMode": "standard",
                   "fillScreen": false,
                   "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-29"
+                        }
+                      }
+                    },
                     {
                       "kind": "AutoGridLayoutItem",
                       "spec": {
