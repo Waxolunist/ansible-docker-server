@@ -82,6 +82,36 @@
                   {
                     "matcher": {
                       "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
                       "options": "Total"
                     },
                     "properties": [
@@ -166,7 +196,38 @@
                   "decimals": 0,
                   "unit": "percent"
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
                 "colorMode": "value",
@@ -255,7 +316,38 @@
                   "min": 0,
                   "unit": "kwatt"
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
                 "legend": {
@@ -338,7 +430,38 @@
                   "min": 0,
                   "unit": "kwatth"
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
                 "legend": {
@@ -424,7 +547,38 @@
                   "min": 0,
                   "unit": "kwatth"
                 },
-                "overrides": []
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               "options": {
                 "legend": {
@@ -493,6 +647,36 @@
                   "unit": "currencyEUR"
                 },
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
@@ -582,6 +766,36 @@
                   "unit": "currencyEUR"
                 },
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
@@ -700,7 +914,37 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "Forecast rest of month"
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Rest of month (forecast)"
                     },
                     "properties": [
                       {
@@ -756,7 +1000,7 @@
                         "editorMode": "code",
                         "format": "time_series",
                         "rawQuery": true,
-                        "rawSql": "select time, name as metric, bill_to_date as value\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\nunion all\nselect time, 'Forecast rest of month', sum(bill_forecast - bill_to_date)\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\ngroup by time\norder by 1;"
+                        "rawSql": "select time, name as metric, bill_to_date as value\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\nunion all\nselect time, 'Rest of month (forecast)', sum(bill_forecast - bill_to_date)\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\ngroup by time\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -771,7 +1015,7 @@
               "transformations": []
             }
           },
-          "description": "agg_1month_meter_bill: the bill of each month per meter (energy and standing charges, VAT included), stacked, over the last 13 months regardless of the time picker; for the current month the forecast rest on top.",
+          "description": "agg_1month_meter_bill: the bill of each month per meter (energy and standing charges, VAT included), stacked, over the last 13 months regardless of the time picker; for the current month the forecast rest of the month on top.",
           "id": 9,
           "links": [],
           "title": "Bill per month",
@@ -806,7 +1050,37 @@
                   {
                     "matcher": {
                       "id": "byName",
-                      "options": "Forecast rest of month"
+                      "options": "Podersdorf 1"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Podersdorf 2"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Rest of month (forecast)"
                     },
                     "properties": [
                       {
@@ -882,7 +1156,26 @@
                           "name": "panel-6"
                         }
                       }
-                    },
+                    }
+                  ],
+                  "maxColumnCount": 3,
+                  "rowHeight": 140,
+                  "rowHeightMode": "custom"
+                }
+              },
+              "title": "In the picked range"
+            }
+          },
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "fillScreen": false,
+                  "items": [
                     {
                       "kind": "AutoGridLayoutItem",
                       "spec": {
@@ -893,12 +1186,12 @@
                       }
                     }
                   ],
-                  "maxColumnCount": 4,
+                  "maxColumnCount": 1,
                   "rowHeight": 140,
                   "rowHeightMode": "custom"
                 }
               },
-              "title": "In the picked range"
+              "title": "This month"
             }
           },
           {
