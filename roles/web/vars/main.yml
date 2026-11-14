@@ -223,7 +223,8 @@
       SohInfoJob: 30m
       CloudPowerJob: 30m
       GoeSignaller: 1h
-      SmartmeterInfoJob: 3h
+      NetzNiederoesterreichJob: 3h
+      NetzBurgenlandJob: 3h
       SpotDataJob: 3h
       GasolineJob: 3h
       VehicleTripsJob: 3h
