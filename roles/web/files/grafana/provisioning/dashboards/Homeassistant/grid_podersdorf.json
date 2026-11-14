@@ -1114,12 +1114,41 @@
             "version": "13.2.4"
           }
         }
-      }
+      },
+      "panel-90": "@@PODERSDORF_FLOW_PANEL@@"
     },
     "layout": {
       "kind": "RowsLayout",
       "spec": {
         "rows": [
+          {
+            "kind": "RowsLayoutRow",
+            "spec": {
+              "collapse": false,
+              "hideHeader": true,
+              "layout": {
+                "kind": "AutoGridLayout",
+                "spec": {
+                  "columnWidthMode": "standard",
+                  "items": [
+                    {
+                      "kind": "AutoGridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-90"
+                        }
+                      }
+                    }
+                  ],
+                  "maxColumnCount": 1,
+                  "rowHeight": 150,
+                  "rowHeightMode": "custom"
+                }
+              },
+              "title": "Energy flow"
+            }
+          },
           {
             "kind": "RowsLayoutRow",
             "spec": {
@@ -1198,81 +1227,124 @@
             "kind": "RowsLayoutRow",
             "spec": {
               "collapse": false,
+              "hideHeader": true,
               "layout": {
-                "kind": "AutoGridLayout",
+                "kind": "TabsLayout",
                 "spec": {
-                  "columnWidthMode": "standard",
-                  "fillScreen": false,
-                  "items": [
+                  "tabs": [
                     {
-                      "kind": "AutoGridLayoutItem",
+                      "kind": "TabsLayoutTab",
                       "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-3"
-                        }
+                        "layout": {
+                          "kind": "RowsLayout",
+                          "spec": {
+                            "rows": [
+                              {
+                                "kind": "RowsLayoutRow",
+                                "spec": {
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": false,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-3"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-4"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-5"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 1,
+                                      "rowHeightMode": "tall"
+                                    }
+                                  },
+                                  "title": "Consumption"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Consumption"
                       }
                     },
                     {
-                      "kind": "AutoGridLayoutItem",
+                      "kind": "TabsLayoutTab",
                       "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-4"
-                        }
-                      }
-                    },
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-5"
-                        }
+                        "layout": {
+                          "kind": "RowsLayout",
+                          "spec": {
+                            "rows": [
+                              {
+                                "kind": "RowsLayoutRow",
+                                "spec": {
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": false,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-8"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-9"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 1,
+                                      "rowHeightMode": "tall"
+                                    }
+                                  },
+                                  "title": "Costs"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Costs"
                       }
                     }
-                  ],
-                  "maxColumnCount": 1,
-                  "rowHeightMode": "tall"
+                  ]
                 }
               },
-              "title": "Consumption"
-            }
-          },
-          {
-            "kind": "RowsLayoutRow",
-            "spec": {
-              "collapse": false,
-              "layout": {
-                "kind": "AutoGridLayout",
-                "spec": {
-                  "columnWidthMode": "standard",
-                  "fillScreen": false,
-                  "items": [
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-8"
-                        }
-                      }
-                    },
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-9"
-                        }
-                      }
-                    }
-                  ],
-                  "maxColumnCount": 1,
-                  "rowHeightMode": "tall"
-                }
-              },
-              "title": "Costs"
+              "title": "Details"
             }
           }
         ]

@@ -52,6 +52,8 @@ PLACEHOLDERS = {
 FLOW_PANEL_FILE = REPO / "roles/web/files/grafana/flow/energy_flow_panel.json"
 FLOW_LINKS_FILE = REPO / "roles/web/vars/main.yml"
 FLOW_PANEL_PLACEHOLDER = "@@ENERGY_FLOW_PANEL@@"
+SITE_FLOW_PANEL_FILE = REPO / "roles/web/files/grafana/flow/podersdorf_flow_panel.json"
+SITE_FLOW_PANEL_PLACEHOLDER = "@@PODERSDORF_FLOW_PANEL@@"
 QUICK_RANGES_FILE = REPO / "roles/web/files/grafana/quick_ranges.json"
 QUICK_RANGES_PLACEHOLDER = "@@QUICK_RANGES@@"
 
@@ -223,7 +225,7 @@ def without_plugin_version(panel):
     return panel
 
 
-def restore_flow_panel(kind, data, flow_panel):
+def restore_flow_panel(kind, data, flow_panel, placeholder=FLOW_PANEL_PLACEHOLDER):
     if kind != "v2":
         return []
     expected = without_plugin_version(flow_panel)
@@ -233,7 +235,7 @@ def restore_flow_panel(kind, data, flow_panel):
         if not isinstance(element, dict):
             continue
         if without_plugin_version(element) == expected:
-            elements[name] = FLOW_PANEL_PLACEHOLDER
+            elements[name] = placeholder
         elif element.get("spec", {}).get("title") == flow_panel["spec"]["title"]:
             changed.append(name)
     return changed
@@ -290,6 +292,7 @@ def cmd_pull(api, args, vault):
             sys.exit(f"{var} not found in {VAULT_FILE.name}, refusing to write unscrubbed files")
         secrets[placeholder] = vault[var]
     flow_panel = load_flow_panel()
+    site_flow_panel = json.loads(SITE_FLOW_PANEL_FILE.read_text())
     quick_ranges = json.loads(QUICK_RANGES_FILE.read_text())
 
     files = local_files()
@@ -306,7 +309,9 @@ def cmd_pull(api, args, vault):
         prefer_v2 = local_version if (local_version or "").startswith(V2_PREFIX) else None
         kind, data = api.dashboard(uid, prefer_v2)
         data = clean(kind, data)
-        edited_flow = restore_flow_panel(kind, data, flow_panel)
+        edited_flow = [(name, FLOW_PANEL_FILE) for name in restore_flow_panel(kind, data, flow_panel)]
+        edited_flow += [(name, SITE_FLOW_PANEL_FILE) for name in
+                        restore_flow_panel(kind, data, site_flow_panel, SITE_FLOW_PANEL_PLACEHOLDER)]
         edited_ranges = restore_quick_ranges(kind, data, quick_ranges)
         text = render(data, secrets)
 
@@ -320,8 +325,8 @@ def cmd_pull(api, args, vault):
                 path = directory / f"{slug(item['title'])}_{uid}.json"
 
         rel = path.relative_to(DASHBOARDS_DIR)
-        for name in edited_flow:
-            print(f"warning    {rel}: {name} differs from {FLOW_PANEL_FILE.relative_to(REPO)}, "
+        for name, panel_file in edited_flow:
+            print(f"warning    {rel}: {name} differs from {panel_file.relative_to(REPO)}, "
                   f"kept in full; move the change into that file")
         if edited_ranges:
             print(f"warning    {rel}: quick ranges differ from {QUICK_RANGES_FILE.relative_to(REPO)}, "
