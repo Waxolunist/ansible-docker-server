@@ -222,6 +222,7 @@
       ChargingModeJob: 30m
       SohInfoJob: 30m
       CloudPowerJob: 30m
+      TydomJob: 30m
       SocRefreshJob: 1h
       NetzNiederoesterreichJob: 3h
       NetzBurgenlandJob: 3h
