@@ -185,7 +185,7 @@
                   },
                   "custom": {
                     "axisPlacement": "auto",
-                    "barAlignment": -1,
+                    "barAlignment": 1,
                     "drawStyle": "line",
                     "fillOpacity": 0,
                     "lineInterpolation": "linear",
@@ -311,7 +311,7 @@
                   },
                   "custom": {
                     "axisPlacement": "auto",
-                    "barAlignment": -1,
+                    "barAlignment": 1,
                     "drawStyle": "line",
                     "fillOpacity": 0,
                     "lineInterpolation": "linear",
