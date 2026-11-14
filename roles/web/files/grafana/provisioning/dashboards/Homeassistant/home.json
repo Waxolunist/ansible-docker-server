@@ -173,7 +173,7 @@
         "keepTime": false,
         "tags": [],
         "targetBlank": false,
-        "title": "Podersdorf",
+        "title": "Switch to Podersdorf",
         "tooltip": "Switch to the Podersdorf home",
         "type": "link",
         "url": "/d/home-podersdorf"
