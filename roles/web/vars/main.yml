@@ -110,6 +110,7 @@
   setup_model:
     domain: "setup.{{ topleveldomain }}"
     port: 8080
+    private_path: /private
 
   rendezvous:
     domain: "hhfh.{{ topleveldomain }}"

@@ -1141,6 +1141,47 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  setup-model-private:
+    image: nginxinc/nginx-unprivileged:1.31.7-alpine
+    container_name: web_setup-model-private
+    mem_limit: 32M
+    cpus: 0.25
+    depends_on:
+      - reverse-proxy
+      - authelia
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    expose:
+      - {{ setup_model.port }}
+    volumes:
+      - "{{ docker.paths.configs }}setup_model_private:/usr/share/nginx/html:ro"
+    networks:
+      - setup_model_ui
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.docker.network=web_setup_model_ui
+      - traefik.http.middlewares.setup-model-private-strip.stripprefix.prefixes={{ setup_model.private_path }}
+      - traefik.http.services.setup-model-private.loadbalancer.server.port={{ setup_model.port }}
+      - traefik.http.routers.setup-model-private-secure.entrypoints=websecure
+      - traefik.http.routers.setup-model-private-secure.rule=Host(`{{ setup_model.domain }}`) && PathPrefix(`{{ setup_model.private_path }}`)
+      - traefik.http.routers.setup-model-private-secure.service=setup-model-private
+      - traefik.http.routers.setup-model-private-secure.tls=true
+      - traefik.http.routers.setup-model-private-secure.tls.certresolver=myresolver
+      - traefik.http.routers.setup-model-private-secure.middlewares=auth@docker,setup-model-private-strip,setup-model-compress@docker,setup-model-headers@docker,security-headers@docker,rate-limit@docker
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:{{ setup_model.port }}/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
 networks:
   proxy:
     name: web_proxy

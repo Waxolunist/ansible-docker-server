@@ -39,7 +39,7 @@ Without `--tags`, the playbook deploys everything, as above. To run just one par
 | Tag | Deploys |
 |---|---|
 | `grafana_dashboards` | The dashboards in `roles/web/files/grafana/provisioning/dashboards/` and their provider |
-| `setup_model_page` | The public setup model page and its `robots.txt` |
+| `setup_model_page` | The public and the private setup model page, and the `robots.txt` |
 
 Grafana rescans its dashboards directory every 30 seconds, so changes show up without a restart. Only a change to the provider restarts Grafana.
 

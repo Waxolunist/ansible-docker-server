@@ -75,7 +75,7 @@ A run without `--tags` deploys everything. Tagged task files can also be deploye
 | Tag | Task file | Deploys |
 |---|---|---|
 | `grafana_dashboards` | [`grafana_dashboards.yml`](roles/web/tasks/grafana_dashboards.yml) | Everything in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), including subdirectories and the dashboard provider. Restarts Grafana only when the provider or the go-e datasource changed. |
-| `setup_model_page` | [`setup_model_page.yml`](roles/web/tasks/setup_model_page.yml) | The public setup model page and its `robots.txt`. nginx serves them from a mounted folder, so nothing restarts. |
+| `setup_model_page` | [`setup_model_page.yml`](roles/web/tasks/setup_model_page.yml) | The public and the private setup model page and the `robots.txt`. nginx serves them from a mounted folder, so nothing restarts. |
 
 ```bash
 ansible-playbook web.yml --tags grafana_dashboards
@@ -199,6 +199,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 24 | `matrix-receiver` | `metio/matrix-alertmanager-receiver:2026.9.23` | Posts the alerts to the Matrix rooms on Conduit | `10.8.0.1:12345` (WireGuard only) | `proxy`, `prometheus` | — |
 | 25 | `sql-exporter` | `burningalchemist/sql_exporter:0.24.11` | Age of the newest row of the `data_*` tables as metrics | — | `grafana`, `prometheus` | — |
 | 26 | `setup-model` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | Static page: the public 3D model of the home setup, no login | — | `setup_model_ui` | `setup.v-collaborate.com` |
+| 27 | `setup-model-private` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | Static page: the private 3D model of the home setup, behind Authelia | — | `setup_model_ui` | `setup.v-collaborate.com/private/` |
 
 ### Service Dependencies
 
@@ -275,6 +276,7 @@ graph TB
     subgraph setup_model_ui_net[web_setup_model_ui network]
         RP8[reverse-proxy]
         SM[setup-model]
+        SMP[setup-model-private]
     end
 
     subgraph picoclaw_ui_net[web_picoclaw_ui network]
@@ -482,7 +484,8 @@ Services protected by Authelia include:
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
 - **Otterwiki** (`wiki.v-collaborate.com`) — see below
-- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. That page is built in the private `home_docs` repository, whose build copies it to `roles/web/files/setup_model/`. That folder is gitignored, so build the page before running the playbook; without it the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`. nginx has no compression of its own: Traefik's `compress` middleware on this router does it.
+- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. Both pages are built in the private `home_docs` repository, whose build copies them to `roles/web/files/setup_model/` (`setup-model.html` public, `private.html` private). That folder is gitignored, and the build refuses to copy unless `.gitignore` lists it, so build the pages before running the playbook; without them the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`. nginx has no compression of its own: Traefik's `compress` middleware on this router does it.
+- **Private setup model** (`setup.v-collaborate.com/private/`): the full page with addresses, doc links and the URL table, behind `auth@docker`; the `*.v-collaborate.com` rule of Authelia lets the full-access groups in. It runs in its own container, `setup-model-private`, whose folder `configs/setup_model_private/` the public container never mounts, so no path trick on the public router can reach the private file. If its router fails (a missing middleware drops it), `/private/` falls through to the public container and gets a 404. Traefik strips `/private` before nginx sees the request.
 
 ### Otterwiki
 

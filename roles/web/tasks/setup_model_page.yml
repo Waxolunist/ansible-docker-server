@@ -1,5 +1,5 @@
 ---
-  - name: Setup model - Install the page
+  - name: Setup model - Install the public page
     copy:
       src: setup_model/setup-model.html
       dest: "{{ docker.paths.configs }}setup_model/index.html"
@@ -12,3 +12,15 @@
         Disallow: /
       dest: "{{ docker.paths.configs }}setup_model/robots.txt"
       mode: 0644
+
+  - name: Setup model - Create the folder of the private page
+    file:
+      path: "{{ docker.paths.configs }}setup_model_private"
+      state: directory
+
+  - name: Setup model - Install the private page
+    copy:
+      src: setup_model/private.html
+      dest: "{{ docker.paths.configs }}setup_model_private/index.html"
+      mode: 0644
+      diff: false
