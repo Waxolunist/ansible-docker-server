@@ -839,7 +839,7 @@
                 },
                 "showPercentChange": false,
                 "textMode": "value_and_name",
-                "wideLayout": true
+                "wideLayout": false
               }
             },
             "version": "13.2.4"
