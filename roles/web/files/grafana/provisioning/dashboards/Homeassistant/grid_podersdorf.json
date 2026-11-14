@@ -527,9 +527,9 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "table",
+                        "format": "time_series",
                         "rawQuery": true,
-                        "rawSql": "select to_char(date_trunc('month', (e.time - interval '15 minutes') at time zone m.timezone), 'YYYY-MM') as month,\n       sum(e.energy) filter (where m.name = 'Podersdorf 1') as \"Podersdorf 1\",\n       sum(e.energy) filter (where m.name = 'Podersdorf 2') as \"Podersdorf 2\"\nfrom data_smartmeter_energy e\njoin master_smartmeter_metering_point m on m.id = e.metering_point_id\nwhere m.site = 'podersdorf'\n  and e.time > date_trunc('month', now() at time zone 'Europe/Vienna') at time zone 'Europe/Vienna' - interval '24 months'\ngroup by 1\norder by 1;"
+                        "rawSql": "select date_trunc('month', (e.time - interval '15 minutes') at time zone m.timezone) at time zone m.timezone as time,\n       m.name as metric, sum(e.energy) as value\nfrom data_smartmeter_energy e\njoin master_smartmeter_metering_point m on m.id = e.metering_point_id\nwhere m.site = 'podersdorf'\n  and e.time > date_trunc('month', now() at time zone 'Europe/Vienna') at time zone 'Europe/Vienna' - interval '24 months'\ngroup by 1, 2\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -537,7 +537,11 @@
                   }
                 }
               ],
-              "queryOptions": {},
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "25M",
+                "timeShift": "0M/M+1M"
+              },
               "transformations": []
             }
           },
@@ -546,7 +550,7 @@
           "links": [],
           "title": "Per month",
           "vizConfig": {
-            "group": "barchart",
+            "group": "timeseries",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
@@ -555,8 +559,19 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.8,
+                    "drawStyle": "bars",
                     "fillOpacity": 80,
-                    "lineWidth": 1
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
                   },
                   "decimals": 1,
                   "min": 0,
@@ -592,18 +607,6 @@
                         }
                       }
                     ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "month"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "none"
-                      }
-                    ]
                   }
                 ]
               },
@@ -614,14 +617,10 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
-                "stacking": "normal",
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
-                },
-                "xField": "month",
-                "xTickLabelRotation": -45,
-                "xTickLabelSpacing": 0
+                }
               }
             },
             "version": "13.2.4"
@@ -1059,7 +1058,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select to_char(month, 'YYYY-MM') as month,\n       sum(bill_to_date) filter (where name = 'Podersdorf 1') as \"Podersdorf 1\",\n       sum(bill_to_date) filter (where name = 'Podersdorf 2') as \"Podersdorf 2\",\n       sum(bill_forecast - bill_to_date) as \"Rest of month (forecast)\"\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\ngroup by month\norder by month;"
+                        "rawSql": "with months as (\n  select time, month,\n         sum(bill_to_date) filter (where name = 'Podersdorf 1') as meter_1,\n         sum(bill_to_date) filter (where name = 'Podersdorf 2') as meter_2,\n         sum(bill_forecast - bill_to_date) as rest,\n         sum(bill_to_date) as bill,\n         sum(energy_consumed) as energy,\n         max(remaining_days) as remaining_days\n  from agg_1month_meter_bill\n  where site = 'podersdorf'\n  group by time, month\n), fit as (\n  select regr_slope(bill, extract(epoch from time)) as slope,\n         regr_intercept(bill, extract(epoch from time)) as intercept\n  from months\n  where remaining_days = 0\n)\nselect time,\n       meter_1 as \"Podersdorf 1\",\n       meter_2 as \"Podersdorf 2\",\n       rest as \"Forecast rest of month\",\n       bill / nullif(energy, 0) as \"Price / kWh\",\n       intercept + slope * extract(epoch from time) as \"Trend\"\nfrom months, fit\nwhere month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\norder by time;"
                       },
                       "version": "v0"
                     },
@@ -1067,32 +1066,176 @@
                   }
                 }
               ],
-              "queryOptions": {},
+              "queryOptions": {
+                "hideTimeOverride": true,
+                "timeFrom": "14M",
+                "timeShift": "0M/M+1M"
+              },
               "transformations": []
             }
           },
-          "description": "agg_1month_meter_bill: the bill of each month per meter (energy and standing charges, VAT included), stacked, over the last 13 months regardless of the time picker; for the current month the forecast rest of the month on top.",
+          "description": "agg_1month_meter_bill: the bill of each meter per month (energy and standing charges, VAT included), and for the current month the forecast rest on top. See \"Electricity bill this month\". Price / kWh is the bill of both meters divided by their energy, standing charges included. Trend is a straight line fitted through the total bill of all complete months.",
           "id": 9,
           "links": [],
           "title": "Bill per month",
           "vizConfig": {
-            "group": "barchart",
+            "group": "timeseries",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
                 "defaults": {
                   "color": {
-                    "mode": "palette-classic"
+                    "fixedColor": "green",
+                    "mode": "fixed"
                   },
                   "custom": {
-                    "fillOpacity": 80,
-                    "lineWidth": 1
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.8,
+                    "drawStyle": "bars",
+                    "fillOpacity": 100,
+                    "lineWidth": 0,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
                   },
-                  "decimals": 2,
+                  "decimals": 0,
                   "min": 0,
-                  "unit": "currencyEUR"
+                  "unit": "suffix: €"
                 },
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "time"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "time: YYYY-MM"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Forecast rest of month"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "orange",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 30
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Price / kWh"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 3
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      },
+                      {
+                        "id": "unit",
+                        "value": "suffix: €/kWh"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 3
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Trend"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.drawStyle",
+                        "value": "line"
+                      },
+                      {
+                        "id": "custom.fillOpacity",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.lineWidth",
+                        "value": 3
+                      },
+                      {
+                        "id": "custom.showPoints",
+                        "value": "never"
+                      },
+                      {
+                        "id": "custom.stacking",
+                        "value": {
+                          "group": "A",
+                          "mode": "none"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "dark-red",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineStyle",
+                        "value": {
+                          "dash": [
+                            10,
+                            10
+                          ],
+                          "fill": "dash"
+                        }
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
@@ -1122,55 +1265,26 @@
                         }
                       }
                     ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "Rest of month (forecast)"
-                    },
-                    "properties": [
-                      {
-                        "id": "color",
-                        "value": {
-                          "fixedColor": "orange",
-                          "mode": "fixed"
-                        }
-                      },
-                      {
-                        "id": "custom.fillOpacity",
-                        "value": 30
-                      }
-                    ]
-                  },
-                  {
-                    "matcher": {
-                      "id": "byName",
-                      "options": "month"
-                    },
-                    "properties": [
-                      {
-                        "id": "unit",
-                        "value": "none"
-                      }
-                    ]
                   }
                 ]
               },
               "options": {
                 "legend": {
-                  "calcs": [],
-                  "displayMode": "list",
+                  "calcs": [
+                    "mean",
+                    "median",
+                    "max",
+                    "lastNotNull"
+                  ],
+                  "displayMode": "table",
                   "placement": "bottom",
                   "showLegend": true
                 },
-                "stacking": "normal",
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
-                },
-                "xField": "month",
-                "xTickLabelRotation": -45,
-                "xTickLabelSpacing": 0
+                }
               }
             },
             "version": "13.2.4"
