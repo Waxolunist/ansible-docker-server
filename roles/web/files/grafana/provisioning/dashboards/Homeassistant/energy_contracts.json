@@ -4769,7 +4769,7 @@
               "transformations": []
             }
           },
-          "description": "master_smartmeter_metering_point: one row per metering point. Site and provider decide which job fetches it (EVN: SmartmeterInfoJob, Netz Burgenland: its own job) and which views count it (the Raggendorf price, bill and what-if views read Raggendorf only). Contracts hang on the row. Rows can't be deleted here, since data and contracts refer to them. The numbers are kept only in the database, never in git.",
+          "description": "master_smartmeter_metering_point: one row per metering point. Site and provider decide which job fetches it (EVN: NetzNiederoesterreichJob, Netz Burgenland: NetzBurgenlandJob) and which views count it (the Raggendorf price, bill and what-if views read Raggendorf only). Contracts hang on the row. Rows can't be deleted here, since data and contracts refer to them. The numbers are kept only in the database, never in git.",
           "id": 29,
           "links": [],
           "title": "Metering points",
