@@ -65,7 +65,7 @@
           "description": "Podersdorf has no live power: the Netz Burgenland portal delivers a day's 15-minute values on the next day. Grid shows the last complete day's consumption of both meters (data_smartmeter_energy, site podersdorf) and links to Grid - Podersdorf. Apartment shows the mean room temperature of the radiators and their setpoint (data_heating, TydomJob every 5 minutes; 'Window open' when a radiator detects it) and links to Apartment - Podersdorf. The line moves while the room is more than 0.3 °C below the setpoint (heat demand). Faded when the newest radiator reading is older than 30 minutes.",
           "id": 90,
           "links": [],
-          "title": "Energy flow",
+          "title": "Site flow",
           "vizConfig": {
             "group": "marcusolsson-dynamictext-panel",
             "kind": "VizConfig",
