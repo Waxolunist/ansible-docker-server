@@ -527,9 +527,9 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "time_series",
+                        "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select date_trunc('month', (e.time - interval '15 minutes') at time zone m.timezone) at time zone m.timezone as time,\n       m.name as metric, sum(e.energy) as value\nfrom data_smartmeter_energy e\njoin master_smartmeter_metering_point m on m.id = e.metering_point_id\nwhere m.site = 'podersdorf'\n  and e.time > date_trunc('month', now() at time zone 'Europe/Vienna') at time zone 'Europe/Vienna' - interval '24 months'\ngroup by 1, 2\norder by 1;"
+                        "rawSql": "select to_char(date_trunc('month', (e.time - interval '15 minutes') at time zone m.timezone), 'YYYY-MM') as month,\n       sum(e.energy) filter (where m.name = 'Podersdorf 1') as \"Podersdorf 1\",\n       sum(e.energy) filter (where m.name = 'Podersdorf 2') as \"Podersdorf 2\"\nfrom data_smartmeter_energy e\njoin master_smartmeter_metering_point m on m.id = e.metering_point_id\nwhere m.site = 'podersdorf'\n  and e.time > date_trunc('month', now() at time zone 'Europe/Vienna') at time zone 'Europe/Vienna' - interval '24 months'\ngroup by 1\norder by 1;"
                       },
                       "version": "v0"
                     },
@@ -537,10 +537,7 @@
                   }
                 }
               ],
-              "queryOptions": {
-                "hideTimeOverride": true,
-                "timeFrom": "25M"
-              },
+              "queryOptions": {},
               "transformations": []
             }
           },
@@ -549,7 +546,7 @@
           "links": [],
           "title": "Per month",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "barchart",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
@@ -557,23 +554,13 @@
                   "color": {
                     "mode": "palette-classic"
                   },
-                  "custom": {
-                    "axisPlacement": "auto",
-                    "barAlignment": 1,
-                    "drawStyle": "bars",
-                    "fillOpacity": 80,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "showPoints": "never",
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    }
-                  },
                   "decimals": 1,
                   "min": 0,
-                  "unit": "kwatth"
+                  "unit": "kwatth",
+                  "custom": {
+                    "fillOpacity": 80,
+                    "lineWidth": 1
+                  }
                 },
                 "overrides": [
                   {
@@ -605,6 +592,18 @@
                         }
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "month"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      }
+                    ]
                   }
                 ]
               },
@@ -618,7 +617,11 @@
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
-                }
+                },
+                "stacking": "normal",
+                "xField": "month",
+                "xTickLabelRotation": -45,
+                "xTickLabelSpacing": 0
               }
             },
             "version": "13.2.4"
@@ -1054,9 +1057,9 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "time_series",
+                        "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time, name as metric, bill_to_date as value\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\nunion all\nselect time, 'Rest of month (forecast)', sum(bill_forecast - bill_to_date)\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\ngroup by time\norder by 1;"
+                        "rawSql": "select to_char(month, 'YYYY-MM') as month,\n       sum(bill_to_date) filter (where name = 'Podersdorf 1') as \"Podersdorf 1\",\n       sum(bill_to_date) filter (where name = 'Podersdorf 2') as \"Podersdorf 2\",\n       sum(bill_forecast - bill_to_date) as \"Rest of month (forecast)\"\nfrom agg_1month_meter_bill\nwhere site = 'podersdorf' and month > (now() at time zone 'Europe/Vienna')::date - interval '13 months'\ngroup by month\norder by month;"
                       },
                       "version": "v0"
                     },
@@ -1064,10 +1067,7 @@
                   }
                 }
               ],
-              "queryOptions": {
-                "hideTimeOverride": true,
-                "timeFrom": "14M"
-              },
+              "queryOptions": {},
               "transformations": []
             }
           },
@@ -1076,7 +1076,7 @@
           "links": [],
           "title": "Bill per month",
           "vizConfig": {
-            "group": "timeseries",
+            "group": "barchart",
             "kind": "VizConfig",
             "spec": {
               "fieldConfig": {
@@ -1084,23 +1084,13 @@
                   "color": {
                     "mode": "palette-classic"
                   },
-                  "custom": {
-                    "axisPlacement": "auto",
-                    "barAlignment": 1,
-                    "drawStyle": "bars",
-                    "fillOpacity": 80,
-                    "lineInterpolation": "linear",
-                    "lineWidth": 1,
-                    "showPoints": "never",
-                    "spanNulls": false,
-                    "stacking": {
-                      "group": "A",
-                      "mode": "normal"
-                    }
-                  },
                   "decimals": 2,
                   "min": 0,
-                  "unit": "currencyEUR"
+                  "unit": "currencyEUR",
+                  "custom": {
+                    "fillOpacity": 80,
+                    "lineWidth": 1
+                  }
                 },
                 "overrides": [
                   {
@@ -1151,6 +1141,18 @@
                         "value": 30
                       }
                     ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "month"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "none"
+                      }
+                    ]
                   }
                 ]
               },
@@ -1164,7 +1166,11 @@
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
-                }
+                },
+                "stacking": "normal",
+                "xField": "month",
+                "xTickLabelRotation": -45,
+                "xTickLabelSpacing": 0
               }
             },
             "version": "13.2.4"
