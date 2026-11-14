@@ -23,4 +23,4 @@
       src: setup_model/private.html
       dest: "{{ docker.paths.configs }}setup_model_private/index.html"
       mode: 0644
-      diff: false
+    diff: false
