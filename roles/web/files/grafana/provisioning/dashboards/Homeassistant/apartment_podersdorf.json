@@ -666,8 +666,9 @@
                                           }
                                         }
                                       ],
-                                      "maxColumnCount": 1,
-                                      "rowHeightMode": "tall"
+                                      "maxColumnCount": 2,
+                                      "rowHeight": 420,
+                                      "rowHeightMode": "custom"
                                     }
                                   },
                                   "title": "Heating"
