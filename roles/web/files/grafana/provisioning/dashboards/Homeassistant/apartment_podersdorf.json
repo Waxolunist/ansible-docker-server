@@ -443,6 +443,77 @@
             "version": "13.2.4"
           }
         }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with radiators as (\n  select distinct on (device_id) time, temperature, setpoint, local_mode, use_mode, opening_detected\n  from data_heating\n  where site = 'podersdorf'\n  order by device_id, time desc\n), last_command as (\n  select status, message, requested_at, action, value\n  from settings_heating_command\n  where site = 'podersdorf'\n  order by id desc\n  limit 1\n)\nselect round(avg(r.temperature)::numeric, 1) as room,\n       max(r.setpoint) as setpoint,\n       max(r.local_mode) as mode,\n       max(r.use_mode) as program,\n       bool_or(r.opening_detected) as window_open,\n       to_char(max(r.time) at time zone 'Europe/Vienna', 'HH24:MI') as read_at,\n       (select status from last_command) as command_status,\n       (select message from last_command) as command_message,\n       (select case when action = 'setpoint' then value::text || ' °C'\n                    else to_char(value, 'SG0.0') || ' °C' end from last_command) as command_request,\n       (select to_char(requested_at at time zone 'Europe/Vienna', 'DD.MM. HH24:MI') from last_command) as command_at\nfrom radiators r;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Sets the setpoint of both living-room radiators. A button writes a command into settings_heating_command; HeatingCommandJob in the collector sends it to the Tydom gateway within a minute (as heatSetpoint, through the Delta Dore cloud) and marks it done or failed; commands not sent within 10 minutes expire. Presets set 14, 18, 20, 21.5 or 22 °C, the step buttons change the current setpoint by 0.5 °C (range 10 to 30 °C). The weekly schedule stays on, so its next step can change the setpoint again. The highlighted preset is the current setpoint.",
+          "id": 4,
+          "links": [],
+          "title": "Heating control",
+          "vizConfig": {
+            "group": "marcusolsson-dynamictext-panel",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "afterRender": "const box = context.element.querySelector('.heating');\nconst theme = context.grafana.theme;\nconst row = (context.data || [])[0] || {};\nconst PRESETS = [14, 18, 20, 21.5, 22];\nconst STEPS = [-0.5, 0.5];\nconst MODES = { NORMAL: 'Normal', STOP: 'Off', ANTI_FROST: 'Frost protection', ABSENCE: 'Away' };\nconst PROGRAMS = { SCHED: 'schedule', OVERRIDE: 'temporary override', MANUAL: 'manual' };\nconst STATES = { pending: 'pending, sent within a minute', done: 'done', failed: 'failed', expired: 'expired' };\nconst degrees = (v) => (v === null || v === undefined ? '–' : Number(v).toLocaleString(undefined, { maximumFractionDigits: 1 }) + ' °C');\n\nconst send = async (action, value, label) => {\n  const response = await fetch('/api/ds/query', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      from: 'now-5m',\n      to: 'now',\n      queries: [{\n        refId: 'A',\n        datasource: { uid: 'c17a467f-0417-4c81-b598-1bf916d7bba7' },\n        rawSql: \"insert into settings_heating_command (site, action, value) values ('podersdorf', '\" + action + \"', \" + value + \") returning id\",\n        format: 'table',\n      }],\n    }),\n  });\n  const body = await response.json().catch(() => ({}));\n  const error = body.results && body.results.A && body.results.A.error;\n  if (!response.ok || error) {\n    context.grafana.notifyError(['Heating', error || body.message || response.statusText]);\n    return;\n  }\n  context.grafana.notifySuccess(['Heating', label + ': sent to the gateway within a minute']);\n  context.grafana.refresh();\n};\n\nconst button = (text, color, action, value, label) => {\n  const b = document.createElement('button');\n  b.textContent = text;\n  b.style.background = color.main;\n  b.style.color = color.contrastText;\n  b.addEventListener('click', async () => {\n    b.disabled = true;\n    try { await send(action, value, label); } finally { b.disabled = false; }\n  });\n  return b;\n};\n\nconst status = document.createElement('div');\nstatus.className = 'status';\nconst mode = (MODES[row.mode] || row.mode || '–') + ', ' + (PROGRAMS[row.program] || row.program || '–');\nstatus.innerHTML = '<span><b>' + degrees(row.room) + '</b> room</span>'\n  + '<span><b>' + degrees(row.setpoint) + '</b> setpoint</span>'\n  + '<span>' + mode + (row.window_open ? ', window open' : '') + '</span>'\n  + '<span class=\"muted\">read at ' + (row.read_at || '–') + '</span>';\n\nconst presets = document.createElement('div');\npresets.className = 'buttons';\nPRESETS.forEach((v) => presets.append(button(degrees(v),\n  Number(row.setpoint) === v ? theme.colors.primary : theme.colors.secondary,\n  'setpoint', v, 'Setpoint ' + degrees(v))));\n\nconst steps = document.createElement('div');\nsteps.className = 'buttons';\nSTEPS.forEach((v) => steps.append(button((v > 0 ? '+' : '−') + Math.abs(v).toLocaleString() + ' °C',\n  theme.colors.warning, 'step', v, (v > 0 ? 'Warmer' : 'Cooler') + ' by ' + Math.abs(v).toLocaleString() + ' °C')));\n\nconst last = document.createElement('div');\nlast.className = 'muted';\nlast.textContent = row.command_status\n  ? 'Last command: ' + row.command_request + ' at ' + row.command_at + ', ' + (STATES[row.command_status] || row.command_status)\n    + (row.command_message ? ' (' + row.command_message + ')' : '')\n  : 'No command sent yet.';\n\nbox.replaceChildren(status, presets, steps, last);\n",
+                "content": "<div class=\"heating\"></div>",
+                "contentPartials": [],
+                "defaultContent": "<p>No heating data.</p>",
+                "editor": {
+                  "format": "auto",
+                  "height": 200,
+                  "language": "html"
+                },
+                "editors": [
+                  "styles",
+                  "afterRender"
+                ],
+                "externalScripts": [],
+                "externalStyles": [],
+                "helpers": "",
+                "renderMode": "allRows",
+                "styles": "& .heating {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n& .status {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px 24px;\n  align-items: baseline;\n  font-size: 15px;\n}\n\n& .status b {\n  font-size: 22px;\n}\n\n& .buttons {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n& button {\n  border: 0;\n  border-radius: 4px;\n  padding: 10px 16px;\n  font-size: 15px;\n  cursor: pointer;\n  min-width: 72px;\n}\n\n& button:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n& .muted {\n  opacity: 0.7;\n  font-size: 13px;\n}\n",
+                "wrap": true
+              }
+            },
+            "version": "6.3.0"
+          }
+        }
       }
     },
     "layout": {
@@ -456,6 +527,35 @@
                 "kind": "RowsLayout",
                 "spec": {
                   "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "hideHeader": true,
+                        "layout": {
+                          "kind": "AutoGridLayout",
+                          "spec": {
+                            "columnWidthMode": "standard",
+                            "fillScreen": false,
+                            "items": [
+                              {
+                                "kind": "AutoGridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-4"
+                                  }
+                                }
+                              }
+                            ],
+                            "maxColumnCount": 1,
+                            "rowHeight": 260,
+                            "rowHeightMode": "custom"
+                          }
+                        },
+                        "title": "Heating control"
+                      }
+                    },
                     {
                       "kind": "RowsLayoutRow",
                       "spec": {
@@ -578,7 +678,7 @@
       "podersdorf"
     ],
     "timeSettings": {
-      "autoRefresh": "",
+      "autoRefresh": "30s",
       "autoRefreshIntervals": [
         "5s",
         "10s",
