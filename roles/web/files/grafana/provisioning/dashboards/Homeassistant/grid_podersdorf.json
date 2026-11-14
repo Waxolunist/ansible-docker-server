@@ -554,13 +554,13 @@
                   "color": {
                     "mode": "palette-classic"
                   },
-                  "decimals": 1,
-                  "min": 0,
-                  "unit": "kwatth",
                   "custom": {
                     "fillOpacity": 80,
                     "lineWidth": 1
-                  }
+                  },
+                  "decimals": 1,
+                  "min": 0,
+                  "unit": "kwatth"
                 },
                 "overrides": [
                   {
@@ -614,11 +614,11 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "stacking": "normal",
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
                 },
-                "stacking": "normal",
                 "xField": "month",
                 "xTickLabelRotation": -45,
                 "xTickLabelSpacing": 0
@@ -1084,13 +1084,13 @@
                   "color": {
                     "mode": "palette-classic"
                   },
-                  "decimals": 2,
-                  "min": 0,
-                  "unit": "currencyEUR",
                   "custom": {
                     "fillOpacity": 80,
                     "lineWidth": 1
-                  }
+                  },
+                  "decimals": 2,
+                  "min": 0,
+                  "unit": "currencyEUR"
                 },
                 "overrides": [
                   {
@@ -1163,11 +1163,11 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "stacking": "normal",
                 "tooltip": {
                   "mode": "multi",
                   "sort": "none"
                 },
-                "stacking": "normal",
                 "xField": "month",
                 "xTickLabelRotation": -45,
                 "xTickLabelSpacing": 0
