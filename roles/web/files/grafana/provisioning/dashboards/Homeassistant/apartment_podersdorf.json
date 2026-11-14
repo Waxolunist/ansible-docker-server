@@ -514,131 +514,175 @@
             "version": "6.3.0"
           }
         }
-      }
+      },
+      "panel-90": "@@PODERSDORF_FLOW_PANEL@@"
     },
     "layout": {
-      "kind": "TabsLayout",
+      "kind": "RowsLayout",
       "spec": {
-        "tabs": [
+        "rows": [
           {
-            "kind": "TabsLayoutTab",
+            "kind": "RowsLayoutRow",
             "spec": {
+              "collapse": false,
+              "hideHeader": true,
               "layout": {
-                "kind": "RowsLayout",
+                "kind": "AutoGridLayout",
                 "spec": {
-                  "rows": [
+                  "columnWidthMode": "standard",
+                  "items": [
                     {
-                      "kind": "RowsLayoutRow",
+                      "kind": "AutoGridLayoutItem",
                       "spec": {
-                        "collapse": false,
-                        "hideHeader": true,
-                        "layout": {
-                          "kind": "AutoGridLayout",
-                          "spec": {
-                            "columnWidthMode": "standard",
-                            "fillScreen": false,
-                            "items": [
-                              {
-                                "kind": "AutoGridLayoutItem",
-                                "spec": {
-                                  "element": {
-                                    "kind": "ElementReference",
-                                    "name": "panel-4"
-                                  }
-                                }
-                              }
-                            ],
-                            "maxColumnCount": 1,
-                            "rowHeight": 260,
-                            "rowHeightMode": "custom"
-                          }
-                        },
-                        "title": "Heating control"
-                      }
-                    },
-                    {
-                      "kind": "RowsLayoutRow",
-                      "spec": {
-                        "collapse": false,
-                        "hideHeader": true,
-                        "layout": {
-                          "kind": "AutoGridLayout",
-                          "spec": {
-                            "columnWidthMode": "standard",
-                            "fillScreen": false,
-                            "items": [
-                              {
-                                "kind": "AutoGridLayoutItem",
-                                "spec": {
-                                  "element": {
-                                    "kind": "ElementReference",
-                                    "name": "panel-1"
-                                  }
-                                }
-                              }
-                            ],
-                            "maxColumnCount": 1,
-                            "rowHeight": 160,
-                            "rowHeightMode": "custom"
-                          }
-                        },
-                        "title": "Radiators"
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-90"
+                        }
                       }
                     }
-                  ]
+                  ],
+                  "maxColumnCount": 1,
+                  "rowHeight": 150,
+                  "rowHeightMode": "custom"
                 }
               },
-              "title": "Control"
+              "title": "Energy flow"
             }
           },
           {
-            "kind": "TabsLayoutTab",
+            "kind": "RowsLayoutRow",
             "spec": {
+              "collapse": false,
+              "hideHeader": true,
               "layout": {
-                "kind": "RowsLayout",
+                "kind": "TabsLayout",
                 "spec": {
-                  "rows": [
+                  "tabs": [
                     {
-                      "kind": "RowsLayoutRow",
+                      "kind": "TabsLayoutTab",
                       "spec": {
-                        "collapse": false,
-                        "hideHeader": true,
                         "layout": {
-                          "kind": "AutoGridLayout",
+                          "kind": "RowsLayout",
                           "spec": {
-                            "columnWidthMode": "standard",
-                            "fillScreen": false,
-                            "items": [
+                            "rows": [
                               {
-                                "kind": "AutoGridLayoutItem",
+                                "kind": "RowsLayoutRow",
                                 "spec": {
-                                  "element": {
-                                    "kind": "ElementReference",
-                                    "name": "panel-3"
-                                  }
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": false,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-4"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 1,
+                                      "rowHeight": 260,
+                                      "rowHeightMode": "custom"
+                                    }
+                                  },
+                                  "title": "Heating control"
                                 }
                               },
                               {
-                                "kind": "AutoGridLayoutItem",
+                                "kind": "RowsLayoutRow",
                                 "spec": {
-                                  "element": {
-                                    "kind": "ElementReference",
-                                    "name": "panel-2"
-                                  }
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": false,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-1"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 1,
+                                      "rowHeight": 160,
+                                      "rowHeightMode": "custom"
+                                    }
+                                  },
+                                  "title": "Radiators"
                                 }
                               }
-                            ],
-                            "maxColumnCount": 1,
-                            "rowHeightMode": "tall"
+                            ]
                           }
                         },
-                        "title": "Heating"
+                        "title": "Control"
+                      }
+                    },
+                    {
+                      "kind": "TabsLayoutTab",
+                      "spec": {
+                        "layout": {
+                          "kind": "RowsLayout",
+                          "spec": {
+                            "rows": [
+                              {
+                                "kind": "RowsLayoutRow",
+                                "spec": {
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": false,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-3"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-2"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 1,
+                                      "rowHeightMode": "tall"
+                                    }
+                                  },
+                                  "title": "Heating"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": "Analysis"
                       }
                     }
                   ]
                 }
               },
-              "title": "Analysis"
+              "title": "Apartment"
             }
           }
         ]

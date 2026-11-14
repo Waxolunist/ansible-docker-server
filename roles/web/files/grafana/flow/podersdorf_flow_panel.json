@@ -1,0 +1,70 @@
+{
+  "kind": "Panel",
+  "spec": {
+    "data": {
+      "kind": "QueryGroup",
+      "spec": {
+        "queries": [
+          {
+            "kind": "PanelQuery",
+            "spec": {
+              "hidden": false,
+              "query": {
+                "datasource": {
+                  "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                },
+                "group": "grafana-postgresql-datasource",
+                "kind": "DataQuery",
+                "spec": {
+                  "editorMode": "code",
+                  "format": "table",
+                  "rawQuery": true,
+                  "rawSql": "-- One row for the Podersdorf picture: yesterday's consumption of both meters\n-- (the portal is a day behind, so there is no live power) and the newest\n-- radiator reading.\nwith days as (\n  select (date_trunc('day', (e.time - interval '15 minutes') at time zone 'Europe/Vienna'))::date as day,\n         sum(e.energy) as kwh\n  from data_smartmeter_energy e\n  join master_smartmeter_metering_point m on m.id = e.metering_point_id\n  where m.site = 'podersdorf' and e.time > now() - interval '8 days'\n  group by 1\n), last_day as (\n  select day, kwh from days\n  where day < (now() at time zone 'Europe/Vienna')::date\n  order by day desc\n  limit 1\n), radiators as (\n  select distinct on (device_id) time, temperature, setpoint, opening_detected\n  from data_heating\n  where site = 'podersdorf'\n  order by device_id, time desc\n), heating as (\n  select max(time) as time, avg(temperature) as temperature, avg(setpoint) as setpoint,\n         bool_or(opening_detected) as window_open\n  from radiators\n)\nselect\n  coalesce(to_char(h.time at time zone 'Europe/Vienna', 'HH24:MI'), '–') as updated,\n  case when h.time is null or h.time < now() - interval '30 minutes' then 'stale' else '' end as stale,\n  coalesce(to_char(l.kwh, 'FM990.0'), '–') as grid_txt,\n  coalesce(to_char(l.day, 'DD.MM.'), '') as grid_day,\n  coalesce(to_char(h.temperature, 'FM990.0'), '–') as temp_txt,\n  coalesce(to_char(h.setpoint, 'FM990.0'), '–') as setpoint_txt,\n  case when h.window_open then 'Window open' else 'Setpoint ' || coalesce(to_char(h.setpoint, 'FM990.0'), '–') || ' °C' end as apartment_note,\n  -- heat demand: the room is more than 0.3 °C below the setpoint\n  case when h.temperature < h.setpoint - 0.3 then 'on fwd' else 'off' end as line_cls,\n  case when h.temperature < h.setpoint - 0.3 then '' else 'off' end as grid_cls,\n  '/d/grid-podersdorf' as link_grid,\n  '/d/apartment-podersdorf' as link_apartment\nfrom heating h\nleft join last_day l on true;\n"
+                },
+                "version": "v0"
+              },
+              "refId": "A"
+            }
+          }
+        ],
+        "queryOptions": {},
+        "transformations": []
+      }
+    },
+    "description": "Podersdorf has no live power: the Netz Burgenland portal delivers a day's 15-minute values on the next day. Grid shows the last complete day's consumption of both meters (data_smartmeter_energy, site podersdorf) and links to Grid - Podersdorf. Apartment shows the mean room temperature of the radiators and their setpoint (data_heating, TydomJob every 5 minutes; 'Window open' when a radiator detects it) and links to Apartment - Podersdorf. The line moves while the room is more than 0.3 °C below the setpoint (heat demand). Faded when the newest radiator reading is older than 30 minutes. Shared by Home - Podersdorf, Grid - Podersdorf and Apartment - Podersdorf (grafana/flow/podersdorf_flow_panel.json); under 200 px high it shows the two circles in one row.",
+    "id": 90,
+    "links": [],
+    "title": "Site flow",
+    "vizConfig": {
+      "group": "marcusolsson-dynamictext-panel",
+      "kind": "VizConfig",
+      "spec": {
+        "fieldConfig": {
+          "defaults": {},
+          "overrides": []
+        },
+        "options": {
+          "afterRender": "",
+          "content": "<div class=\"stage {{stale}}\">\n  <div class=\"site\">PODERSDORF</div>\n  <div class=\"updated\">Heating read at {{updated}}</div>\n  <div class=\"line {{line_cls}}\"></div>\n  <a class=\"node grid {{grid_cls}}\" href=\"{{link_grid}}\" aria-label=\"Grid\">⚡</a>\n  <a class=\"tag grid\" href=\"{{link_grid}}\"><span class=\"name\">Grid {{grid_day}}</span><span class=\"value\">{{grid_txt}} kWh</span></a>\n  <a class=\"node apartment\" href=\"{{link_apartment}}\" aria-label=\"Apartment\">🏠</a>\n  <a class=\"tag apartment\" href=\"{{link_apartment}}\"><span class=\"name\">Apartment</span><span class=\"value\">{{temp_txt}} °C</span><span class=\"name\">{{apartment_note}}</span></a>\n</div>\n",
+          "contentPartials": [],
+          "defaultContent": "<p>No Podersdorf data.</p>",
+          "editor": {
+            "format": "auto",
+            "height": 200,
+            "language": "html"
+          },
+          "editors": [
+            "styles"
+          ],
+          "externalScripts": [],
+          "externalStyles": [],
+          "helpers": "",
+          "renderMode": "everyRow",
+          "styles": "& {\n  --grid: #e0533c;\n  --home: #3d8bfd;\n  --muted: rgba(128, 128, 128, 0.35);\n}\n\n/* Drawn on a 440 x 400 grid like the Raggendorf flow; --u is one unit. */\n& .dt-row {\n  height: 100%;\n  padding: 0;\n  container-type: size;\n}\n\n& .stage {\n  --u: calc(min(100cqw, 110cqh) / 440);\n  position: relative;\n  width: calc(var(--u) * 440);\n  height: calc(var(--u) * 400);\n  margin: 0 auto;\n}\n\n& .stage.stale {\n  opacity: 0.4;\n}\n\n& .stage > div,\n& .stage > a {\n  position: absolute;\n}\n\n& a {\n  color: inherit;\n  text-decoration: none;\n}\n\n& a:focus-visible {\n  outline: 2px solid var(--home);\n  outline-offset: 2px;\n}\n\n& .site {\n  left: 50%;\n  top: 0;\n  transform: translateX(-50%);\n  font-size: calc(var(--u) * 15);\n  font-weight: 700;\n  letter-spacing: 0.15em;\n}\n\n& .updated {\n  left: 50%;\n  top: calc(var(--u) * 22);\n  transform: translateX(-50%);\n  font-size: calc(var(--u) * 12);\n  opacity: 0.7;\n}\n\n& .tag {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  line-height: 1.25;\n  white-space: nowrap;\n  transform: translateX(-50%);\n  top: calc(var(--u) * 235);\n}\n\n& .name {\n  font-size: calc(var(--u) * 12);\n  opacity: 0.7;\n}\n\n& .value {\n  font-size: calc(var(--u) * 16);\n  font-weight: 600;\n}\n\n& .node {\n  top: calc(var(--u) * 190);\n  width: calc(var(--u) * 52);\n  height: calc(var(--u) * 52);\n  margin: calc(var(--u) * -26) 0 0 calc(var(--u) * -26);\n  box-sizing: border-box;\n  border: calc(var(--u) * 2.5) solid;\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: calc(var(--u) * 22);\n}\n\n& .node.grid, & .tag.grid { left: calc(var(--u) * 110); }\n& .node.apartment, & .tag.apartment { left: calc(var(--u) * 330); }\n& .node.grid { border-color: var(--grid); }\n& .node.apartment { border-color: var(--home); }\n\n& .node.off {\n  border-color: var(--muted);\n  filter: grayscale(1);\n  opacity: 0.6;\n}\n\n/* The line runs from the grid to the apartment; moving dots while the\n   room is below its setpoint. */\n& .line {\n  left: calc(var(--u) * 136);\n  top: calc(var(--u) * 190);\n  width: calc(var(--u) * 168);\n  height: calc(var(--u) * 3.5);\n  margin-top: calc(var(--u) * -1.75);\n  border-radius: 999px;\n  --c: var(--grid);\n  background: var(--muted);\n}\n\n& .line.on {\n  background:\n    radial-gradient(circle, var(--c) 40%, transparent 45%) 0 50% / calc(var(--u) * 10) 100% repeat-x,\n    linear-gradient(color-mix(in srgb, var(--c) 35%, transparent), color-mix(in srgb, var(--c) 35%, transparent));\n  animation: energy-flow 0.8s linear infinite;\n}\n\n@keyframes energy-flow {\n  from { background-position: 0 50%, 0 0; }\n  to { background-position: calc(var(--u) * 10) 50%, 0 0; }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  & .line.on { animation: none; }\n}\n\n@container (max-height: 200px) {\n  & .stage {\n    --u: calc(min(100cqw, 350cqh) / 440);\n    height: calc(var(--u) * 126);\n  }\n\n  & .site {\n    font-size: calc(var(--u) * 11);\n    letter-spacing: 0.12em;\n  }\n\n  & .updated, & .tag.apartment .name:last-child {\n    display: none;\n  }\n\n  & .node {\n    top: calc(var(--u) * 46);\n    width: calc(var(--u) * 44);\n    height: calc(var(--u) * 44);\n    margin: calc(var(--u) * -22) 0 0 calc(var(--u) * -22);\n    font-size: calc(var(--u) * 20);\n  }\n\n  & .line {\n    top: calc(var(--u) * 46);\n    left: calc(var(--u) * 132);\n    width: calc(var(--u) * 176);\n  }\n\n  & .tag {\n    top: calc(var(--u) * 76);\n  }\n\n  & .tag .value { order: 1; }\n  & .tag .name { order: 2; }\n}\n",
+          "wrap": true
+        }
+      },
+      "version": "6.3.0"
+    }
+  }
+}
