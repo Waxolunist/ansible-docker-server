@@ -222,7 +222,7 @@
       ChargingModeJob: 30m
       SohInfoJob: 30m
       CloudPowerJob: 30m
-      GoeSignaller: 1h
+      SocRefreshJob: 1h
       NetzNiederoesterreichJob: 3h
       NetzBurgenlandJob: 3h
       SpotDataJob: 3h
