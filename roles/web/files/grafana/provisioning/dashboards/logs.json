@@ -50,7 +50,7 @@
                       "spec": {
                         "editorMode": "code",
                         "expr": "sum by (host, service_name) (count_over_time({host=~\"$host\", source=~\"$source\", container=~\"$container\", unit=~\"$unit\", level=~\"$level\"} |~ `(?i)$search` [$__auto]))",
-                        "legendFormat": "{{host}} \u00b7 {{service_name}}",
+                        "legendFormat": "{{host}} · {{service_name}}",
                         "queryType": "range"
                       },
                       "version": "v0"
@@ -398,46 +398,76 @@
       }
     },
     "layout": {
-      "kind": "GridLayout",
+      "kind": "RowsLayout",
       "spec": {
-        "items": [
+        "rows": [
           {
-            "kind": "GridLayoutItem",
+            "kind": "RowsLayoutRow",
             "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-1"
+              "collapse": false,
+              "hideHeader": false,
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-1"
+                        },
+                        "height": 9,
+                        "width": 14,
+                        "x": 0,
+                        "y": 0
+                      }
+                    },
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-2"
+                        },
+                        "height": 9,
+                        "width": 10,
+                        "x": 14,
+                        "y": 0
+                      }
+                    }
+                  ]
+                }
               },
-              "height": 9,
-              "width": 14,
-              "x": 0,
-              "y": 0
+              "title": "Log volume"
             }
           },
           {
-            "kind": "GridLayoutItem",
+            "kind": "RowsLayoutRow",
             "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-2"
+              "collapse": false,
+              "hideHeader": true,
+              "layout": {
+                "kind": "GridLayout",
+                "spec": {
+                  "items": [
+                    {
+                      "kind": "GridLayoutItem",
+                      "spec": {
+                        "element": {
+                          "kind": "ElementReference",
+                          "name": "panel-3"
+                        },
+                        "height": 22,
+                        "width": 24,
+                        "x": 0,
+                        "y": 0
+                      }
+                    }
+                  ]
+                }
               },
-              "height": 9,
-              "width": 10,
-              "x": 14,
-              "y": 0
-            }
-          },
-          {
-            "kind": "GridLayoutItem",
-            "spec": {
-              "element": {
-                "kind": "ElementReference",
-                "name": "panel-3"
-              },
-              "height": 22,
-              "width": 24,
-              "x": 0,
-              "y": 9
+              "title": "Logs"
             }
           }
         ]
