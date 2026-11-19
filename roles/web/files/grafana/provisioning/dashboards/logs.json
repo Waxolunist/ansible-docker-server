@@ -1,0 +1,675 @@
+{
+  "apiVersion": "dashboard.grafana.app/v2",
+  "kind": "Dashboard",
+  "metadata": {
+    "name": "logs"
+  },
+  "spec": {
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "builtIn": true,
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "query": {
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "group": "grafana",
+            "kind": "DataQuery",
+            "spec": {},
+            "version": "v0"
+          }
+        }
+      }
+    ],
+    "cursorSync": "Crosshair",
+    "description": "Every log of the Pi and the VPS in Loki: Docker containers and the systemd journal.",
+    "editable": true,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (host, service_name) (count_over_time({host=~\"$host\", source=~\"$source\", container=~\"$container\", unit=~\"$unit\", level=~\"$level\"} |~ `(?i)$search` [$__auto]))",
+                        "legendFormat": "{{host}} \u00b7 {{service_name}}",
+                        "queryType": "range"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Lines per host and container or systemd unit (service_name), with the filters and the search applied.",
+          "id": 1,
+          "links": [],
+          "title": "Log volume by source",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 70,
+                    "gradientMode": "opacity",
+                    "lineWidth": 1,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true,
+                  "sortBy": "Total",
+                  "sortDesc": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-2": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (level) (count_over_time({host=~\"$host\", source=~\"$source\", container=~\"$container\", unit=~\"$unit\", level=~\"$level\"} |~ `(?i)$search` [$__auto]))",
+                        "legendFormat": "{{level}}",
+                        "queryType": "range"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Lines per level, with the filters and the search applied. Lines without a parseable level are counted under an empty name.",
+          "id": 2,
+          "links": [],
+          "title": "Log volume by level",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "drawStyle": "bars",
+                    "fillOpacity": 70,
+                    "gradientMode": "opacity",
+                    "lineWidth": 1,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
+                  },
+                  "unit": "short"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "critical"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "dark-red",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "error"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "red",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "warning"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "orange",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "warn"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "orange",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "notice"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "yellow",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "info"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "green",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "debug"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "blue",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "trace"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "purple",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true,
+                  "sortBy": "Total",
+                  "sortDesc": true
+                },
+                "tooltip": {
+                  "hideZeros": true,
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "{host=~\"$host\", source=~\"$source\", container=~\"$container\", unit=~\"$unit\", level=~\"$level\"} |~ `(?i)$search` | line_format `{{.host}} {{.service_name}}  {{__line__}}`",
+                        "legendFormat": "",
+                        "maxLines": 1000,
+                        "queryType": "range"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Newest first. Each line starts with its host and service_name; open a line for all its labels.",
+          "id": 3,
+          "links": [],
+          "title": "Logs",
+          "vizConfig": {
+            "group": "logs",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "dedupStrategy": "none",
+                "enableInfiniteScrolling": true,
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "showCommonLabels": false,
+                "showLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "GridLayout",
+      "spec": {
+        "items": [
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-1"
+              },
+              "height": 9,
+              "width": 14,
+              "x": 0,
+              "y": 0
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-2"
+              },
+              "height": 9,
+              "width": 10,
+              "x": 14,
+              "y": 0
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              },
+              "height": 22,
+              "width": 24,
+              "x": 0,
+              "y": 9
+            }
+          }
+        ]
+      }
+    },
+    "links": [
+      {
+        "asDropdown": false,
+        "icon": "dashboard",
+        "includeVars": false,
+        "keepTime": true,
+        "tags": [],
+        "targetBlank": false,
+        "title": "Service Status",
+        "tooltip": "",
+        "type": "link",
+        "url": "/d/container-status-page"
+      }
+    ],
+    "liveNow": false,
+    "preload": false,
+    "tags": [
+      "logs",
+      "loki"
+    ],
+    "timeSettings": {
+      "autoRefresh": "1m",
+      "autoRefreshIntervals": [
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "1h"
+      ],
+      "fiscalYearStartMonth": 0,
+      "from": "now-6h",
+      "hideTimepicker": false,
+      "quickRanges": "@@QUICK_RANGES@@",
+      "timezone": "Europe/Vienna",
+      "to": "now",
+      "weekStart": "monday"
+    },
+    "title": "Logs",
+    "variables": [
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".+",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "definition": "label_values(host)",
+          "description": "Pi or VPS",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Host",
+          "multi": true,
+          "name": "host",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "loki"
+            },
+            "group": "loki",
+            "kind": "DataQuery",
+            "spec": {
+              "label": "host",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "",
+              "type": 1
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allValue": ".+",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "description": "docker: container output. journal: the systemd journal (OS services, sshd, cron, WireGuard, the watchdog)",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Source",
+          "multi": true,
+          "name": "source",
+          "options": [],
+          "query": "docker,journal",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "definition": "label_values({host=~\"$host\", source=\"docker\"}, container)",
+          "description": "Docker containers of the selected hosts",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Container",
+          "multi": true,
+          "name": "container",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "loki"
+            },
+            "group": "loki",
+            "kind": "DataQuery",
+            "spec": {
+              "label": "container",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{host=~\"$host\", source=\"docker\"}",
+              "type": 1
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "definition": "label_values({host=~\"$host\", source=\"journal\"}, unit)",
+          "description": "systemd units of the selected hosts",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Unit",
+          "multi": true,
+          "name": "unit",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "loki"
+            },
+            "group": "loki",
+            "kind": "DataQuery",
+            "spec": {
+              "label": "unit",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{host=~\"$host\", source=\"journal\"}",
+              "type": 1
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "definition": "label_values({host=~\"$host\", source=~\"$source\"}, level)",
+          "description": "Log level, where one could be parsed",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Level",
+          "multi": true,
+          "name": "level",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "loki"
+            },
+            "group": "loki",
+            "kind": "DataQuery",
+            "spec": {
+              "label": "level",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{host=~\"$host\", source=~\"$source\"}",
+              "type": 1
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "TextVariable",
+        "spec": {
+          "current": {
+            "text": "",
+            "value": ""
+          },
+          "description": "Regular expression, case-insensitive",
+          "hide": "dontHide",
+          "label": "Search",
+          "name": "search",
+          "query": "",
+          "skipUrlSync": false
+        }
+      }
+    ]
+  }
+}

@@ -9,7 +9,7 @@
     - timescale
     - photoprism
     - loki
-    - promtail
+    - alloy
     - postgres_exporter
     - conduit
     - picoclaw
@@ -173,6 +173,8 @@
     - code-server
     - autoheal
     - coturn
+    - loki
+    - alloy
 
   restart_container: no
 
