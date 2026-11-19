@@ -130,14 +130,53 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "barWidthFactor": 0.6,
                     "drawStyle": "line",
                     "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "insertNulls": false,
+                    "lineInterpolation": "linear",
                     "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
                     "showPoints": "never",
-                    "spanNulls": 60000
+                    "showValues": false,
+                    "spanNulls": 60000,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "decimals": 2,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "kwatt"
                 },
                 "overrides": [
@@ -199,17 +238,19 @@
               },
               "options": {
                 "legend": {
+                  "calcs": [],
                   "displayMode": "list",
                   "placement": "bottom",
                   "showLegend": true
                 },
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 }
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -316,7 +357,7 @@
                 "wideLayout": true
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -423,7 +464,7 @@
                 "wideLayout": true
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -530,7 +571,7 @@
                 "wideLayout": true
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -556,6 +597,7 @@
                           "kind": "AutoGridLayout",
                           "spec": {
                             "columnWidthMode": "standard",
+                            "fillScreen": true,
                             "items": [
                               {
                                 "kind": "AutoGridLayoutItem",
@@ -623,6 +665,7 @@
                     {
                       "kind": "RowsLayoutRow",
                       "spec": {
+                        "collapse": false,
                         "fillScreen": true,
                         "hideHeader": true,
                         "layout": {
