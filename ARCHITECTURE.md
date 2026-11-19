@@ -185,8 +185,8 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `grafana_ui`, `grafana`, `prometheus` | `graph.v-collaborate.com` |
 | 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
 | 12 | `timescaledb` | `timescale/timescaledb-ha:pg16.15-ts2.31.0` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
-| 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage | — | `grafana` | — |
-| 14 | `promtail` | `grafana/promtail:3.5.0` | Log shipper — tails TimescaleDB container logs via socket-proxy | — | `grafana`, `socket_proxy` | — |
+| 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage; receives the Pi's logs on `10.8.0.1:3100` | — | `grafana` | `10.8.0.1:3100` (WireGuard only) |
+| 14 | `alloy` | `grafana/alloy:v1.21.3` | Log shipper: every container's output (via socket-proxy) and the systemd journal | — | `grafana`, `socket_proxy` | — |
 | 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
 | 16 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
 | 17 | `photoprism` | `photoprism/photoprism:260523` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
@@ -322,8 +322,8 @@ graph TB
 | `setup_model_ui` | `web_setup_model_ui` | Traefik to the setup model's nginx | reverse-proxy, setup-model |
 | `picoclaw_ui` | `web_picoclaw_ui` | Traefik to PicoClaw, which reaches only the internet (Matrix through its public name) | reverse-proxy, picoclaw |
 | `prometheus` | auto-generated | Metrics collection and alerting | prometheus, node-exporter, cadvisor, postgres-exporter, sql-exporter, alertmanager, matrix-receiver, grafana (datasources), authelia (scraped on 9959) |
-| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, promtail, postgres-exporter, sql-exporter |
-| `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, promtail |
+| `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, alloy, postgres-exporter, sql-exporter |
+| `socket_proxy` | auto-generated (internal) | Restricted Docker API access | socket-proxy, reverse-proxy, alloy |
 | `photoprism` | auto-generated | PhotoPrism database access | photoprism-mariadb, photoprism |
 | `wiki` | `web_wiki` | Isolates Otterwiki, which trusts auth headers blindly, so only Traefik can reach it | reverse-proxy, otterwiki |
 
@@ -564,8 +564,9 @@ graph LR
     AM -->|webhook per area| MR[matrix-receiver]
     MR -->|messages| CO[Conduit]
     AM -->|alert data source| G
-    TS[timescaledb] -->|connection logs stdout| PT[Promtail]
-    PT -->|push logs| L[Loki]
+    D[all containers and the journal] -->|logs| AL[Alloy]
+    AL -->|push logs| L[Loki]
+    PA[Alloy on the Pi 10.8.0.2] -->|over WireGuard| L
     P -->|metrics data source| G[Grafana]
     L -->|log data source| G
     GPG[grafana-pg] -->|stores dashboards| G
@@ -630,20 +631,23 @@ All alert rules are Prometheus rules in [`alerts_yml.j2`](roles/web/templates/pr
 
 Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metrics on port 9100. It has no Traefik labels and is not accessible externally.
 
-### Loki & Promtail
+### Loki & Alloy
 
 [Loki v3.5.0](roles/web/templates/loki/loki_yml.j2) provides log aggregation and storage:
 
 - **Storage**: Local filesystem under `/var/loki` with TSDB index
 - **Retention**: 90 days (compactor with deletion enabled)
-- **Network**: `grafana` — reachable by Grafana and Promtail only; not exposed externally
+- **Network**: `grafana`, plus `10.8.0.1:3100` published on the WireGuard address only, so the Pi's Alloy can push; no authentication, like Alertmanager, since only tunnel peers reach it
 - **Data source UID**: `loki` (provisioned automatically in Grafana)
 
-[Promtail v3.5.0](roles/web/templates/promtail/promtail_yml.j2) ships TimescaleDB logs to Loki:
+[Alloy v1.21.3](roles/web/files/alloy/config.alloy) ships every log of the VPS to Loki. It replaced Promtail, which reached end of life on 2026-03-02:
 
-- Discovers the `web_timescaledb` container via the existing `socket-proxy` (`CONTAINERS=1` already covers `/containers/{id}/logs`)
-- Extracts `pg_level` (LOG / FATAL / ERROR) as a Loki label for efficient filtering
-- Positions file persisted in `work/promtail/` to survive container restarts without re-ingesting old logs
+- Every container's output, discovered via the existing `socket-proxy` (`CONTAINERS=1` already covers `/containers/{id}/logs`)
+- The systemd journal, from `/var/log/journal` (read-only, with `/etc/machine-id`)
+- `web_timescaledb` gets a `pg_level` label, `authelia` and `web_prometheus` a `level` label, as before; every other container gets `level` where one can be parsed
+- Positions are kept in `work/alloy/` (`--storage.path`), so a restart resumes where it stopped
+
+The label schema and the whole pipeline (both hosts) are in the docs repository, `explanation/logging.md`.
 
 ### postgres-exporter
 
@@ -735,7 +739,7 @@ All persistent data is stored under `/var/docker/` in four subdirectories:
 | minecraft | — | `data/minecraft` → `/data` | — | — |
 | timescaledb | `configs/timescale/init_roles.sql`, `configs/timescale/monitoring.sql` → `/docker-entrypoint-initdb.d/` | `data/timescale/pgdata` → `/home/postgres/pgdata/data` | — | — |
 | loki | `configs/loki/loki.yml` → `/etc/loki/loki.yml` | `data/loki` → `/var/loki` | — | — |
-| promtail | `configs/promtail/promtail.yml` → `/etc/promtail/promtail.yml` | — | `work/promtail` → `/tmp` (positions file) | — |
+| alloy | `configs/alloy/config.alloy` → `/etc/alloy/config.alloy` | — | `work/alloy` → `/var/lib/alloy/data` (positions) | — |
 | postgres-exporter | `configs/postgres_exporter/queries.yml` → `/etc/postgres_exporter/queries.yml` | — | — | — |
 | alertmanager | `configs/alertmanager` → `/etc/alertmanager` | `data/alertmanager` → `/alertmanager` (silences, notification log) | — | — |
 | matrix-receiver | `configs/matrix_receiver/config.yml` → `/etc/matrix-receiver/config.yml` (holds the access token, mode 0600, owner 65532) | — | — | — |

@@ -1,0 +1,14 @@
+---
+  - name: Alloy - Write configuration
+    copy:
+      src: alloy/config.alloy
+      dest: "{{ docker.paths.configs }}alloy/config.alloy"
+      mode: 0644
+      backup: yes
+    register: alloy_config
+  - name: Alloy - Restart when its configuration changed
+    command: docker restart web_alloy
+    become: yes
+    register: alloy_restart
+    failed_when: alloy_restart.rc != 0 and 'No such container' not in alloy_restart.stderr
+    when: alloy_config.changed
