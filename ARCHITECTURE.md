@@ -185,7 +185,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 10 | `grafana` | `grafana/grafana:13.2.4` | Dashboarding and visualization | — | `grafana_ui`, `grafana`, `prometheus` | `graph.v-collaborate.com` |
 | 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
 | 12 | `timescaledb` | `timescale/timescaledb-ha:pg16.15-ts2.31.0` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
-| 13 | `loki` | `grafana/loki:3.5.0` | Log aggregation and storage; receives the Pi's logs on `10.8.0.1:3100` | — | `grafana` | `10.8.0.1:3100` (WireGuard only) |
+| 13 | `loki` | `grafana/loki:3.5.12` | Log aggregation and storage; receives the Pi's logs on `10.8.0.1:3100` | — | `grafana` | `10.8.0.1:3100` (WireGuard only) |
 | 14 | `alloy` | `grafana/alloy:v1.21.3` | Log shipper: every container's output (via socket-proxy) and the systemd journal | — | `grafana`, `socket_proxy` | — |
 | 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
 | 16 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
@@ -633,7 +633,7 @@ Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metr
 
 ### Loki & Alloy
 
-[Loki v3.5.0](roles/web/templates/loki/loki_yml.j2) provides log aggregation and storage:
+[Loki v3.5.12](roles/web/templates/loki/loki_yml.j2) provides log aggregation and storage:
 
 - **Storage**: Local filesystem under `/var/loki` with TSDB index
 - **Retention**: 90 days (compactor with deletion enabled)
