@@ -2067,20 +2067,52 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 90,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "decimals": 0,
                   "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "percent"
                 },
                 "overrides": []
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.9,
+                "fullHighlight": false,
                 "groupWidth": 0.8,
                 "legend": {
+                  "calcs": [],
                   "displayMode": "list",
                   "placement": "bottom",
                   "showLegend": true
@@ -2089,13 +2121,15 @@
                 "showValue": "never",
                 "stacking": "none",
                 "tooltip": {
+                  "hideZeros": false,
                   "mode": "multi",
                   "sort": "none"
                 },
-                "xTickLabelRotation": 0
+                "xTickLabelRotation": 0,
+                "xTickLabelSpacing": 0
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2146,12 +2180,41 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "decimals": 0,
                   "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "kwatth"
                 },
                 "overrides": [
@@ -2200,7 +2263,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -2208,6 +2273,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "normal",
                 "tooltip": {
@@ -2220,7 +2286,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2271,12 +2337,41 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "decimals": 0,
                   "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "kwatth"
                 },
                 "overrides": [
@@ -2341,7 +2436,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -2349,6 +2446,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "normal",
                 "tooltip": {
@@ -2361,7 +2459,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2429,11 +2527,40 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "kwatth"
                 },
                 "overrides": [
@@ -2482,7 +2609,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -2490,6 +2619,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "none",
                 "tooltip": {
@@ -2502,7 +2632,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2570,11 +2700,40 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "kwatth"
                 },
                 "overrides": [
@@ -2623,7 +2782,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -2631,6 +2792,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "none",
                 "tooltip": {
@@ -2643,7 +2805,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2712,9 +2874,22 @@
                     "mode": "fixed"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
                     "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
                     "thresholdsStyle": {
                       "mode": "dashed"
                     }
@@ -2771,7 +2946,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -2779,6 +2956,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "none",
                 "tooltip": {
@@ -2791,7 +2969,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2842,13 +3020,42 @@
                     "mode": "palette-classic"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "decimals": 0,
                   "max": 1,
                   "min": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "percentunit"
                 },
                 "overrides": [
@@ -2897,7 +3104,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -2905,6 +3114,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "none",
                 "tooltip": {
@@ -2917,7 +3127,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -2969,11 +3179,40 @@
                     "mode": "fixed"
                   },
                   "custom": {
+                    "axisBorderShow": false,
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
                     "axisPlacement": "auto",
                     "fillOpacity": 80,
-                    "lineWidth": 0
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineWidth": 0,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
                   },
                   "decimals": 0,
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": 0
+                      },
+                      {
+                        "color": "red",
+                        "value": 80
+                      }
+                    ]
+                  },
                   "unit": "percent"
                 },
                 "overrides": [
@@ -2992,7 +3231,9 @@
                 ]
               },
               "options": {
+                "barRadius": 0,
                 "barWidth": 0.8,
+                "fullHighlight": false,
                 "groupWidth": 0.7,
                 "legend": {
                   "calcs": [],
@@ -3000,6 +3241,7 @@
                   "placement": "bottom",
                   "showLegend": true
                 },
+                "orientation": "auto",
                 "showValue": "never",
                 "stacking": "none",
                 "tooltip": {
@@ -3012,7 +3254,7 @@
                 "xTickLabelSpacing": 60
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -3103,6 +3345,7 @@
                       "type": "linear"
                     },
                     "showPoints": "never",
+                    "showValues": false,
                     "spanNulls": false,
                     "stacking": {
                       "group": "A",
@@ -3235,7 +3478,7 @@
                 }
               }
             },
-            "version": "12.0.0"
+            "version": "13.2.4"
           }
         }
       },
@@ -4375,8 +4618,7 @@
                                         }
                                       ],
                                       "maxColumnCount": 6,
-                                      "rowHeight": 120,
-                                      "rowHeightMode": "custom"
+                                      "rowHeightMode": "short"
                                     }
                                   },
                                   "title": "Totals in the picked range"
@@ -4411,8 +4653,7 @@
                                         }
                                       ],
                                       "maxColumnCount": 2,
-                                      "rowHeight": 340,
-                                      "rowHeightMode": "custom"
+                                      "rowHeightMode": "tall"
                                     }
                                   },
                                   "title": "Over time"
@@ -4460,8 +4701,7 @@
                                         }
                                       ],
                                       "maxColumnCount": 2,
-                                      "rowHeight": 360,
-                                      "rowHeightMode": "custom"
+                                      "rowHeightMode": "standard"
                                     }
                                   },
                                   "title": "Daily pattern in the picked range"
@@ -4487,8 +4727,7 @@
                                         }
                                       ],
                                       "maxColumnCount": 1,
-                                      "rowHeight": 340,
-                                      "rowHeightMode": "custom"
+                                      "rowHeightMode": "standard"
                                     }
                                   },
                                   "title": "Peak grid import in the picked range"
@@ -4735,7 +4974,8 @@
             }
           ],
           "query": "Day : day, Month : month, Year : year",
-          "skipUrlSync": false
+          "skipUrlSync": false,
+          "valuesFormat": "csv"
         }
       }
     ]
