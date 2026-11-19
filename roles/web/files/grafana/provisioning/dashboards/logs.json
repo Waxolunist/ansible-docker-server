@@ -133,7 +133,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "sum by (level) (count_over_time({host=~\"$host\", source=~\"$source\", container=~\"$container\", unit=~\"$unit\", level=~\"$level\"} |~ `(?i)$search` [$__auto]))",
+                        "expr": "sum by (level) (label_replace(count_over_time({host=~\"$host\", source=~\"$source\", container=~\"$container\", unit=~\"$unit\", level=~\"$level\"} |~ `(?i)$search` [$__auto]), \"level\", \"unknown\", \"level\", \"\"))",
                         "legendFormat": "{{level}}",
                         "queryType": "range"
                       },
@@ -147,7 +147,7 @@
               "transformations": []
             }
           },
-          "description": "Lines per level, with the filters and the search applied. Lines without a parseable level are counted under an empty name.",
+          "description": "Lines per level, with the filters and the search applied. Lines without a level are counted as unknown.",
           "id": 2,
           "links": [],
           "title": "Log volume by level",
@@ -175,6 +175,21 @@
                   "unit": "short"
                 },
                 "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "unknown"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "text",
+                          "mode": "fixed"
+                        }
+                      }
+                    ]
+                  },
                   {
                     "matcher": {
                       "id": "byName",
