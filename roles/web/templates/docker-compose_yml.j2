@@ -120,8 +120,8 @@ services:
       - traefik.http.middlewares.security-headers.headers.permissionsPolicy=camera=(), microphone=(), geolocation=(), payment=()
       - traefik.http.middlewares.security-headers.headers.customResponseHeaders.X-XSS-Protection=0
       # --- Global rate limiting middleware ---
-      - traefik.http.middlewares.rate-limit.ratelimit.average=100
-      - traefik.http.middlewares.rate-limit.ratelimit.burst=200
+      - traefik.http.middlewares.rate-limit.ratelimit.average=300
+      - traefik.http.middlewares.rate-limit.ratelimit.burst=1000
       - traefik.http.middlewares.rate-limit.ratelimit.period=1m
       # --- Traefik dashboard routes ---
       - traefik.http.middlewares.proxy-https-redirect.redirectscheme.scheme=https
