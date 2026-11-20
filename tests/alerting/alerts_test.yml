@@ -545,6 +545,22 @@ tests:
               dashboard: "https://graph.v-collaborate.com/d/container-status-page"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#2-read-the-logs-for-that-job"
 
+  - name: CollectorJobFailing shows the extrapolated count as a whole number
+    interval: 1m
+    input_series:
+      - series: 'collector_job_failures_total{job="collector",instance="10.8.0.2:9105",collector_job="GoEEnergyJob"}'
+        values: '5x40 6x5 7x5 8x30'
+    alert_rule_test:
+      - eval_time: 70m
+        alertname: CollectorJobFailing_GoEEnergyJob
+        exp_alerts:
+          - exp_labels: {severity: warning, area: data, job: collector, instance: "10.8.0.2:9105", collector_job: GoEEnergyJob}
+            exp_annotations:
+              summary: "Collector job GoEEnergyJob keeps failing"
+              description: "GoEEnergyJob raised 3 errors in the last hour."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/diagnose-missing-data.md#2-read-the-logs-for-that-job"
+
   - name: DataStale uses each table's limit, spot prices look ahead
     interval: 1m
     input_series:
