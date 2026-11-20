@@ -31,7 +31,7 @@
         "transformations": []
       }
     },
-    "description": "Podersdorf has no live power: the Netz Burgenland portal delivers a day's 15-minute values on the next day. Grid shows the last complete day's consumption of both meters (data_smartmeter_energy, site podersdorf) and links to Grid - Podersdorf. Apartment shows the mean room temperature of the radiators and their setpoint (data_heating, TydomJob every 5 minutes; 'Window open' when a radiator detects it) and links to Apartment - Podersdorf. The line moves while the room is more than 0.3 °C below the setpoint (heat demand). Faded when the newest radiator reading is older than 30 minutes. Shared by Home - Podersdorf, Grid - Podersdorf and Apartment - Podersdorf (grafana/flow/podersdorf_flow_panel.json); under 200 px high it shows the two circles in one row.",
+    "description": "Podersdorf has no live power: the Netz Burgenland portal delivers a day's 15-minute values on the next day. Grid shows the last complete day's consumption of both meters (data_smartmeter_energy, site podersdorf) and links to Grid - Podersdorf. Apartment shows the mean room temperature of the radiators and their setpoint (data_heating, TydomJob every 5 minutes; 'Window open' when a radiator detects it) and links to Apartment - Podersdorf. The line moves while the room is more than 0.3 °C below the setpoint (heat demand). Faded when the newest radiator reading is older than 30 minutes. Shared by Home - Podersdorf, Grid - Podersdorf and Apartment - Podersdorf (grafana/flow/podersdorf_flow_panel.json); under 200 px high it shows the two circles in one row. Without a result (query failed, e.g. right after the device wakes from sleep before the network is back) the panel shows the same picture all grey with '–' for every value and 'No data' at the top, until the next refresh brings data.",
     "id": 90,
     "links": [],
     "title": "Site flow",
@@ -47,7 +47,7 @@
           "afterRender": "",
           "content": "<div class=\"stage {{stale}}\">\n  <div class=\"site\">PODERSDORF</div>\n  <div class=\"updated\">Heating read at {{updated}}</div>\n  <div class=\"line {{line_cls}}\"></div>\n  <a class=\"node grid {{grid_cls}}\" href=\"{{link_grid}}\" aria-label=\"Grid\">⚡</a>\n  <a class=\"tag grid\" href=\"{{link_grid}}\"><span class=\"name\">Grid {{grid_day}}</span><span class=\"value\">{{grid_txt}} kWh</span></a>\n  <a class=\"node apartment\" href=\"{{link_apartment}}\" aria-label=\"Apartment\">🏠</a>\n  <a class=\"tag apartment\" href=\"{{link_apartment}}\"><span class=\"name\">Apartment</span><span class=\"value\">{{temp_txt}} °C</span><span class=\"name\">{{apartment_note}}</span></a>\n</div>\n",
           "contentPartials": [],
-          "defaultContent": "<p>No Podersdorf data.</p>",
+          "defaultContent": "<div class=\"stage nodata\">\n  <div class=\"site\">PODERSDORF</div>\n  <div class=\"updated\">No data</div>\n  <div class=\"line off\"></div>\n  <a class=\"node grid off\" href=\"/d/grid-podersdorf\" aria-label=\"Grid\">⚡</a>\n  <a class=\"tag grid\" href=\"/d/grid-podersdorf\"><span class=\"name\">Grid</span><span class=\"value\">–</span></a>\n  <a class=\"node apartment off\" href=\"/d/apartment-podersdorf\" aria-label=\"Apartment\">🏠</a>\n  <a class=\"tag apartment\" href=\"/d/apartment-podersdorf\"><span class=\"name\">Apartment</span><span class=\"value\">–</span></a>\n</div>\n",
           "editor": {
             "format": "auto",
             "height": 200,
