@@ -182,6 +182,46 @@ loki.relabel "journal" {
 	}
 }
 
+loki.process "journal" {
+	stage.match {
+		selector = "{unit=\"ssh.service\"} |~ \"^Accepted \""
+
+		stage.regex {
+			expression = "^Accepted (?P<ssh_method>\\S+) for (?P<ssh_user>\\S+) from (?P<address>\\S+) port \\d+ ssh2(?:: \\S+ (?P<ssh_key>SHA256:\\S+))?"
+		}
+
+		stage.regex {
+			source     = "address"
+			expression = "^(?:(?P<wireguard>10\\.8\\.0\\.)|(?P<tls_tunnel>172\\.20\\.0\\.))"
+		}
+
+		stage.template {
+			source   = "ssh_origin"
+			template = "{{ if .wireguard }}wireguard{{ else if .tls_tunnel }}tls-tunnel{{ else }}internet{{ end }}"
+		}
+
+		stage.labels {
+			values = {ssh_user = "", ssh_method = "", ssh_key = "", ssh_origin = ""}
+		}
+
+		stage.metrics {
+			metric.counter {
+				name              = "ssh_logins_total"
+				description       = "Accepted SSH logins by user, method, key and origin"
+				match_all         = true
+				action            = "inc"
+				max_idle_duration = "8760h"
+			}
+		}
+
+		stage.label_drop {
+			values = ["ssh_user", "ssh_method", "ssh_key", "ssh_origin"]
+		}
+	}
+
+	forward_to = [loki.write.loki.receiver]
+}
+
 loki.source.journal "journal" {
 	path          = "/var/log/journal"
 	max_age       = "12h"
@@ -190,7 +230,7 @@ loki.source.journal "journal" {
 		host   = "VPS",
 		source = "journal",
 	}
-	forward_to = [loki.write.loki.receiver]
+	forward_to = [loki.process.journal.receiver]
 }
 
 loki.write "loki" {

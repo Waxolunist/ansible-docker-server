@@ -96,7 +96,7 @@
             [sshd]
             enabled = true
             port = ssh
-            filter = sshd
+            filter = sshd[mode=aggressive]
             backend = systemd
             # SSH over TLS on 443 reaches sshd from Traefik's address on
             # web_proxy (roles/web/vars/main.yml, ssh_tunnel). Banning it would
@@ -106,6 +106,8 @@
             maxretry = 3
             findtime = 600
             bantime = 3600
+            bantime.increment = true
+            bantime.maxtime = 1w
           mode: "0644"
         notify: restart fail2ban
 

@@ -225,9 +225,12 @@ services:
     command:
       - '--path.rootfs=/host'
       - '--collector.textfile.directory=/textfile_collector'
+      - '--collector.systemd'
+      - '--collector.systemd.unit-include={{ node_exporter_systemd_units }}'
     volumes:
       - "{{ docker.paths.data }}node-exporter:/textfile_collector:ro"
       - "/:/host:ro,rslave"
+      - "/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket:ro"
     labels:
       - autoheal=true
       - traefik.enable=false
@@ -708,8 +711,10 @@ services:
       - run
       - /etc/alloy/config.alloy
       - --storage.path=/var/lib/alloy/data
+      - --server.http.listen-addr=0.0.0.0:12345
     networks:
       - grafana
+      - prometheus
       - socket_proxy
     depends_on:
       - loki
