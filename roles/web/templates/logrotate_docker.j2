@@ -1,6 +1,7 @@
 {{ docker.paths.logs }}*.log {{ docker.paths.logs }}*/*.log {{ docker.paths.logs }}*/*/*.log {
     daily
-    rotate 14
+    rotate {{ docker_log_retention_days }}
+    maxage {{ docker_log_retention_days }}
     missingok
     notifempty
     compress
@@ -8,5 +9,5 @@
     copytruncate
     dateext
     dateformat -%Y-%m-%d
-    su {{ ansible_user }} {{ ansible_user }}
+    su root root
 }

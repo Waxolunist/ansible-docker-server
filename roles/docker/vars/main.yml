@@ -1,5 +1,6 @@
 ---
   docker_base_path: "/var/docker"
+  docker_log_retention_days: 90
   docker:
     paths:
       images: "{{ docker_base_path }}/images/"
