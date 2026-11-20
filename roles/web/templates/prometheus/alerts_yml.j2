@@ -41,7 +41,7 @@ groups:
           area: infra
         annotations:
           summary: "Alerts are not reaching Matrix ({{ $labels.job }})"
-          description: "{{ $value | humanize }} failed deliveries in the last 15 minutes. Messages may be missing from the alert rooms."
+          description: "{{ printf \"%.0f\" $value }} failed deliveries in the last 15 minutes. Messages may be missing from the alert rooms."
           dashboard: "[[ status_page ]]"
           runbook: "[[ respond ]]alertdeliveryfailing"
 
@@ -250,7 +250,7 @@ groups:
           area: data
         annotations:
           summary: "Collector job {{ $labels.collector_job }} keeps failing"
-          description: "{{ $labels.collector_job }} raised {{ $value | humanize }} errors in the last hour."
+          description: "{{ $labels.collector_job }} raised {{ printf \"%.0f\" $value }} errors in the last hour."
           dashboard: "[[ status_page ]]"
           runbook: "[[ runbook ]]diagnose-missing-data.md#2-read-the-logs-for-that-job"
 {% endfor %}
@@ -515,7 +515,7 @@ groups:
           area: home
         annotations:
           summary: "A {{ $labels.command }} command to the vacuum failed"
-          description: "{{ $value | humanize }} {{ $labels.command }} command(s) failed in the last 10 minutes, so a button on the dashboard did not do what it said."
+          description: "{{ printf \"%.0f\" $value }} {{ $labels.command }} command(s) failed in the last 10 minutes, so a button on the dashboard did not do what it said."
           dashboard: "[[ dash ]]vacuum-control"
           runbook: "[[ respond ]]vacuumcommandfailed"
 
