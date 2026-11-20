@@ -167,6 +167,38 @@
           mode: "0644"
         notify: restart fail2ban
 
+      - name: Create fail2ban filter for scanner requests through Traefik
+        copy:
+          dest: /etc/fail2ban/filter.d/traefik-scan.conf
+          content: |
+            [Definition]
+            failregex = ^\{.*"ClientHost":"<HOST>".*"RequestPath":"[^"?]*(?:/\.env|/\.git/|/\.aws/|/\.ssh/|/\.config/gcloud/|phpinfo\.php|/wp-login\.php|/wp-admin/|/xmlrpc\.php|credentials\.json)
+            ignoreregex =
+            datepattern = "time":"%%Y-%%m-%%dT%%H:%%M:%%S%%z"
+          mode: "0644"
+        notify: restart fail2ban
+
+      - name: Configure fail2ban Traefik scanner jail
+        copy:
+          dest: /etc/fail2ban/jail.d/traefik-scan.conf
+          content: |
+            [traefik-scan]
+            enabled = true
+            filter = traefik-scan
+            backend = auto
+            logpath = /var/docker/logs/traefik/access.log
+            port = http,https
+            banaction = iptables-multiport
+            chain = DOCKER-USER
+            ignoreip = 127.0.0.1/8 ::1 172.16.0.0/12 10.8.0.0/24
+            maxretry = 3
+            findtime = 600
+            bantime = 3600
+            bantime.increment = true
+            bantime.maxtime = 1w
+          mode: "0644"
+        notify: restart fail2ban
+
       - name: Enable and start fail2ban
         ansible.builtin.systemd:
           name: fail2ban
