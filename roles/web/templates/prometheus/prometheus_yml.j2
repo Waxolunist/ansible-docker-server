@@ -58,6 +58,21 @@ scrape_configs:
         labels:
           instance: Pi
 
+  - job_name: 'alloy'
+    static_configs:
+      - targets: ['alloy:12345']
+        labels:
+          instance: VPS
+      - targets: ['{{ alerting.pi_alloy_target }}']
+        labels:
+          instance: Pi
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'loki_process_custom_.+'
+        action: keep
+      - regex: 'component_id|component_path|host|source|unit|syslog_identifier|service_name|level'
+        action: labeldrop
+
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']

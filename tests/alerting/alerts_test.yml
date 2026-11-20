@@ -800,3 +800,118 @@ tests:
       - eval_time: 25m
         alertname: CarChargedPastThreshold
         exp_alerts: []
+
+  - name: SshLoginUnexpected ignores expected logins and fires on a password login, an unknown key or the Pi from the internet
+    interval: 1m
+    input_series:
+      - series: 'loki_process_custom_ssh_logins_total{job="alloy",instance="VPS",ssh_user="devops",ssh_method="publickey",ssh_key="SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68",ssh_origin="internet"}'
+        values: '1 1 2 3 3 4 5 5 5 6 6 6 6 7 7 7 7 7 7 7 7'
+      - series: 'loki_process_custom_ssh_logins_total{job="alloy",instance="Pi",ssh_user="csterzl",ssh_method="publickey",ssh_key="SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68",ssh_origin="lan"}'
+        values: '1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2'
+      - series: 'loki_process_custom_ssh_logins_total{job="alloy",instance="VPS",ssh_user="devops",ssh_method="password",ssh_origin="internet"}'
+        values: '_ _ _ _ _ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1'
+      - series: 'loki_process_custom_ssh_logins_total{job="alloy",instance="VPS",ssh_user="devops",ssh_method="publickey",ssh_key="SHA256:unknown",ssh_origin="tls-tunnel"}'
+        values: '_ _ _ _ _ _ _ _ 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1'
+      - series: 'loki_process_custom_ssh_logins_total{job="alloy",instance="Pi",ssh_user="csterzl",ssh_method="publickey",ssh_key="SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68",ssh_origin="internet"}'
+        values: '1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: SshLoginUnexpected
+        exp_alerts:
+          - exp_labels: {severity: critical, area: security, instance: Pi, ssh_user: csterzl, ssh_method: publickey, ssh_key: "SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68", ssh_origin: internet}
+            exp_annotations:
+              summary: "Unexpected SSH login to Pi as csterzl"
+              description: "csterzl logged in by publickey from internet with key SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68. Only known keys of the expected user may log in, and the Pi only from the LAN or WireGuard."
+              dashboard: "https://graph.v-collaborate.com/d/logs?var-host=Pi&var-source=journal&var-unit=ssh.service&var-search=Accepted"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#sshloginunexpected"
+      - eval_time: 12m
+        alertname: SshLoginUnexpected
+        exp_alerts:
+          - exp_labels: {severity: critical, area: security, instance: VPS, ssh_user: devops, ssh_method: password, ssh_origin: internet}
+            exp_annotations:
+              summary: "Unexpected SSH login to VPS as devops"
+              description: "devops logged in by password from internet with key none. Only known keys of the expected user may log in, and the Pi only from the LAN or WireGuard."
+              dashboard: "https://graph.v-collaborate.com/d/logs?var-host=VPS&var-source=journal&var-unit=ssh.service&var-search=Accepted"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#sshloginunexpected"
+          - exp_labels: {severity: critical, area: security, instance: VPS, ssh_user: devops, ssh_method: publickey, ssh_key: "SHA256:unknown", ssh_origin: tls-tunnel}
+            exp_annotations:
+              summary: "Unexpected SSH login to VPS as devops"
+              description: "devops logged in by publickey from tls-tunnel with key SHA256:unknown. Only known keys of the expected user may log in, and the Pi only from the LAN or WireGuard."
+              dashboard: "https://graph.v-collaborate.com/d/logs?var-host=VPS&var-source=journal&var-unit=ssh.service&var-search=Accepted"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#sshloginunexpected"
+      - eval_time: 19m
+        alertname: SshLoginUnexpected
+        exp_alerts: []
+      - eval_time: 22m
+        alertname: SshLoginUnexpected
+        exp_alerts:
+          - exp_labels: {severity: critical, area: security, instance: Pi, ssh_user: csterzl, ssh_method: publickey, ssh_key: "SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68", ssh_origin: internet}
+            exp_annotations:
+              summary: "Unexpected SSH login to Pi as csterzl"
+              description: "csterzl logged in by publickey from internet with key SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68. Only known keys of the expected user may log in, and the Pi only from the LAN or WireGuard."
+              dashboard: "https://graph.v-collaborate.com/d/logs?var-host=Pi&var-source=journal&var-unit=ssh.service&var-search=Accepted"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#sshloginunexpected"
+
+  - name: Fail2banNotRunning fires after 10 minutes inactive, and its metric missing on a host fires MetricMissing
+    interval: 1m
+    input_series:
+      - series: 'node_systemd_unit_state{job="node-metrics",instance="Pi",name="fail2ban.service",state="active",type="simple"}'
+        values: '1x5 0x20'
+    alert_rule_test:
+      - eval_time: 14m
+        alertname: Fail2banNotRunning
+        exp_alerts: []
+      - eval_time: 17m
+        alertname: Fail2banNotRunning
+        exp_alerts:
+          - exp_labels: {severity: warning, area: security, job: node-metrics, instance: Pi, name: fail2ban.service, state: active, type: simple}
+            exp_annotations:
+              summary: "fail2ban is not running on Pi"
+              description: "fail2ban.service has not been active for 10 minutes, so nobody is banned for guessing SSH logins."
+              dashboard: "https://graph.v-collaborate.com/d/logs?var-host=Pi&var-source=journal&var-unit=fail2ban.service"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#fail2bannotrunning"
+      - eval_time: 17m
+        alertname: MetricMissing_node_systemd_unit_state_Pi
+        exp_alerts: []
+      - eval_time: 17m
+        alertname: MetricMissing_node_systemd_unit_state_VPS
+        exp_alerts:
+          - exp_labels: {severity: warning, area: security, metric: node_systemd_unit_state, job: node-metrics, instance: VPS, name: fail2ban.service}
+            exp_annotations:
+              summary: "Metric node_systemd_unit_state for fail2ban is missing on VPS"
+              description: "VPS's node-exporter does not report fail2ban.service, so Fail2banNotRunning cannot fire for it."
+              dashboard: "https://graph.v-collaborate.com/d/container-status-page"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#metricmissing"
+
+  - name: BasicAuthGuessing fires per Pi router above 20 refused logins in 15 minutes, AutheliaLoginFailures at 5 failures
+    interval: 1m
+    input_series:
+      - series: 'traefik_router_requests_total{job="traefik",instance="Pi",router="goe-secure@file",service="goe@file",code="401",method="GET",protocol="http"}'
+        values: '0+3x20'
+      - series: 'traefik_router_requests_total{job="traefik",instance="Pi",router="fritz-secure@file",service="fritz@file",code="401",method="GET",protocol="http"}'
+        values: '0+1x20'
+      - series: 'traefik_router_requests_total{job="traefik",instance="VPS",router="grafana-secure@docker",service="grafana-docker@docker",code="401",method="GET",protocol="http"}'
+        values: '0+20x20'
+      - series: 'authelia_authn{job="authelia",instance="authelia:9959",success="false",banned="false"}'
+        values: '0+1x20'
+      - series: 'authelia_authn{job="authelia",instance="authelia:9959",success="true",banned="false"}'
+        values: '0+10x20'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: BasicAuthGuessing
+        exp_alerts:
+          - exp_labels: {severity: warning, area: security, instance: Pi, router: goe-secure@file}
+            exp_annotations:
+              summary: "Many failed basic-auth logins on goe-secure@file"
+              description: "45 requests were refused with 401 in 15 minutes on the Pi's router goe-secure@file. These routes have no rate limit, so someone may be guessing the password."
+              dashboard: "https://graph.v-collaborate.com/d/traefik?var-instance=Pi"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#basicauthguessing"
+      - eval_time: 20m
+        alertname: AutheliaLoginFailures
+        exp_alerts:
+          - exp_labels: {severity: warning, area: security}
+            exp_annotations:
+              summary: "Failed Authelia logins"
+              description: "15 Authelia logins failed in 15 minutes. fail2ban bans an address after 5 failures in 10 minutes."
+              dashboard: "https://graph.v-collaborate.com/d/bgWWT5hGz"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#authelialoginfailures"

@@ -178,6 +178,8 @@
 
   restart_container: no
 
+  node_exporter_systemd_units: '(fail2ban|ssh|wg-quick@wg0)\.service'
+
   alerting:
     areas:
       - infra
@@ -199,6 +201,7 @@
     pi_cadvisor_target: "10.8.0.2:8081"
     pi_traefik_target: "10.8.0.2:8082"
     roborock_target: "10.8.0.2:9106"
+    pi_alloy_target: "10.8.0.2:9107"
     scrape_jobs:
       - prometheus
       - docker
@@ -213,10 +216,18 @@
       - matrix_receiver
       - sql_exporter
       - roborock
+      - alloy
     memory_available_min_ratio: 0.1
     swap_used_max_bytes: 2147483648
     swap_used_max_ratio: 0.6
     pi_temperature_max_celsius: 80
+    ssh_known_keys:
+      - "SHA256:sYRa0kgvZ7ChrDkYVhDzIq4Dlqvpppyw1LA+piUeo68"
+    ssh_expected_logins:
+      - { instance: VPS, user: devops, origins: "internet|tls-tunnel|wireguard" }
+      - { instance: Pi, user: csterzl, origins: "lan|wireguard" }
+    basic_auth_failures_max: 20
+    authelia_failures_max: 5
     collector_job_stale_after:
       PsaHealthJob: 15m
       VehicleInfoJob: 30m

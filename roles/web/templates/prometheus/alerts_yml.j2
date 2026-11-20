@@ -529,3 +529,79 @@ groups:
           description: "roborock-controller's credentials are no longer accepted. Routines cannot be listed or started until it logs in again."
           dashboard: "[[ dash ]]vacuum-control"
           runbook: "[[ respond ]]vacuumcloudloginrejected"
+
+{% set ssh_by = 'instance, ssh_user, ssh_method, ssh_key, ssh_origin' %}
+{% set ssh_logins = 'loki_process_custom_ssh_logins_total' %}
+{% set known_keys = alerting.ssh_known_keys | map('regex_escape') | join('|') | replace('\\', '\\\\') %}
+{% set logs_page = dash ~ 'logs?var-host=' ~ '{{ $labels.instance }}' ~ '&var-source=journal' %}
+  - name: security_alerts
+    interval: 1m
+    rules:
+      - alert: SshLoginUnexpected
+        expr: |
+          sum by ([[ ssh_by ]]) (
+            ([[ ssh_logins ]] unless [[ ssh_logins ]] offset 10m)
+            or increase([[ ssh_logins ]][10m])
+          ) > 0
+          unless on ([[ ssh_by ]]) (
+{% for login in alerting.ssh_expected_logins %}
+            [[ 'or ' if not loop.first ]][[ ssh_logins ]]{instance="[[ login.instance ]]", ssh_user="[[ login.user ]]", ssh_method="publickey", ssh_key=~"[[ known_keys ]]", ssh_origin=~"[[ login.origins ]]"}
+{% endfor %}
+          )
+        labels:
+          severity: critical
+          area: security
+        annotations:
+          summary: "Unexpected SSH login to {{ $labels.instance }} as {{ $labels.ssh_user }}"
+          description: "{{ $labels.ssh_user }} logged in by {{ $labels.ssh_method }} from {{ $labels.ssh_origin }} with key {{ or $labels.ssh_key \"none\" }}. Only known keys of the expected user may log in, and the Pi only from the LAN or WireGuard."
+          dashboard: "[[ logs_page ]]&var-unit=ssh.service&var-search=Accepted"
+          runbook: "[[ respond ]]sshloginunexpected"
+
+      - alert: Fail2banNotRunning
+        expr: node_systemd_unit_state{name="fail2ban.service", state="active"} == 0
+        for: 10m
+        labels:
+          severity: warning
+          area: security
+        annotations:
+          summary: "fail2ban is not running on {{ $labels.instance }}"
+          description: "fail2ban.service has not been active for 10 minutes, so nobody is banned for guessing SSH logins."
+          dashboard: "[[ logs_page ]]&var-unit=fail2ban.service"
+          runbook: "[[ respond ]]fail2bannotrunning"
+{% for instance in ['VPS', 'Pi'] %}
+
+      - alert: MetricMissing_node_systemd_unit_state_[[ instance ]]
+        expr: absent(node_systemd_unit_state{job="node-metrics", instance="[[ instance ]]", name="fail2ban.service"})
+        for: 15m
+        labels:
+          severity: warning
+          area: security
+          metric: node_systemd_unit_state
+        annotations:
+          summary: "Metric node_systemd_unit_state for fail2ban is missing on [[ instance ]]"
+          description: "[[ instance ]]'s node-exporter does not report fail2ban.service, so Fail2banNotRunning cannot fire for it."
+          dashboard: "[[ status_page ]]"
+          runbook: "[[ respond ]]metricmissing"
+{% endfor %}
+
+      - alert: BasicAuthGuessing
+        expr: sum by (instance, router) (increase(traefik_router_requests_total{instance="Pi", code="401"}[15m])) > [[ alerting.basic_auth_failures_max ]]
+        labels:
+          severity: warning
+          area: security
+        annotations:
+          summary: "Many failed basic-auth logins on {{ $labels.router }}"
+          description: "{{ $value | printf \"%.0f\" }} requests were refused with 401 in 15 minutes on the Pi's router {{ $labels.router }}. These routes have no rate limit, so someone may be guessing the password."
+          dashboard: "[[ dash ]]traefik?var-instance={{ $labels.instance }}"
+          runbook: "[[ respond ]]basicauthguessing"
+
+      - alert: AutheliaLoginFailures
+        expr: sum(increase(authelia_authn{success="false"}[15m])) >= [[ alerting.authelia_failures_max ]]
+        labels:
+          severity: warning
+          area: security
+        annotations:
+          summary: "Failed Authelia logins"
+          description: "{{ $value | printf \"%.0f\" }} Authelia logins failed in 15 minutes. fail2ban bans an address after 5 failures in 10 minutes."
+          dashboard: "[[ dash ]]bgWWT5hGz"
+          runbook: "[[ respond ]]authelialoginfailures"
