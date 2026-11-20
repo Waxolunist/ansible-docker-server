@@ -77,7 +77,9 @@
           content: |
             # Managed by Ansible (hardening.yml)
             PasswordAuthentication no
+            DebianBanner no
           mode: "0644"
+          validate: /usr/sbin/sshd -t -f %s
         notify: restart sshd
 
       # --- fail2ban ---
@@ -205,6 +207,54 @@
           state: started
           enabled: true
 
+      - name: Install the fail2ban metrics script
+        copy:
+          src: files/fail2ban_metrics.py
+          dest: /usr/local/sbin/fail2ban-metrics
+          owner: root
+          group: root
+          mode: "0755"
+
+      - name: Install the fail2ban metrics service
+        copy:
+          dest: /etc/systemd/system/fail2ban-metrics.service
+          content: |
+            [Unit]
+            Description=Write fail2ban bans for the node-exporter textfile collector
+            After=fail2ban.service
+
+            [Service]
+            Type=oneshot
+            ExecStart=/usr/local/sbin/fail2ban-metrics /var/docker/data/node-exporter
+          mode: "0644"
+        notify: reload systemd
+
+      - name: Install the fail2ban metrics timer
+        copy:
+          dest: /etc/systemd/system/fail2ban-metrics.timer
+          content: |
+            [Unit]
+            Description=Write fail2ban metrics every minute
+
+            [Timer]
+            OnBootSec=1min
+            OnUnitActiveSec=1min
+            AccuracySec=5s
+
+            [Install]
+            WantedBy=timers.target
+          mode: "0644"
+        notify: reload systemd
+
+      - name: Flush handlers so systemd knows the metrics units
+        meta: flush_handlers
+
+      - name: Enable and start the fail2ban metrics timer
+        ansible.builtin.systemd:
+          name: fail2ban-metrics.timer
+          state: started
+          enabled: true
+
       # --- Automated security updates ---
 
       - name: Install unattended-upgrades
@@ -252,3 +302,7 @@
         ansible.builtin.systemd:
           name: fail2ban
           state: restarted
+
+      - name: reload systemd
+        ansible.builtin.systemd:
+          daemon_reload: true
