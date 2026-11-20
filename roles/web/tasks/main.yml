@@ -98,6 +98,12 @@
       owner: "{{ ansible_user }}"
       group: "{{ ansible_user }}"
     become: yes
+  - name: Install logrotate
+    apt:
+      name: logrotate
+      state: present
+    become: yes
+    tags: logrotate
   - name: Install logrotate config for docker container logs
     template:
       src: logrotate_docker.j2
@@ -106,6 +112,17 @@
       owner: root
       group: root
     become: yes
+    tags: logrotate
+  - name: Add cronjob deleting old rotated docker logs
+    cron:
+      name: "delete old docker logs"
+      minute: "15"
+      hour: "4"
+      user: root
+      backup: yes
+      job: "find {{ docker.paths.logs }} -type f -name '*.gz' -mtime +{{ docker_log_retention_days }} -delete"
+    become: yes
+    tags: logrotate
   - name: Run docker-compose
     block:
       - name: Find docker compose files
