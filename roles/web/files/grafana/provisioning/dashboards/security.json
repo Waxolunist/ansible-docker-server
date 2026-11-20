@@ -610,7 +610,7 @@
             "type": "prometheus",
             "uid": "BfDiy2hMk"
           },
-          "expr": "fail2ban_ban_count{instance=~\"$host\", jail=~\"$jail\"}",
+          "expr": "fail2ban_ban_location{instance=~\"$host\", jail=~\"$jail\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "",
@@ -630,13 +630,18 @@
             "excludeByName": {
               "Time": true,
               "__name__": true,
-              "job": true
+              "country_code": true,
+              "job": true,
+              "lat": true,
+              "lon": true
             },
             "indexByName": {
-              "Value #A": 3,
-              "Value #B": 4,
-              "Value #C": 5,
-              "Value #D": 6,
+              "Value #A": 5,
+              "Value #B": 6,
+              "Value #C": 7,
+              "Value #D": 8,
+              "city": 4,
+              "country": 3,
               "instance": 0,
               "ip": 2,
               "jail": 1
@@ -646,6 +651,8 @@
               "Value #B": "Until",
               "Value #C": "Left",
               "Value #D": "Ban #",
+              "city": "City",
+              "country": "Country",
               "instance": "Host",
               "ip": "Address",
               "jail": "Jail"
@@ -661,6 +668,237 @@
                 "field": "Banned at"
               }
             ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "BfDiy2hMk"
+      },
+      "description": "Every address banned in the time range, at the location DB-IP City Lite gives for it. Bigger and redder means banned more often. Lite data is roughly city-level and sometimes off, and for cloud and VPN addresses it is the data centre, not the person. IP geolocation by DB-IP (https://db-ip.com), CC BY 4.0.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 16,
+        "x": 0,
+        "y": 14
+      },
+      "id": 8,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Basemap",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "Bans",
+                  "fixed": "orange"
+                },
+                "opacity": 0.6,
+                "size": {
+                  "field": "Bans",
+                  "fixed": 6,
+                  "max": 18,
+                  "min": 5
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                }
+              }
+            },
+            "location": {
+              "latitude": "lat",
+              "longitude": "lon",
+              "mode": "coords"
+            },
+            "name": "Times banned",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "id": "zero",
+          "lat": 25,
+          "lon": 15,
+          "zoom": 1.4
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "BfDiy2hMk"
+          },
+          "expr": "max by (ip, country_code, country, city, lat, lon) (max_over_time(fail2ban_ban_location{instance=~\"$host\", jail=~\"$jail\", lat!=\"\"}[$__range]))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Where the banned bots are",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "lat"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "lon"
+              }
+            ],
+            "fields": {}
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "country_code": true
+            },
+            "renameByName": {
+              "Value": "Bans",
+              "city": "City",
+              "country": "Country",
+              "ip": "Address"
+            }
+          }
+        }
+      ],
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "BfDiy2hMk"
+      },
+      "description": "Distinct addresses banned in the time range, per country. IP geolocation by DB-IP (https://db-ip.com), CC BY 4.0.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Addresses"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "basic",
+                  "type": "gauge"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "continuous-YlRd"
+                }
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 8,
+        "x": 16,
+        "y": 14
+      },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Addresses"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "BfDiy2hMk"
+          },
+          "expr": "sort_desc(count by (country) (max by (ip, country_code, country, city, lat, lon) (max_over_time(fail2ban_ban_location{instance=~\"$host\", jail=~\"$jail\", lat!=\"\"}[$__range]))))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "Countries",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Addresses",
+              "country": "Country"
+            }
           }
         }
       ],
@@ -699,9 +937,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 14
+        "y": 26
       },
-      "id": 8,
+      "id": 10,
       "options": {
         "legend": {
           "displayMode": "list",
@@ -763,9 +1001,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 14
+        "y": 26
       },
-      "id": 9,
+      "id": 11,
       "options": {
         "legend": {
           "displayMode": "list",
@@ -828,9 +1066,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 34
       },
-      "id": 10,
+      "id": 12,
       "options": {
         "legend": {
           "displayMode": "list",
@@ -890,9 +1128,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 34
       },
-      "id": 11,
+      "id": 13,
       "options": {
         "legend": {
           "displayMode": "list",
@@ -975,9 +1213,9 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 30
+        "y": 42
       },
-      "id": 12,
+      "id": 14,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -1104,9 +1342,9 @@
         "h": 10,
         "w": 16,
         "x": 8,
-        "y": 30
+        "y": 42
       },
-      "id": 13,
+      "id": 15,
       "options": {
         "cellHeight": "sm",
         "footer": {
@@ -1180,9 +1418,9 @@
         "h": 12,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 52
       },
-      "id": 14,
+      "id": 16,
       "options": {
         "dedupStrategy": "none",
         "enableLogDetails": true,

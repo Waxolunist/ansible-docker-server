@@ -207,6 +207,56 @@
           state: started
           enabled: true
 
+      - name: Install the GeoIP reader
+        apt:
+          name: python3-maxminddb
+          state: present
+
+      - name: Install the GeoIP database updater
+        copy:
+          src: files/geoip_update.sh
+          dest: /usr/local/sbin/geoip-update
+          owner: root
+          group: root
+          mode: "0755"
+
+      - name: Install the GeoIP update service and timer
+        copy:
+          dest: "/etc/systemd/system/{{ item.name }}"
+          content: "{{ item.content }}"
+          mode: "0644"
+        loop:
+          - name: geoip-update.service
+            content: |
+              [Unit]
+              Description=Download the DB-IP City Lite database
+              Wants=network-online.target
+              After=network-online.target
+
+              [Service]
+              Type=oneshot
+              ExecStart=/usr/local/sbin/geoip-update /var/lib/geoip/dbip-city-lite.mmdb
+          - name: geoip-update.timer
+            content: |
+              [Unit]
+              Description=Download the DB-IP City Lite database monthly
+
+              [Timer]
+              OnCalendar=*-*-03 04:00
+              RandomizedDelaySec=2h
+              Persistent=true
+
+              [Install]
+              WantedBy=timers.target
+        loop_control:
+          label: "{{ item.name }}"
+        notify: reload systemd
+
+      - name: Download the GeoIP database if it is missing
+        command: /usr/local/sbin/geoip-update /var/lib/geoip/dbip-city-lite.mmdb
+        args:
+          creates: /var/lib/geoip/dbip-city-lite.mmdb
+
       - name: Install the fail2ban metrics script
         copy:
           src: files/fail2ban_metrics.py
@@ -225,7 +275,7 @@
 
             [Service]
             Type=oneshot
-            ExecStart=/usr/local/sbin/fail2ban-metrics /var/docker/data/node-exporter
+            ExecStart=/usr/local/sbin/fail2ban-metrics /var/docker/data/node-exporter /var/lib/geoip/dbip-city-lite.mmdb
           mode: "0644"
         notify: reload systemd
 
@@ -249,11 +299,12 @@
       - name: Flush handlers so systemd knows the metrics units
         meta: flush_handlers
 
-      - name: Enable and start the fail2ban metrics timer
+      - name: Enable and start the fail2ban metrics and GeoIP timers
         ansible.builtin.systemd:
-          name: fail2ban-metrics.timer
+          name: "{{ item }}"
           state: started
           enabled: true
+        loop: [fail2ban-metrics.timer, geoip-update.timer]
 
       # --- Automated security updates ---
 

@@ -36,11 +36,36 @@ def current_bans(now):
             yield jail, ip, start, end, count
 
 
+def locator(path):
+    try:
+        import maxminddb
+        reader = maxminddb.open_database(path)
+    except (ImportError, OSError, ValueError):
+        return lambda ip: {}
+    def locate(ip):
+        try:
+            record = reader.get(ip) or {}
+        except ValueError:
+            return {}
+        country = record.get("country", {})
+        location = record.get("location", {})
+        if "latitude" not in location:
+            return {}
+        return {
+            "country_code": country.get("iso_code", ""),
+            "country": country.get("names", {}).get("en", ""),
+            "city": record.get("city", {}).get("names", {}).get("en", ""),
+            "lat": f"{location['latitude']:.2f}",
+            "lon": f"{location['longitude']:.2f}",
+        }
+    return locate
+
+
 def label(value):
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def render(now):
+def render(now, locate):
     lines = [
         "# HELP fail2ban_jail_failing Addresses with failures below maxretry, per jail.",
         "# TYPE fail2ban_jail_failing gauge",
@@ -63,6 +88,8 @@ def render(now):
         "# TYPE fail2ban_ban_end_timestamp_seconds gauge",
         "# HELP fail2ban_ban_count How often the address has been banned in this jail, counting the current ban.",
         "# TYPE fail2ban_ban_count gauge",
+        "# HELP fail2ban_ban_location Where a banned address is, from DB-IP City Lite (no place labels if unknown); the value is its ban count.",
+        "# TYPE fail2ban_ban_location gauge",
     ]
     for jail, ip, start, end, count in current_bans(now):
         labels = f'jail="{label(jail)}",ip="{label(ip)}"'
@@ -71,6 +98,8 @@ def render(now):
             f"fail2ban_ban_end_timestamp_seconds{{{labels}}} {end}",
             f"fail2ban_ban_count{{{labels}}} {count}",
         ]
+        where = "".join(f',{key}="{label(value)}"' for key, value in locate(ip).items())
+        lines.append(f"fail2ban_ban_location{{{labels}{where}}} {count}")
     lines += [
         "# HELP fail2ban_metrics_timestamp_seconds When these metrics were written.",
         "# TYPE fail2ban_metrics_timestamp_seconds gauge",
@@ -89,4 +118,5 @@ def write(directory, text):
 
 
 if __name__ == "__main__":
-    write(sys.argv[1], render(time.time()))
+    geoip = sys.argv[2] if len(sys.argv) > 2 else "/var/lib/geoip/dbip-city-lite.mmdb"
+    write(sys.argv[1], render(time.time(), locator(geoip)))
