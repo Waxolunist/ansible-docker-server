@@ -714,6 +714,23 @@
           "query": "",
           "skipUrlSync": false
         }
+      },
+      {
+        "datasource": {
+          "name": "loki"
+        },
+        "group": "loki",
+        "kind": "AdhocVariable",
+        "spec": {
+          "allowCustomValue": true,
+          "baseFilters": [],
+          "defaultKeys": [],
+          "filters": [],
+          "hide": "dontHide",
+          "label": "Filters",
+          "name": "filters",
+          "skipUrlSync": false
+        }
       }
     ]
   }
