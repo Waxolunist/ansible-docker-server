@@ -533,6 +533,11 @@
                 "id": "links",
                 "value": [
                   {
+                    "targetBlank": false,
+                    "title": "Requests on Traefik",
+                    "url": "/d/traefik/traefik?${__url_time_range}&var-instance=${__data.fields[\"Host\"]}&var-address=${__value.raw}&dtab=Paths"
+                  },
+                  {
                     "targetBlank": true,
                     "title": "AbuseIPDB",
                     "url": "https://www.abuseipdb.com/check/${__value.raw}"
@@ -1131,6 +1136,13 @@
         "y": 34
       },
       "id": 13,
+      "links": [
+        {
+          "targetBlank": false,
+          "title": "Paths of the refused requests (Traefik, Pi)",
+          "url": "/d/traefik/traefik?${__url_time_range}&var-instance=Pi&var-status=4xx&dtab=Paths"
+        }
+      ],
       "options": {
         "legend": {
           "displayMode": "list",

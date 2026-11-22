@@ -27,7 +27,7 @@
       }
     ],
     "cursorSync": "Crosshair",
-    "description": "What reaches the VPS and the Pi through Traefik: requests, errors and response times per service and router, TLS certificates and the proxy's own health.",
+    "description": "What reaches the VPS and the Pi through Traefik: requests, errors and response times per service and router, TLS certificates and the proxy's own health. The Paths tab reads the access logs in Loki: which paths are requested, by which addresses, and with which answer.",
     "editable": true,
     "elements": {
       "panel-1": {
@@ -3381,6 +3381,170 @@
           }
         }
       },
+      "panel-38": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range]))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Requests in the range that match the filters.",
+          "id": 38,
+          "links": [],
+          "title": "Requests",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "noValue": "0",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "blue",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-39": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count(sum by (ClientHost) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Distinct client addresses.",
+          "id": 39,
+          "links": [],
+          "title": "Addresses",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "noValue": "0",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "blue",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
       "panel-4": {
         "kind": "Panel",
         "spec": {
@@ -3467,6 +3631,1423 @@
                 "showPercentChange": false,
                 "textMode": "value",
                 "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-40": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count(sum by (url) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Distinct host and path combinations (query strings are redacted to ?*, so they don't count).",
+          "id": 40,
+          "links": [],
+          "title": "Paths",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "noValue": "0",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "blue",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-41": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | DownstreamStatus=~\"401|403|404|429\" [$__range]))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Requests answered with 401, 403, 404 or 429.",
+          "id": 41,
+          "links": [],
+          "title": "Refused",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "noValue": "0",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "orange",
+                        "value": null
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-42": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum(count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | RequestPath=~`[^?]*(?:/\\.env|/\\.git/|/\\.aws/|/\\.ssh/|/\\.config/gcloud/|/\\.docker/|/\\.netrc|/\\.pypirc|/\\.dev\\.vars|phpinfo\\.php|/wp-login\\.php|/wp-admin/|/wp-config\\.php|/xmlrpc\\.php|credentials\\.json|secrets\\.json|/config\\.(?:json|ya?ml)(?:\\?|$)).*` [$__range]))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Requests for the paths the Pi's traefik-scan jail bans on (.env, .git, credentials, config.json …).",
+          "id": 42,
+          "links": [],
+          "title": "Scanner requests",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "noValue": "0",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-43": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count(sum by (ClientHost) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | RequestPath=~`[^?]*(?:/\\.env|/\\.git/|/\\.aws/|/\\.ssh/|/\\.config/gcloud/|/\\.docker/|/\\.netrc|/\\.pypirc|/\\.dev\\.vars|phpinfo\\.php|/wp-login\\.php|/wp-admin/|/wp-config\\.php|/xmlrpc\\.php|credentials\\.json|secrets\\.json|/config\\.(?:json|ya?ml)(?:\\?|$)).*` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Distinct addresses that asked for scanner paths.",
+          "id": 43,
+          "links": [],
+          "title": "Scanner addresses",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "thresholds"
+                  },
+                  "decimals": 0,
+                  "noValue": "0",
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "green",
+                        "value": null
+                      },
+                      {
+                        "color": "red",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "colorMode": "background",
+                "graphMode": "none",
+                "justifyMode": "center",
+                "orientation": "auto",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-44": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "topk(200, sum by (url, DownstreamStatus, RouterName) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count by (url, DownstreamStatus, RouterName) (sum by (url, DownstreamStatus, RouterName, ClientHost) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "labelsToFields",
+                  "kind": "labelsToFields",
+                  "spec": {
+                    "options": {
+                      "mode": "columns"
+                    }
+                  }
+                },
+                {
+                  "group": "merge",
+                  "kind": "merge",
+                  "spec": {
+                    "options": {}
+                  }
+                },
+                {
+                  "group": "filterByValue",
+                  "kind": "filterByValue",
+                  "spec": {
+                    "options": {
+                      "filters": [
+                        {
+                          "config": {
+                            "id": "isNull",
+                            "options": {}
+                          },
+                          "fieldName": "Value #A"
+                        }
+                      ],
+                      "match": "any",
+                      "type": "exclude"
+                    }
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time": true
+                      },
+                      "indexByName": {
+                        "DownstreamStatus": 1,
+                        "RouterName": 4,
+                        "Value #A": 2,
+                        "Value #B": 3,
+                        "url": 0
+                      },
+                      "renameByName": {
+                        "DownstreamStatus": "Status",
+                        "RouterName": "Router",
+                        "Value #A": "Requests",
+                        "Value #B": "Addresses",
+                        "url": "Path"
+                      }
+                    }
+                  }
+                },
+                {
+                  "group": "sortBy",
+                  "kind": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Requests"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "group": "limit",
+                  "kind": "limit",
+                  "spec": {
+                    "options": {
+                      "limitField": 200
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "The 200 busiest host and path combinations per answer and router, with how many addresses asked. Query strings are replaced by ?*. Ranges of more than about three days can hit Loki's series limit on the VPS; narrow them with Path, Address or Status.",
+          "id": 44,
+          "links": [],
+          "title": "Top paths",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true
+                  },
+                  "noValue": "–"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Requests"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "lcd",
+                          "type": "gauge",
+                          "valueDisplayMode": "text"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "continuous-BlPu"
+                        }
+                      },
+                      {
+                        "id": "fieldMinMax",
+                        "value": true
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 260
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Addresses"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 100
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Status"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 80
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "type": "color-text"
+                        }
+                      },
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "options": {
+                              "pattern": "^2..$",
+                              "result": {
+                                "color": "green",
+                                "index": 0
+                              }
+                            },
+                            "type": "regex"
+                          },
+                          {
+                            "options": {
+                              "pattern": "^3..$",
+                              "result": {
+                                "color": "blue",
+                                "index": 1
+                              }
+                            },
+                            "type": "regex"
+                          },
+                          {
+                            "options": {
+                              "pattern": "^4..$",
+                              "result": {
+                                "color": "orange",
+                                "index": 2
+                              }
+                            },
+                            "type": "regex"
+                          },
+                          {
+                            "options": {
+                              "pattern": "^5..$",
+                              "result": {
+                                "color": "red",
+                                "index": 3
+                              }
+                            },
+                            "type": "regex"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Router"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 220
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Requests"
+                  }
+                ]
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-45": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "topk(200, sum by (ClientHost, own) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count by (ClientHost, own) (sum by (ClientHost, own, url) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count by (ClientHost, own) (sum by (ClientHost, own, RequestHost) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "C"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (ClientHost, own) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | DownstreamStatus=~\"401|403|404|429\" [$__range]))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "D"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "labelsToFields",
+                  "kind": "labelsToFields",
+                  "spec": {
+                    "options": {
+                      "mode": "columns"
+                    }
+                  }
+                },
+                {
+                  "group": "merge",
+                  "kind": "merge",
+                  "spec": {
+                    "options": {}
+                  }
+                },
+                {
+                  "group": "filterByValue",
+                  "kind": "filterByValue",
+                  "spec": {
+                    "options": {
+                      "filters": [
+                        {
+                          "config": {
+                            "id": "isNull",
+                            "options": {}
+                          },
+                          "fieldName": "Value #A"
+                        }
+                      ],
+                      "match": "any",
+                      "type": "exclude"
+                    }
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time": true
+                      },
+                      "indexByName": {
+                        "ClientHost": 0,
+                        "Value #A": 1,
+                        "Value #B": 2,
+                        "Value #C": 3,
+                        "Value #D": 4,
+                        "own": 5
+                      },
+                      "renameByName": {
+                        "ClientHost": "Address",
+                        "Value #A": "Requests",
+                        "Value #B": "Paths",
+                        "Value #C": "Hosts",
+                        "Value #D": "Refused",
+                        "own": "Own"
+                      }
+                    }
+                  }
+                },
+                {
+                  "group": "sortBy",
+                  "kind": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Requests"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "group": "limit",
+                  "kind": "limit",
+                  "spec": {
+                    "options": {
+                      "limitField": 200
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "The 200 busiest addresses: requests, distinct paths and hosts, refused requests. Own: a private address (LAN, WireGuard, Docker) or a basic-auth login; own traffic through Authelia on the VPS can't be told apart and counts as not own. Click an address to filter the tab by it or look it up.",
+          "id": 45,
+          "links": [],
+          "title": "Client addresses",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true
+                  },
+                  "noValue": "–"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Address"
+                    },
+                    "properties": [
+                      {
+                        "id": "links",
+                        "value": [
+                          {
+                            "targetBlank": false,
+                            "title": "Only this address",
+                            "url": "/d/traefik/traefik?${__url_time_range}&var-instance=${instance}&dtab=Paths&var-address=${__value.raw}"
+                          },
+                          {
+                            "targetBlank": true,
+                            "title": "AbuseIPDB",
+                            "url": "https://www.abuseipdb.com/check/${__value.raw}"
+                          },
+                          {
+                            "targetBlank": true,
+                            "title": "ipinfo",
+                            "url": "https://ipinfo.io/${__value.raw}"
+                          }
+                        ]
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 150
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Requests"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "lcd",
+                          "type": "gauge",
+                          "valueDisplayMode": "text"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "continuous-BlPu"
+                        }
+                      },
+                      {
+                        "id": "fieldMinMax",
+                        "value": true
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 200
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Own"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 70
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Paths"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 80
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Hosts"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 70
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Requests"
+                  }
+                ]
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-46": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "topk(100, sum by (request_User_Agent) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                },
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "count by (request_User_Agent) (sum by (request_User_Agent, ClientHost) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` [$__range])))",
+                        "legendFormat": "",
+                        "queryType": "instant"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "B"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": [
+                {
+                  "group": "labelsToFields",
+                  "kind": "labelsToFields",
+                  "spec": {
+                    "options": {
+                      "mode": "columns"
+                    }
+                  }
+                },
+                {
+                  "group": "merge",
+                  "kind": "merge",
+                  "spec": {
+                    "options": {}
+                  }
+                },
+                {
+                  "group": "filterByValue",
+                  "kind": "filterByValue",
+                  "spec": {
+                    "options": {
+                      "filters": [
+                        {
+                          "config": {
+                            "id": "isNull",
+                            "options": {}
+                          },
+                          "fieldName": "Value #A"
+                        }
+                      ],
+                      "match": "any",
+                      "type": "exclude"
+                    }
+                  }
+                },
+                {
+                  "group": "organize",
+                  "kind": "organize",
+                  "spec": {
+                    "options": {
+                      "excludeByName": {
+                        "Time": true
+                      },
+                      "indexByName": {
+                        "Value #A": 1,
+                        "Value #B": 2,
+                        "request_User_Agent": 0
+                      },
+                      "renameByName": {
+                        "Value #A": "Requests",
+                        "Value #B": "Addresses",
+                        "request_User_Agent": "User agent"
+                      }
+                    }
+                  }
+                },
+                {
+                  "group": "sortBy",
+                  "kind": "sortBy",
+                  "spec": {
+                    "options": {
+                      "fields": {},
+                      "sort": [
+                        {
+                          "desc": true,
+                          "field": "Requests"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "group": "limit",
+                  "kind": "limit",
+                  "spec": {
+                    "options": {
+                      "limitField": 100
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "description": "The 100 most frequent User-Agent headers and how many addresses sent each. Logged since 2026-11-22; older lines have none.",
+          "id": 46,
+          "links": [],
+          "title": "User agents",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "filterable": true
+                  },
+                  "noValue": "–"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Requests"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.cellOptions",
+                        "value": {
+                          "mode": "lcd",
+                          "type": "gauge",
+                          "valueDisplayMode": "text"
+                        }
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "continuous-BlPu"
+                        }
+                      },
+                      {
+                        "id": "fieldMinMax",
+                        "value": true
+                      },
+                      {
+                        "id": "custom.width",
+                        "value": 160
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Addresses"
+                    },
+                    "properties": [
+                      {
+                        "id": "custom.width",
+                        "value": 90
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "footer": {
+                  "show": false
+                },
+                "showHeader": true,
+                "sortBy": [
+                  {
+                    "desc": true,
+                    "displayName": "Requests"
+                  }
+                ]
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-47": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "topk(10, sum by (url) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | DownstreamStatus=~\"401|403|404|429\" [$__auto])))",
+                        "legendFormat": "{{url}}",
+                        "queryType": "range"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Requests answered with 401, 403, 404 or 429, for the 10 busiest paths at each point in time.",
+          "id": 47,
+          "links": [],
+          "title": "Refused requests by path",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "barAlignment": 0,
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "gradientMode": "none",
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
+                  },
+                  "decimals": 0,
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true,
+                  "sortBy": "Total",
+                  "sortDesc": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-48": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "sum by (RequestHost) (count_over_time({service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | RequestPath=~`[^?]*(?:/\\.env|/\\.git/|/\\.aws/|/\\.ssh/|/\\.config/gcloud/|/\\.docker/|/\\.netrc|/\\.pypirc|/\\.dev\\.vars|phpinfo\\.php|/wp-login\\.php|/wp-admin/|/wp-config\\.php|/xmlrpc\\.php|credentials\\.json|secrets\\.json|/config\\.(?:json|ya?ml)(?:\\?|$)).*` [1h]))",
+                        "legendFormat": "{{RequestHost}}",
+                        "queryType": "range",
+                        "step": "1h"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Requests for scanner paths per hour, by requested host.",
+          "id": 48,
+          "links": [],
+          "title": "Scanner requests per hour",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "barAlignment": 0,
+                    "drawStyle": "bars",
+                    "fillOpacity": 80,
+                    "gradientMode": "none",
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "showPoints": "never",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "normal"
+                    }
+                  },
+                  "decimals": 0,
+                  "unit": "short"
+                },
+                "overrides": []
+              },
+              "options": {
+                "legend": {
+                  "calcs": [
+                    "sum"
+                  ],
+                  "displayMode": "table",
+                  "placement": "right",
+                  "showLegend": true,
+                  "sortBy": "Total",
+                  "sortDesc": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "desc"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-49": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "loki"
+                      },
+                      "group": "loki",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "expr": "{service_name=\"traefik-access\", host=\"$instance\", router=~\"$router\", status_class=~\"$status\", own=~\"$own\"} | json | RequestPath=~`(?i).*$path.*` | ClientHost=~`${address:regex}.*` | label_format url=`{{.RequestHost}}{{.RequestPath}}` | line_format `{{.DownstreamStatus}} {{.RequestMethod}} {{.url}}  {{.ClientHost}}{{ if eq .own \"true\" }} (own){{ end }}  {{.RouterName}}  {{.request_User_Agent}}`",
+                        "legendFormat": "",
+                        "maxLines": 1000,
+                        "queryType": "range"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Every matching request, newest first: status, method, host and path, address (own marked), router, User-Agent. Open a line for all its fields.",
+          "id": 49,
+          "links": [],
+          "title": "Requests",
+          "vizConfig": {
+            "group": "logs",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {},
+                "overrides": []
+              },
+              "options": {
+                "dedupStrategy": "none",
+                "enableInfiniteScrolling": true,
+                "enableLogDetails": true,
+                "prettifyLogMessage": false,
+                "showCommonLabels": false,
+                "showLabels": false,
+                "showTime": true,
+                "sortOrder": "Descending",
+                "wrapLogMessage": true
               }
             },
             "version": "13.2.4"
@@ -4821,6 +6402,190 @@
               },
               "title": "Health"
             }
+          },
+          {
+            "kind": "TabsLayoutTab",
+            "spec": {
+              "layout": {
+                "kind": "RowsLayout",
+                "spec": {
+                  "rows": [
+                    {
+                      "kind": "RowsLayoutRow",
+                      "spec": {
+                        "collapse": false,
+                        "hideHeader": true,
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-38"
+                                  },
+                                  "height": 4,
+                                  "width": 4,
+                                  "x": 0,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-39"
+                                  },
+                                  "height": 4,
+                                  "width": 4,
+                                  "x": 4,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-40"
+                                  },
+                                  "height": 4,
+                                  "width": 4,
+                                  "x": 8,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-41"
+                                  },
+                                  "height": 4,
+                                  "width": 4,
+                                  "x": 12,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-42"
+                                  },
+                                  "height": 4,
+                                  "width": 4,
+                                  "x": 16,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-43"
+                                  },
+                                  "height": 4,
+                                  "width": 4,
+                                  "x": 20,
+                                  "y": 0
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-44"
+                                  },
+                                  "height": 12,
+                                  "width": 24,
+                                  "x": 0,
+                                  "y": 4
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-45"
+                                  },
+                                  "height": 10,
+                                  "width": 14,
+                                  "x": 0,
+                                  "y": 16
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-46"
+                                  },
+                                  "height": 10,
+                                  "width": 10,
+                                  "x": 14,
+                                  "y": 16
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-47"
+                                  },
+                                  "height": 9,
+                                  "width": 12,
+                                  "x": 0,
+                                  "y": 26
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-48"
+                                  },
+                                  "height": 9,
+                                  "width": 12,
+                                  "x": 12,
+                                  "y": 26
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-49"
+                                  },
+                                  "height": 14,
+                                  "width": 24,
+                                  "x": 0,
+                                  "y": 35
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        "title": ""
+                      }
+                    }
+                  ]
+                }
+              },
+              "title": "Paths"
+            }
           }
         ]
       }
@@ -4959,6 +6724,121 @@
           "regex": "/(?<value>(?<text>[^@]+?)(?:-docker)?@.+)/",
           "skipUrlSync": false,
           "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "definition": "label_values({service_name=\"traefik-access\", host=\"$instance\"},router)",
+          "description": "Paths tab: Traefik routers of the access log",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Router",
+          "multi": true,
+          "name": "router",
+          "options": [],
+          "query": {
+            "datasource": {
+              "name": "loki"
+            },
+            "group": "loki",
+            "kind": "DataQuery",
+            "spec": {
+              "label": "router",
+              "refId": "LokiVariableQueryEditor-VariableQuery",
+              "stream": "{service_name=\"traefik-access\", host=\"$instance\"}",
+              "type": 1
+            },
+            "version": "v0"
+          },
+          "refresh": "onTimeRangeChanged",
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": "alphabeticalCaseInsensitiveAsc"
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allValue": ".*",
+          "allowCustomValue": false,
+          "current": {
+            "text": [
+              "All"
+            ],
+            "value": [
+              "$__all"
+            ]
+          },
+          "description": "Paths tab: status class of the answer",
+          "hide": "dontHide",
+          "includeAll": true,
+          "label": "Status",
+          "multi": true,
+          "name": "status",
+          "options": [],
+          "query": "2xx,3xx,4xx,5xx",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "CustomVariable",
+        "spec": {
+          "allValue": "",
+          "allowCustomValue": false,
+          "current": {
+            "text": "show",
+            "value": ".+"
+          },
+          "description": "Paths tab: show or hide own traffic (private addresses, basic-auth logins)",
+          "hide": "dontHide",
+          "includeAll": false,
+          "label": "Own traffic",
+          "multi": false,
+          "name": "own",
+          "options": [],
+          "query": "show : .+,hide : false",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "TextVariable",
+        "spec": {
+          "current": {
+            "text": "",
+            "value": ""
+          },
+          "description": "Paths tab: regular expression on the request path, case-insensitive",
+          "hide": "dontHide",
+          "label": "Path",
+          "name": "path",
+          "query": "",
+          "skipUrlSync": false
+        }
+      },
+      {
+        "kind": "TextVariable",
+        "spec": {
+          "current": {
+            "text": "",
+            "value": ""
+          },
+          "description": "Paths tab: client address or its beginning, e.g. 104.28.",
+          "hide": "dontHide",
+          "label": "Address",
+          "name": "address",
+          "query": "",
+          "skipUrlSync": false
         }
       }
     ]
