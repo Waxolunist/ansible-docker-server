@@ -233,6 +233,83 @@ loki.source.journal "journal" {
 	forward_to = [loki.process.journal.receiver]
 }
 
+loki.source.file "traefik_access" {
+	targets = [{
+		__path__     = "/var/log/traefik/access.log",
+		host         = "VPS",
+		source       = "file",
+		service_name = "traefik-access",
+	}]
+	forward_to = [loki.process.traefik_access.receiver]
+}
+
+loki.process "traefik_access" {
+	stage.json {
+		expressions = {
+			client = "ClientHost",
+			user   = "ClientUsername",
+			status = "DownstreamStatus",
+			router = "RouterName",
+			start  = "StartUTC",
+		}
+	}
+
+	stage.timestamp {
+		source = "start"
+		format = "RFC3339Nano"
+	}
+
+	stage.regex {
+		source     = "client"
+		expression = "^(?P<private>10\\.|127\\.|192\\.168\\.|172\\.(?:1[6-9]|2[0-9]|3[01])\\.|::1$)"
+	}
+
+	stage.regex {
+		source     = "user"
+		expression = "^(?P<authenticated>[^-].*|-.+)$"
+	}
+
+	stage.regex {
+		source     = "status"
+		expression = "^(?P<status_digit>[1-5])"
+	}
+
+	stage.template {
+		source   = "own"
+		template = "{{ if or .private .authenticated }}true{{ else }}false{{ end }}"
+	}
+
+	stage.template {
+		source   = "status_class"
+		template = "{{ with .status_digit }}{{ . }}xx{{ end }}"
+	}
+
+	stage.labels {
+		values = {own = "", status_class = "", router = ""}
+	}
+
+	stage.label_drop {
+		values = ["filename"]
+	}
+
+	stage.replace {
+		expression = "\"RequestPath\":\"(?:[^\"\\\\?]|\\\\.)*(\\?(?:[^\"\\\\]|\\\\.)*)\""
+		replace    = "?*"
+	}
+
+	stage.replace {
+		expression = "\"ClientUsername\":\"([^\"-][^\"]*|-[^\"]+)\""
+		replace    = "authenticated"
+	}
+
+	stage.replace {
+		expression = "(\"(?:ClientAddr|ClientPort|GzipRatio|OriginContentSize|Overhead|RequestAddr|RequestCount|RequestPort|RetryAttempts|ServiceAddr|ServiceURL|StartLocal|StartUTC|level|msg)\":(?:\"(?:[^\"\\\\]|\\\\.)*\"|[-+.0-9eE]+),)"
+		replace    = ""
+	}
+
+	forward_to = [loki.write.loki.receiver]
+}
+
 loki.write "loki" {
 	endpoint {
 		url = "http://loki:3100/loki/api/v1/push"
