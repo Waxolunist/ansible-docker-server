@@ -1151,7 +1151,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "time_series",
+                        "format": "table",
                         "rawQuery": true,
                         "rawSql": "select time,\n       case when status in (5, 6) then coalesce(phase, status_text) else status_text end as \"Washing machine\"\nfrom data_appliance\nwhere device_type = 1\n  and time between $__timeFrom() - interval '1 day' and $__timeTo()\norder by time;"
                       },
@@ -1940,7 +1940,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "format": "time_series",
+                        "format": "table",
                         "rawQuery": true,
                         "rawSql": "select time, case when door_open then 'Open' else 'Closed' end as \"Door\"\nfrom data_appliance\nwhere device_type = 19\n  and time between $__timeFrom() - interval '1 hour' and $__timeTo()\norder by time;"
                       },
