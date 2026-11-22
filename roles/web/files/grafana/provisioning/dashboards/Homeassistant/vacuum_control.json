@@ -1153,7 +1153,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time,\n       case when status in (5, 6) then coalesce(phase, status_text) else status_text end as \"Washing machine\"\nfrom data_appliance\nwhere device_type = 1\n  and time between $__timeFrom() - interval '1 day' and $__timeTo()\norder by time;"
+                        "rawSql": "select time,\n       case when status in (5, 6) then coalesce(phase, status_text) else status_text end as \"Washing machine\"\nfrom data_appliance\nwhere device_type = 1\n  and time between $__timeFrom()::timestamptz - interval '1 day' and $__timeTo()\norder by time;"
                       },
                       "version": "v0"
                     },
@@ -1711,7 +1711,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "with d as (\n    select time, door_open,\n           lag(door_open) over (order by time) as previous,\n           lead(time) over (order by time) as next\n    from data_appliance\n    where device_type = 19\n      and time between $__timeFrom() - interval '1 hour' and $__timeTo()\n),\nopenings as (\n    select time, sum(case when door_open and not coalesce(previous, false) then 1 else 0 end) over (order by time) as opening,\n           door_open, extract(epoch from coalesce(next, now()) - time) as seconds\n    from d\n),\nopen as (\n    select opening, min(time) as opened, sum(seconds) as seconds\n    from openings\n    where door_open\n    group by opening\n)\nselect count(*) as \"Openings\", coalesce(sum(seconds), 0) as \"Open in total\", coalesce(max(seconds), 0) as \"Longest\"\nfrom open\nwhere $__timeFilter(opened);"
+                        "rawSql": "with d as (\n    select time, door_open,\n           lag(door_open) over (order by time) as previous,\n           lead(time) over (order by time) as next\n    from data_appliance\n    where device_type = 19\n      and time between $__timeFrom()::timestamptz - interval '1 hour' and $__timeTo()\n),\nopenings as (\n    select time, sum(case when door_open and not coalesce(previous, false) then 1 else 0 end) over (order by time) as opening,\n           door_open, extract(epoch from coalesce(next, now()) - time) as seconds\n    from d\n),\nopen as (\n    select opening, min(time) as opened, sum(seconds) as seconds\n    from openings\n    where door_open\n    group by opening\n)\nselect count(*) as \"Openings\", coalesce(sum(seconds), 0) as \"Open in total\", coalesce(max(seconds), 0) as \"Longest\"\nfrom open\nwhere $__timeFilter(opened);"
                       },
                       "version": "v0"
                     },
@@ -1942,7 +1942,7 @@
                         "editorMode": "code",
                         "format": "table",
                         "rawQuery": true,
-                        "rawSql": "select time, case when door_open then 'Open' else 'Closed' end as \"Door\"\nfrom data_appliance\nwhere device_type = 19\n  and time between $__timeFrom() - interval '1 hour' and $__timeTo()\norder by time;"
+                        "rawSql": "select time, case when door_open then 'Open' else 'Closed' end as \"Door\"\nfrom data_appliance\nwhere device_type = 19\n  and time between $__timeFrom()::timestamptz - interval '1 hour' and $__timeTo()\norder by time;"
                       },
                       "version": "v0"
                     },
