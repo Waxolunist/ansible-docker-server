@@ -530,6 +530,42 @@ groups:
           dashboard: "[[ dash ]]vacuum-control"
           runbook: "[[ respond ]]vacuumcloudloginrejected"
 
+      - alert: FridgeTemperatureOutOfRange
+        expr: appliance_temperature_celsius{device_type="19"} < [[ alerting.fridge_min_celsius ]] or appliance_temperature_celsius{device_type="19"} > [[ alerting.fridge_max_celsius ]]
+        for: 15m
+        labels:
+          severity: warning
+          area: home
+        annotations:
+          summary: "The fridge is at {{ $value }} °C"
+          description: "{{ $labels.name }} has been at {{ $value }} °C for 15 minutes, outside [[ alerting.fridge_min_celsius ]]–[[ alerting.fridge_max_celsius ]] °C. Target {{ with query \"appliance_target_temperature_celsius{device_type='19'}\" }}{{ . | first | value }} °C{{ else }}unknown{{ end }}."
+          dashboard: "[[ dash ]]vacuum-control"
+          runbook: "[[ respond ]]fridgetemperatureoutofrange"
+
+      - alert: FridgeDoorOpen
+        expr: appliance_door_open{device_type="19"} == 1
+        for: [[ alerting.fridge_door_open_for ]]
+        labels:
+          severity: warning
+          area: home
+        annotations:
+          summary: "The fridge door is open"
+          description: "The door of {{ $labels.name }} has been open for [[ alerting.fridge_door_open_for ]]."
+          dashboard: "[[ dash ]]vacuum-control"
+          runbook: "[[ respond ]]fridgedooropen"
+
+      - alert: ApplianceFailure
+        expr: appliance_failure == 1
+        for: 5m
+        labels:
+          severity: warning
+          area: home
+        annotations:
+          summary: "{{ $labels.name }} signals a failure"
+          description: "The Miele {{ $labels.name }} has signalled a failure for 5 minutes. The Miele app shows the fault code."
+          dashboard: "[[ dash ]]vacuum-control"
+          runbook: "[[ respond ]]appliancefailure"
+
 {% set ssh_by = 'instance, ssh_user, ssh_method, ssh_key, ssh_origin' %}
 {% set ssh_logins = 'loki_process_custom_ssh_logins_total' %}
 {% set known_keys = alerting.ssh_known_keys | map('regex_escape') | join('|') | replace('\\', '\\\\') %}

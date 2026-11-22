@@ -895,7 +895,1121 @@
           }
         }
       },
-      "panel-90": "@@ENERGY_FLOW_PANEL@@"
+      "panel-90": "@@ENERGY_FLOW_PANEL@@",
+      "panel-101": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select status_text as \"Status\",\n       coalesce(program, '–') as \"Programme\",\n       coalesce(phase, '–') as \"Phase\",\n       case when status in (5, 6) then remaining_min * 60 end as \"Remaining\",\n       case when status in (5, 6) and remaining_min > 0 then extract(epoch from time + remaining_min * interval '1 minute') * 1000 end as \"Ready at\"\nfrom data_appliance\nwhere device_type = 1\norder by time desc\nlimit 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "The washing machine's latest state from data_appliance (MieleJob: the Miele event stream plus a snapshot every 5 minutes).",
+          "id": 101,
+          "links": [],
+          "title": "Now",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "noValue": "–"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Remaining"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Ready at"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dateTimeAsLocalNoDateIfToday"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-102": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select count(*) as \"Washes\",\n       sum(energy_kwh) as \"Energy\",\n       sum(water_l) as \"Water\",\n       sum(cost_eur) as \"Cost\"\nfrom view_washing_cycle\nwhere $__timeFilter(started);"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Washes started in the picked range (view_washing_cycle), with energy and water as the machine reported them at the end of each wash (Miele ecoFeedback) and the cost at the contract price of the hour the wash started.",
+          "id": 102,
+          "links": [],
+          "title": "In the picked range",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "noValue": "0"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Washes"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Energy"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "kwatth"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Water"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "litre"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Cost"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "currencyEUR"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-103": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "time_series",
+                        "rawQuery": true,
+                        "rawSql": "select time,\n       case when status in (5, 6) then coalesce(phase, status_text) else status_text end as \"Washing machine\"\nfrom data_appliance\nwhere device_type = 1\n  and time between $__timeFrom() - interval '1 day' and $__timeTo()\norder by time;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Status and programme phase of the washing machine over the picked range.",
+          "id": 103,
+          "links": [],
+          "title": "Status",
+          "vizConfig": {
+            "group": "state-timeline",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "fillOpacity": 80,
+                    "lineWidth": 0
+                  }
+                },
+                "overrides": []
+              },
+              "options": {
+                "alignValue": "left",
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "mergeValues": true,
+                "rowHeight": 0.9,
+                "showValue": "auto",
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-104": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select started as \"Started\",\n       coalesce(program, '–') as \"Programme\",\n       temperature as \"Temperature\",\n       spin_speed as \"Spin\",\n       extract(epoch from duration) as \"Duration\",\n       energy_kwh as \"Energy\",\n       water_l as \"Water\",\n       cost_eur as \"Cost\",\n       case when running then 'running' else 'done' end as \"State\"\nfrom view_washing_cycle\nwhere $__timeFilter(started)\norder by started desc;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "One row per wash started in the picked range (view_washing_cycle). Energy and water are empty when the machine did not report them; cost needs energy and the hourly contract price.",
+          "id": 104,
+          "links": [],
+          "title": "Washes",
+          "vizConfig": {
+            "group": "table",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    }
+                  },
+                  "noValue": "–"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Started"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "dateTimeAsLocal"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Temperature"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "celsius"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Spin"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "rotrpm"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Duration"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Energy"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "kwatth"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Water"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "litre"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Cost"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "currencyEUR"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "cellHeight": "sm",
+                "showHeader": true,
+                "footer": {
+                  "show": false
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-105": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select to_char(date_trunc('week', started at time zone 'Europe/Vienna'), 'YYYY-MM-DD') as \"Week\",\n       sum(energy_kwh) as \"Energy\",\n       sum(water_l) as \"Water\",\n       count(*) as \"Washes\"\nfrom view_washing_cycle\nwhere started > now() - interval '26 weeks'\ngroup by 1\norder by 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Energy and water of the washes per week, the last 26 weeks regardless of the picker.",
+          "id": 105,
+          "links": [],
+          "title": "Per week",
+          "vizConfig": {
+            "group": "barchart",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "fillOpacity": 80,
+                    "lineWidth": 1
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Energy"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "kwatth"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 2
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Water"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "litre"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.axisPlacement",
+                        "value": "right"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Washes"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      },
+                      {
+                        "id": "custom.hideFrom",
+                        "value": {
+                          "legend": false,
+                          "tooltip": false,
+                          "viz": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "barWidth": 0.8,
+                "groupWidth": 0.7,
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "orientation": "auto",
+                "showValue": "never",
+                "stacking": "none",
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                },
+                "xField": "Week",
+                "xTickLabelRotation": 0
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-201": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "select temperature as \"Temperature\",\n       target_temperature as \"Target\",\n       case when door_open then 1 else 0 end as \"Door\",\n       status_text as \"Status\"\nfrom data_appliance\nwhere device_type = 19\norder by time desc\nlimit 1;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "The fridge's latest state from data_appliance. Alerts: FridgeTemperatureOutOfRange (outside 2–7 °C for 15 minutes) and FridgeDoorOpen (open for 2 minutes).",
+          "id": 201,
+          "links": [],
+          "title": "Now",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "noValue": "–"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Temperature"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "celsius"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "blue",
+                              "value": null
+                            },
+                            {
+                              "color": "green",
+                              "value": 2
+                            },
+                            {
+                              "color": "red",
+                              "value": 7
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Target"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "celsius"
+                      },
+                      {
+                        "id": "decimals",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Door"
+                    },
+                    "properties": [
+                      {
+                        "id": "mappings",
+                        "value": [
+                          {
+                            "type": "value",
+                            "options": {
+                              "0": {
+                                "text": "Closed",
+                                "color": "green",
+                                "index": 0
+                              },
+                              "1": {
+                                "text": "Open",
+                                "color": "red",
+                                "index": 1
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "color",
+                        "value": {
+                          "mode": "thresholds"
+                        }
+                      },
+                      {
+                        "id": "thresholds",
+                        "value": {
+                          "mode": "absolute",
+                          "steps": [
+                            {
+                              "color": "green",
+                              "value": null
+                            },
+                            {
+                              "color": "red",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "/.*/",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-202": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "table",
+                        "rawQuery": true,
+                        "rawSql": "with d as (\n    select time, door_open,\n           lag(door_open) over (order by time) as previous,\n           lead(time) over (order by time) as next\n    from data_appliance\n    where device_type = 19\n      and time between $__timeFrom() - interval '1 hour' and $__timeTo()\n),\nopenings as (\n    select time, sum(case when door_open and not coalesce(previous, false) then 1 else 0 end) over (order by time) as opening,\n           door_open, extract(epoch from coalesce(next, now()) - time) as seconds\n    from d\n),\nopen as (\n    select opening, min(time) as opened, sum(seconds) as seconds\n    from openings\n    where door_open\n    group by opening\n)\nselect count(*) as \"Openings\", coalesce(sum(seconds), 0) as \"Open in total\", coalesce(max(seconds), 0) as \"Longest\"\nfrom open\nwhere $__timeFilter(opened);"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Door openings from the Miele event stream (each change from closed to open) and how long the door was open in total and at most.",
+          "id": 202,
+          "links": [],
+          "title": "Door in the picked range",
+          "vizConfig": {
+            "group": "stat",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "fixedColor": "text",
+                    "mode": "fixed"
+                  },
+                  "noValue": "0"
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Openings"
+                    },
+                    "properties": [
+                      {
+                        "id": "decimals",
+                        "value": 0
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Open in total"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
+                  },
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Longest"
+                    },
+                    "properties": [
+                      {
+                        "id": "unit",
+                        "value": "s"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                  "calcs": [
+                    "lastNotNull"
+                  ],
+                  "fields": "",
+                  "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value_and_name",
+                "wideLayout": true
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-203": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "time_series",
+                        "rawQuery": true,
+                        "rawSql": "select time, temperature as \"Temperature\", target_temperature as \"Target\"\nfrom data_appliance\nwhere device_type = 19\n  and $__timeFilter(time)\norder by time;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Temperature and target the fridge reported (steps: a new value arrives with each change and every 5 minutes). The band marks the alert limits 2–7 °C.",
+          "id": 203,
+          "links": [],
+          "title": "Temperature",
+          "vizConfig": {
+            "group": "timeseries",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "unit": "celsius",
+                  "decimals": 1,
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "drawStyle": "line",
+                    "lineInterpolation": "stepAfter",
+                    "lineWidth": 2,
+                    "fillOpacity": 0,
+                    "showPoints": "never",
+                    "spanNulls": true,
+                    "thresholdsStyle": {
+                      "mode": "area"
+                    }
+                  },
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "color": "#5794f220",
+                        "value": null
+                      },
+                      {
+                        "color": "transparent",
+                        "value": 2
+                      },
+                      {
+                        "color": "#f2495c20",
+                        "value": 7
+                      }
+                    ]
+                  }
+                },
+                "overrides": [
+                  {
+                    "matcher": {
+                      "id": "byName",
+                      "options": "Target"
+                    },
+                    "properties": [
+                      {
+                        "id": "color",
+                        "value": {
+                          "fixedColor": "text",
+                          "mode": "fixed"
+                        }
+                      },
+                      {
+                        "id": "custom.lineStyle",
+                        "value": {
+                          "dash": [
+                            6,
+                            6
+                          ],
+                          "fill": "dash"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "options": {
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "multi",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      },
+      "panel-204": {
+        "kind": "Panel",
+        "spec": {
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "hidden": false,
+                    "query": {
+                      "datasource": {
+                        "name": "c17a467f-0417-4c81-b598-1bf916d7bba7"
+                      },
+                      "group": "grafana-postgresql-datasource",
+                      "kind": "DataQuery",
+                      "spec": {
+                        "editorMode": "code",
+                        "format": "time_series",
+                        "rawQuery": true,
+                        "rawSql": "select time, case when door_open then 'Open' else 'Closed' end as \"Door\"\nfrom data_appliance\nwhere device_type = 19\n  and time between $__timeFrom() - interval '1 hour' and $__timeTo()\norder by time;"
+                      },
+                      "version": "v0"
+                    },
+                    "refId": "A"
+                  }
+                }
+              ],
+              "queryOptions": {},
+              "transformations": []
+            }
+          },
+          "description": "Door open or closed over the picked range, from the Miele event stream.",
+          "id": 204,
+          "links": [],
+          "title": "Door",
+          "vizConfig": {
+            "group": "state-timeline",
+            "kind": "VizConfig",
+            "spec": {
+              "fieldConfig": {
+                "defaults": {
+                  "color": {
+                    "mode": "fixed",
+                    "fixedColor": "green"
+                  },
+                  "custom": {
+                    "fillOpacity": 80,
+                    "lineWidth": 0
+                  },
+                  "mappings": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "Closed": {
+                          "color": "#ccccdb3b",
+                          "index": 0
+                        },
+                        "Open": {
+                          "color": "red",
+                          "index": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "overrides": []
+              },
+              "options": {
+                "alignValue": "left",
+                "legend": {
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": false
+                },
+                "mergeValues": true,
+                "rowHeight": 0.9,
+                "showValue": "never",
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              }
+            },
+            "version": "13.2.4"
+          }
+        }
+      }
     },
     "layout": {
       "kind": "RowsLayout",
@@ -932,132 +2046,304 @@
           {
             "kind": "RowsLayoutRow",
             "spec": {
+              "title": "Devices",
               "collapse": false,
               "hideHeader": true,
+              "fillScreen": true,
               "layout": {
-                "kind": "GridLayout",
+                "kind": "TabsLayout",
                 "spec": {
-                  "items": [
+                  "tabs": [
                     {
-                      "kind": "GridLayoutItem",
+                      "kind": "TabsLayoutTab",
                       "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-1"
-                        },
-                        "height": 8,
-                        "width": 12,
-                        "x": 0,
-                        "y": 0
+                        "title": "Vacuum",
+                        "layout": {
+                          "kind": "RowsLayout",
+                          "spec": {
+                            "rows": [
+                              {
+                                "kind": "RowsLayoutRow",
+                                "spec": {
+                                  "collapse": false,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "GridLayout",
+                                    "spec": {
+                                      "items": [
+                                        {
+                                          "kind": "GridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-1"
+                                            },
+                                            "height": 8,
+                                            "width": 12,
+                                            "x": 0,
+                                            "y": 0
+                                          }
+                                        },
+                                        {
+                                          "kind": "GridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-2"
+                                            },
+                                            "height": 4,
+                                            "width": 4,
+                                            "x": 12,
+                                            "y": 0
+                                          }
+                                        },
+                                        {
+                                          "kind": "GridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-3"
+                                            },
+                                            "height": 4,
+                                            "width": 4,
+                                            "x": 16,
+                                            "y": 0
+                                          }
+                                        },
+                                        {
+                                          "kind": "GridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-4"
+                                            },
+                                            "height": 4,
+                                            "width": 4,
+                                            "x": 20,
+                                            "y": 0
+                                          }
+                                        },
+                                        {
+                                          "kind": "GridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-5"
+                                            },
+                                            "height": 4,
+                                            "width": 6,
+                                            "x": 12,
+                                            "y": 4
+                                          }
+                                        },
+                                        {
+                                          "kind": "GridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-6"
+                                            },
+                                            "height": 4,
+                                            "width": 6,
+                                            "x": 18,
+                                            "y": 4
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  },
+                                  "title": "Control"
+                                }
+                              },
+                              {
+                                "kind": "RowsLayoutRow",
+                                "spec": {
+                                  "collapse": false,
+                                  "fillScreen": true,
+                                  "hideHeader": true,
+                                  "layout": {
+                                    "kind": "AutoGridLayout",
+                                    "spec": {
+                                      "columnWidthMode": "standard",
+                                      "fillScreen": true,
+                                      "items": [
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-7"
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "kind": "AutoGridLayoutItem",
+                                          "spec": {
+                                            "element": {
+                                              "kind": "ElementReference",
+                                              "name": "panel-8"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "maxColumnCount": 2,
+                                      "rowHeightMode": "standard"
+                                    }
+                                  },
+                                  "title": "History"
+                                }
+                              }
+                            ]
+                          }
+                        }
                       }
                     },
                     {
-                      "kind": "GridLayoutItem",
+                      "kind": "TabsLayoutTab",
                       "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-2"
-                        },
-                        "height": 4,
-                        "width": 4,
-                        "x": 12,
-                        "y": 0
+                        "title": "Washing machine",
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-101"
+                                  },
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 14,
+                                  "height": 5
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-102"
+                                  },
+                                  "x": 14,
+                                  "y": 0,
+                                  "width": 10,
+                                  "height": 5
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-103"
+                                  },
+                                  "x": 0,
+                                  "y": 5,
+                                  "width": 24,
+                                  "height": 5
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-104"
+                                  },
+                                  "x": 0,
+                                  "y": 10,
+                                  "width": 14,
+                                  "height": 11
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-105"
+                                  },
+                                  "x": 14,
+                                  "y": 10,
+                                  "width": 10,
+                                  "height": 11
+                                }
+                              }
+                            ]
+                          }
+                        }
                       }
                     },
                     {
-                      "kind": "GridLayoutItem",
+                      "kind": "TabsLayoutTab",
                       "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-3"
-                        },
-                        "height": 4,
-                        "width": 4,
-                        "x": 16,
-                        "y": 0
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-4"
-                        },
-                        "height": 4,
-                        "width": 4,
-                        "x": 20,
-                        "y": 0
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-5"
-                        },
-                        "height": 4,
-                        "width": 6,
-                        "x": 12,
-                        "y": 4
-                      }
-                    },
-                    {
-                      "kind": "GridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-6"
-                        },
-                        "height": 4,
-                        "width": 6,
-                        "x": 18,
-                        "y": 4
+                        "title": "Fridge",
+                        "layout": {
+                          "kind": "GridLayout",
+                          "spec": {
+                            "items": [
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-201"
+                                  },
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 12,
+                                  "height": 5
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-202"
+                                  },
+                                  "x": 12,
+                                  "y": 0,
+                                  "width": 12,
+                                  "height": 5
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-203"
+                                  },
+                                  "x": 0,
+                                  "y": 5,
+                                  "width": 24,
+                                  "height": 11
+                                }
+                              },
+                              {
+                                "kind": "GridLayoutItem",
+                                "spec": {
+                                  "element": {
+                                    "kind": "ElementReference",
+                                    "name": "panel-204"
+                                  },
+                                  "x": 0,
+                                  "y": 16,
+                                  "width": 24,
+                                  "height": 4
+                                }
+                              }
+                            ]
+                          }
+                        }
                       }
                     }
                   ]
                 }
-              },
-              "title": "Control"
-            }
-          },
-          {
-            "kind": "RowsLayoutRow",
-            "spec": {
-              "collapse": false,
-              "fillScreen": true,
-              "hideHeader": true,
-              "layout": {
-                "kind": "AutoGridLayout",
-                "spec": {
-                  "columnWidthMode": "standard",
-                  "fillScreen": true,
-                  "items": [
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-7"
-                        }
-                      }
-                    },
-                    {
-                      "kind": "AutoGridLayoutItem",
-                      "spec": {
-                        "element": {
-                          "kind": "ElementReference",
-                          "name": "panel-8"
-                        }
-                      }
-                    }
-                  ],
-                  "maxColumnCount": 2,
-                  "rowHeightMode": "standard"
-                }
-              },
-              "title": "History"
+              }
             }
           }
         ]
@@ -1095,7 +2381,8 @@
     "preload": true,
     "tags": [
       "homeassistant",
-      "vacuum"
+      "vacuum",
+      "household"
     ],
     "timeSettings": {
       "autoRefresh": "10s",
@@ -1116,7 +2403,7 @@
       "timezone": "browser",
       "to": "now"
     },
-    "title": "Vacuum - Control",
+    "title": "Household - Devices",
     "variables": []
   }
 }
