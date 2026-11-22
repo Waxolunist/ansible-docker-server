@@ -931,3 +931,61 @@ tests:
               description: "15 Authelia logins failed in 15 minutes. fail2ban bans an address after 5 failures in 10 minutes."
               dashboard: "https://graph.v-collaborate.com/d/bgWWT5hGz"
               runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#authelialoginfailures"
+
+  - name: FridgeTemperatureOutOfRange fires after 15 minutes outside 2-7 °C
+    interval: 1m
+    input_series:
+      - series: 'appliance_temperature_celsius{job="collector",instance="10.8.0.2:9105",name="Refrigerator",device_type="19"}'
+        values: '4x5 8.5x20'
+      - series: 'appliance_target_temperature_celsius{job="collector",instance="10.8.0.2:9105",name="Refrigerator",device_type="19"}'
+        values: '4x25'
+      - series: 'appliance_temperature_celsius{job="collector",instance="10.8.0.2:9105",name="Washing machine",device_type="1"}'
+        values: '40x25'
+    alert_rule_test:
+      - eval_time: 15m
+        alertname: FridgeTemperatureOutOfRange
+        exp_alerts: []
+      - eval_time: 22m
+        alertname: FridgeTemperatureOutOfRange
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: collector, instance: "10.8.0.2:9105", name: Refrigerator, device_type: "19"}
+            exp_annotations:
+              summary: "The fridge is at 8.5 °C"
+              description: "Refrigerator has been at 8.5 °C for 15 minutes, outside 2–7 °C. Target 4 °C."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#fridgetemperatureoutofrange"
+
+  - name: FridgeDoorOpen fires after 2 minutes, a short opening does not
+    interval: 1m
+    input_series:
+      - series: 'appliance_door_open{job="collector",instance="10.8.0.2:9105",name="Refrigerator",device_type="19"}'
+        values: '0 1 0 0 1x5'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: FridgeDoorOpen
+        exp_alerts: []
+      - eval_time: 7m
+        alertname: FridgeDoorOpen
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: collector, instance: "10.8.0.2:9105", name: Refrigerator, device_type: "19"}
+            exp_annotations:
+              summary: "The fridge door is open"
+              description: "The door of Refrigerator has been open for 2m."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#fridgedooropen"
+
+  - name: ApplianceFailure fires for any appliance after 5 minutes
+    interval: 1m
+    input_series:
+      - series: 'appliance_failure{job="collector",instance="10.8.0.2:9105",name="Washing machine",device_type="1"}'
+        values: '0 1x8'
+    alert_rule_test:
+      - eval_time: 7m
+        alertname: ApplianceFailure
+        exp_alerts:
+          - exp_labels: {severity: warning, area: home, job: collector, instance: "10.8.0.2:9105", name: "Washing machine", device_type: "1"}
+            exp_annotations:
+              summary: "Washing machine signals a failure"
+              description: "The Miele Washing machine has signalled a failure for 5 minutes. The Miele app shows the fault code."
+              dashboard: "https://graph.v-collaborate.com/d/vacuum-control"
+              runbook: "https://github.com/Waxolunist/home_docs/blob/main/how-to/respond-to-alerts.md#appliancefailure"

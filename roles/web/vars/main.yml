@@ -228,6 +228,9 @@
       - { instance: Pi, user: csterzl, origins: "lan|wireguard" }
     basic_auth_failures_max: 20
     authelia_failures_max: 5
+    fridge_min_celsius: 2
+    fridge_max_celsius: 7
+    fridge_door_open_for: 2m
     collector_job_stale_after:
       PsaHealthJob: 15m
       VehicleInfoJob: 30m
@@ -237,6 +240,7 @@
       SohInfoJob: 30m
       CloudPowerJob: 30m
       TydomJob: 30m
+      MieleJob: 30m
       SocRefreshJob: 1h
       NetzNiederoesterreichJob: 3h
       NetzBurgenlandJob: 3h
@@ -260,6 +264,10 @@
         column: time
         stale_after: 30m
         dashboard: chw95zv
+      - table: data_appliance
+        column: time
+        stale_after: 30m
+        dashboard: vacuum-control
       - table: data_smartmeter_energy
         column: time
         stale_after: 48h
