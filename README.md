@@ -40,6 +40,7 @@ Without `--tags`, the playbook deploys everything, as above. To run just one par
 |---|---|
 | `grafana_dashboards` | The dashboards in `roles/web/files/grafana/provisioning/dashboards/` and their provider |
 | `setup_model_page` | The public and the private setup model page, and the `robots.txt` |
+| `task_manager_page` | `task-manager.html` from the `develop` branch of MarkdownTaskManager, replaced only when it changed |
 | `compose_file` | `docker-compose.yml` only; running containers keep their settings until they are recreated |
 
 Grafana rescans its dashboards directory every 30 seconds, so changes show up without a restart. Only a change to the provider restarts Grafana.

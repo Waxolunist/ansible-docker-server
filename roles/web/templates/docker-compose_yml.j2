@@ -105,6 +105,7 @@ services:
       monitoring_ui:
       code_ui:
       setup_model_ui:
+      task_manager_ui:
       picoclaw_ui:
     labels:
       - autoheal=true
@@ -1197,6 +1198,52 @@ services:
       start_period: 5s
     restart: unless-stopped
 
+  task-manager:
+    image: nginxinc/nginx-unprivileged:1.31.7-alpine
+    container_name: web_task-manager
+    mem_limit: 32M
+    cpus: 0.25
+    depends_on:
+      - reverse-proxy
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp
+    expose:
+      - {{ task_manager.port }}
+    volumes:
+      - "{{ docker.paths.configs }}task_manager:/usr/share/nginx/html:ro"
+    networks:
+      - task_manager_ui
+    labels:
+      - autoheal=true
+      - traefik.enable=true
+      - traefik.docker.network=web_task_manager_ui
+      - traefik.http.middlewares.task-manager-https-redirect.redirectscheme.scheme=https
+      - traefik.http.middlewares.task-manager-headers.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive
+      - traefik.http.middlewares.task-manager-headers.headers.contentSecurityPolicy=frame-ancestors 'none'
+      - traefik.http.middlewares.task-manager-compress.compress=true
+      - traefik.http.services.task-manager.loadbalancer.server.port={{ task_manager.port }}
+      - traefik.http.routers.task-manager-secure.entrypoints=websecure
+      - traefik.http.routers.task-manager-secure.rule=Host(`{{ task_manager.domain }}`)
+      - traefik.http.routers.task-manager-secure.service=task-manager
+      - traefik.http.routers.task-manager-secure.tls=true
+      - traefik.http.routers.task-manager-secure.tls.certresolver=myresolver
+      - traefik.http.routers.task-manager-secure.middlewares=task-manager-compress,task-manager-headers,security-headers@docker,rate-limit@docker
+      - traefik.http.routers.task-manager.entrypoints=web
+      - traefik.http.routers.task-manager.middlewares=task-manager-https-redirect
+      - traefik.http.routers.task-manager.rule=Host(`{{ task_manager.domain }}`)
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:{{ task_manager.port }}/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
 networks:
   proxy:
     name: web_proxy
@@ -1222,6 +1269,8 @@ networks:
     name: web_code_ui
   setup_model_ui:
     name: web_setup_model_ui
+  task_manager_ui:
+    name: web_task_manager_ui
   picoclaw_ui:
     name: web_picoclaw_ui
 

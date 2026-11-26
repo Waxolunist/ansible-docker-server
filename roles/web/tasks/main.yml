@@ -46,6 +46,9 @@
   - import_tasks: setup_model_page.yml
     when: "'setup_model' in web_containers"
     tags: setup_model_page
+  - import_tasks: task_manager_page.yml
+    when: "'task_manager' in web_containers"
+    tags: task_manager_page
   - name: Write docker compose file
     template:
       src: docker-compose_yml.j2

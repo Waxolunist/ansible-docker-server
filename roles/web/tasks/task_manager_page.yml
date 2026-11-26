@@ -1,0 +1,12 @@
+---
+  - name: Task manager - Create the folder of the page
+    file:
+      path: "{{ docker.paths.configs }}task_manager"
+      state: directory
+
+  - name: Task manager - Install the page from the develop branch
+    get_url:
+      url: "{{ task_manager.source_url }}"
+      dest: "{{ docker.paths.configs }}task_manager/index.html"
+      mode: 0644
+      force: yes
