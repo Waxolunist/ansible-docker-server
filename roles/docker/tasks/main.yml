@@ -10,10 +10,12 @@
     database: group
     key: docker
   become: yes
+  tags: compose_file
 
 - name: Set docker_gid fact
   ansible.builtin.set_fact:
     docker_gid: "{{ ansible_facts.getent_group.docker[1] }}"
+  tags: compose_file
 
 - name: Add user {{ ansible_user }} to docker group
   ansible.builtin.user:
@@ -138,10 +140,12 @@
       register: docker_ip_address
       changed_when: false
       check_mode: false
+      tags: compose_file
 
     - name: Set docker_ip_address fact
       ansible.builtin.set_fact:
         docker_ip_address: "{{ docker_ip_address.stdout }}"
+      tags: compose_file
 
     - name: Debug docker_ip_address
       ansible.builtin.debug:

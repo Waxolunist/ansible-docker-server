@@ -457,7 +457,7 @@ services:
   grafana:
     image: grafana/grafana:13.2.4
     container_name: web_grafana
-    mem_limit: 1G
+    mem_limit: 1536m
     cpus: 1.0
     volumes:
       - "{{ docker.paths.configs }}grafana:/etc/grafana:ro"
