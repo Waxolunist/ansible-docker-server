@@ -52,6 +52,7 @@
       dest: "{{ docker_base_path }}/docker-compose.yml"
       mode: 0644
       backup: yes
+    tags: compose_file
   - name: Create restart script
     template:
       src: start_sh.j2.sh
