@@ -1137,6 +1137,7 @@ services:
       - traefik.docker.network=web_setup_model_ui
       - traefik.http.middlewares.setup-model-https-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.setup-model-headers.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive
+      - traefik.http.middlewares.setup-model-headers.headers.customResponseHeaders.Cache-Control=no-cache
       - traefik.http.middlewares.setup-model-headers.headers.contentSecurityPolicy=frame-ancestors 'none'
       - traefik.http.middlewares.setup-model-compress.compress=true
       - traefik.http.services.setup-model.loadbalancer.server.port={{ setup_model.port }}
@@ -1224,6 +1225,7 @@ services:
       - traefik.docker.network=web_task_manager_ui
       - traefik.http.middlewares.task-manager-https-redirect.redirectscheme.scheme=https
       - traefik.http.middlewares.task-manager-headers.headers.customResponseHeaders.X-Robots-Tag=noindex, nofollow, noarchive
+      - traefik.http.middlewares.task-manager-headers.headers.customResponseHeaders.Cache-Control=no-cache
       - traefik.http.middlewares.task-manager-headers.headers.contentSecurityPolicy=frame-ancestors 'none'
       - traefik.http.middlewares.task-manager-compress.compress=true
       - traefik.http.services.task-manager.loadbalancer.server.port={{ task_manager.port }}
