@@ -526,6 +526,26 @@
           {
             "matcher": {
               "id": "byName",
+              "options": "Logs from"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.hidden",
+                "value": true
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
               "options": "Address"
             },
             "properties": [
@@ -535,7 +555,7 @@
                   {
                     "targetBlank": false,
                     "title": "Requests on Traefik",
-                    "url": "/d/traefik/traefik?${__url_time_range}&var-instance=${__data.fields[\"Host\"]}&var-address=${__value.raw}&dtab=Paths"
+                    "url": "/d/traefik/traefik?from=${__data.fields[\"Logs from\"]}&to=now&var-instance=${__data.fields[\"Host\"]}&var-address=${__value.raw}&dtab=Paths"
                   },
                   {
                     "targetBlank": true,
@@ -621,6 +641,18 @@
           "legendFormat": "",
           "range": false,
           "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "BfDiy2hMk"
+          },
+          "expr": "(fail2ban_ban_start_timestamp_seconds{instance=~\"$host\", jail=~\"$jail\"} - 86400) * 1000",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "E"
         }
       ],
       "title": "Banned now",
@@ -645,6 +677,7 @@
               "Value #B": 6,
               "Value #C": 7,
               "Value #D": 8,
+              "Value #E": 9,
               "city": 4,
               "country": 3,
               "instance": 0,
@@ -656,6 +689,7 @@
               "Value #B": "Until",
               "Value #C": "Left",
               "Value #D": "Ban #",
+              "Value #E": "Logs from",
               "city": "City",
               "country": "Country",
               "instance": "Host",
