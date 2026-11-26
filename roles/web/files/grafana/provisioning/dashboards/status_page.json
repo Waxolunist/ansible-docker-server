@@ -595,7 +595,7 @@
               "transformations": []
             }
           },
-          "description": "Time since the container started. Orange: started less than 15 minutes ago, or the health check fails.",
+          "description": "Time since the container started. Orange: started less than 15 minutes ago, or the health check fails. Click to see its memory, CPU and network on the Containers tab.",
           "id": 15,
           "links": [],
           "title": "${container:text}",
@@ -645,7 +645,14 @@
                       }
                     ]
                   },
-                  "unit": "s"
+                  "unit": "s",
+                  "links": [
+                    {
+                      "targetBlank": false,
+                      "title": "Resources of ${container:text}",
+                      "url": "/d/container-status-page?${__url_time_range}&var-host=${host}&var-container=${container}&dtab=Containers"
+                    }
+                  ]
                 },
                 "overrides": []
               },
