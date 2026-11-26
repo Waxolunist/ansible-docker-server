@@ -2290,7 +2290,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_memory_working_set_bytes:max{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_memory_working_set_bytes:max{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2313,7 +2313,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_spec_memory_limit_bytes:max{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_spec_memory_limit_bytes:max{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2336,7 +2336,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_memory_working_set_bytes:max{name=~\"$container\",instance=~\"$host\"} / name:container_spec_memory_limit_bytes:max{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_memory_working_set_bytes:max{name=~\"$container\",instance=~\"$host\"} / name:container_spec_memory_limit_bytes:max{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2359,7 +2359,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_cpu_usage_seconds:rate5m{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_cpu_usage_seconds:rate5m{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2382,7 +2382,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_spec_cpu_cores:max{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_spec_cpu_cores:max{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2405,7 +2405,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_network_receive_bytes:rate5m{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_network_receive_bytes:rate5m{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2428,7 +2428,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(name:container_network_transmit_bytes:rate5m{name=~\"$container\",instance=~\"$host\"}, \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (name:container_network_transmit_bytes:rate5m{name=~\"$container\",instance=~\"$host\"}), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
@@ -2451,7 +2451,7 @@
                       "kind": "DataQuery",
                       "spec": {
                         "editorMode": "code",
-                        "expr": "label_replace(increase(name:container_oom_events_total:sum{name=~\"$container\",instance=~\"$host\"}[$__range]), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
+                        "expr": "label_replace(max by (name) (increase(name:container_oom_events_total:sum{name=~\"$container\",instance=~\"$host\"}[$__range])), \"name\", \"$1\", \"name\", \"(?:web_)?(.+)\")",
                         "format": "table",
                         "instant": true,
                         "legendFormat": "",
