@@ -76,6 +76,7 @@ A run without `--tags` deploys everything. Tagged task files can also be deploye
 |---|---|---|
 | `grafana_dashboards` | [`grafana_dashboards.yml`](roles/web/tasks/grafana_dashboards.yml) | Everything in [`files/grafana/provisioning/dashboards/`](roles/web/files/grafana/provisioning/dashboards/), including subdirectories and the dashboard provider. Restarts Grafana only when the provider or the go-e datasource changed. |
 | `setup_model_page` | [`setup_model_page.yml`](roles/web/tasks/setup_model_page.yml) | The public and the private setup model page and the `robots.txt`. nginx serves them from a mounted folder, so nothing restarts. |
+| `task_manager_page` | [`task_manager_page.yml`](roles/web/tasks/task_manager_page.yml) | `task-manager.html` from the MarkdownTaskManager `develop` branch, replaced only when it changed. nginx serves it from a mounted folder, so nothing restarts. |
 
 ```bash
 ansible-playbook web.yml --tags grafana_dashboards
@@ -176,7 +177,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 1 | `registry` | `registry:3.0.0` | Private Docker registry | — | `monitoring_ui` | `registry.v-collaborate.com` |
 | 2 | `autoheal` | `willfarrell/autoheal:latest@sha256:7ab2ddc7…` (pinned by digest: no version tags since 1.2.0 in 2021) | Automatic container restart on failure | — | — | — |
 | 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
-| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `setup_model_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
+| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `setup_model_ui`, `task_manager_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
 | 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `monitoring_ui`, `prometheus` | `metrics.v-collaborate.com` |
 | 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
 | 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `monitoring_ui`, `prometheus` | `cadvisor.v-collaborate.com` |
@@ -200,6 +201,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 25 | `sql-exporter` | `burningalchemist/sql_exporter:0.24.11` | Age of the newest row of the `data_*` tables as metrics | — | `grafana`, `prometheus` | — |
 | 26 | `setup-model` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | Static page: the public 3D model of the home setup, no login | — | `setup_model_ui` | `setup.v-collaborate.com` |
 | 27 | `setup-model-private` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | Static page: the private 3D model of the home setup, behind Authelia | — | `setup_model_ui` | `setup.v-collaborate.com/private/` |
+| 28 | `task-manager` | `nginxinc/nginx-unprivileged:1.31.7-alpine` | Static page: `task-manager.html` of the MarkdownTaskManager `develop` branch, no login | — | `task_manager_ui` | `tasks.v-collaborate.com` |
 
 ### Service Dependencies
 
@@ -279,6 +281,11 @@ graph TB
         SMP[setup-model-private]
     end
 
+    subgraph task_manager_ui_net[web_task_manager_ui network]
+        RP9[reverse-proxy]
+        TM[task-manager]
+    end
+
     subgraph picoclaw_ui_net[web_picoclaw_ui network]
         RP6[reverse-proxy]
         PC[picoclaw]
@@ -320,6 +327,7 @@ graph TB
 | `monitoring_ui` | `web_monitoring_ui` | Traefik to the monitoring UIs and the registry; Prometheus scrapes Traefik and the registry here | reverse-proxy, prometheus, alertmanager, cadvisor, registry |
 | `code_ui` | `web_code_ui` | Traefik to code-server, which has no login of its own | reverse-proxy, code-server |
 | `setup_model_ui` | `web_setup_model_ui` | Traefik to the setup model's nginx | reverse-proxy, setup-model |
+| `task_manager_ui` | `web_task_manager_ui` | Traefik to the task manager's nginx | reverse-proxy, task-manager |
 | `picoclaw_ui` | `web_picoclaw_ui` | Traefik to PicoClaw, which reaches only the internet (Matrix through its public name) | reverse-proxy, picoclaw |
 | `prometheus` | auto-generated | Metrics collection and alerting | prometheus, node-exporter, cadvisor, postgres-exporter, sql-exporter, alertmanager, matrix-receiver, grafana (datasources), authelia (scraped on 9959) |
 | `grafana` | auto-generated | Database access for Grafana stack + log pipeline | grafana-pg, grafana, timescaledb, loki, alloy, postgres-exporter, sql-exporter |
@@ -484,8 +492,9 @@ Services protected by Authelia include:
 - **PicoClaw** (`picoclaw.v-collaborate.com`, `picoclaw-gw.v-collaborate.com`)
 - **Code-Server** (`code.v-collaborate.com`) — code-server's own auth is disabled (`auth: none`); Authelia is the sole authentication layer
 - **Otterwiki** (`wiki.v-collaborate.com`) — see below
-- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. Both pages are built in the private `home_docs` repository, whose build copies them to `roles/web/files/setup_model/` (`setup-model.html` public, `private.html` private). That folder is gitignored, and the build refuses to copy unless `.gitignore` lists it, so build the pages before running the playbook; without them the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`. nginx has no compression of its own: Traefik's `compress` middleware on this router does it.
+- **Setup model** (`setup.v-collaborate.com`): public without a login, so it must only ever serve the scrubbed page. Both pages are built in the private `home_docs` repository, whose build copies them to `roles/web/files/setup_model/` (`setup-model.html` public, `private.html` private). That folder is gitignored, and the build refuses to copy unless `.gitignore` lists it, so build the pages before running the playbook; without them the `web` role fails. Crawlers are turned away by `robots.txt`, a `noindex` meta tag and `X-Robots-Tag`. nginx has no compression of its own: Traefik's `compress` middleware on this router does it. The headers middleware also sends `Cache-Control: no-cache`, so browsers revalidate with the ETag on every load and a new build shows up at once, for both pages.
 - **Private setup model** (`setup.v-collaborate.com/private/`): the full page with addresses, doc links and the URL table, behind `auth@docker`; the `*.v-collaborate.com` rule of Authelia lets the full-access groups in. It runs in its own container, `setup-model-private`, whose folder `configs/setup_model_private/` the public container never mounts, so no path trick on the public router can reach the private file. If its router fails (a missing middleware drops it), `/private/` falls through to the public container and gets a 404. Traefik strips `/private` before nginx sees the request.
+- **Task manager** (`tasks.v-collaborate.com`): public without a login, which is safe because the page holds no data. It reads and writes the board in a folder the visitor picks in their own browser, so nothing reaches the server. Ansible's `get_url` fetches `task-manager.html` from the `develop` branch of `Waxolunist/MarkdownTaskManager` on every run and replaces `configs/task_manager/index.html` only when the content differs. nginx serves it from the mounted folder, so an update needs no image build and no restart. `Cache-Control: no-cache` makes browsers revalidate on every load, so a new version shows up at once while an unchanged one costs only a 304.
 
 ### Otterwiki
 
