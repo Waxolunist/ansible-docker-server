@@ -1,0 +1,20 @@
+groups:
+  - name: container_resources
+    interval: 1m
+    rules:
+      - record: name:container_memory_working_set_bytes:max
+        expr: max by (name, instance) (container_memory_working_set_bytes{name!="",name!="/"})
+      - record: name:container_spec_memory_limit_bytes:max
+        expr: max by (name, instance) (container_spec_memory_limit_bytes{name!="",name!="/"} > 0)
+      - record: name:container_cpu_usage_seconds:rate5m
+        expr: sum by (name, instance) (rate(container_cpu_usage_seconds_total{name!="",name!="/"}[5m]))
+      - record: name:container_spec_cpu_cores:max
+        expr: max by (name, instance) (container_spec_cpu_quota{name!="",name!="/"} / container_spec_cpu_period{name!="",name!="/"})
+      - record: name:container_cpu_cfs_throttled_seconds:rate5m
+        expr: sum by (name, instance) (rate(container_cpu_cfs_throttled_seconds_total{name!="",name!="/"}[5m]))
+      - record: name:container_network_receive_bytes:rate5m
+        expr: sum by (name, instance) (rate(container_network_receive_bytes_total{name!="",name!="/"}[5m]))
+      - record: name:container_network_transmit_bytes:rate5m
+        expr: sum by (name, instance) (rate(container_network_transmit_bytes_total{name!="",name!="/"}[5m]))
+      - record: name:container_oom_events_total:sum
+        expr: sum by (name, instance) (container_oom_events_total{name!="",name!="/"})

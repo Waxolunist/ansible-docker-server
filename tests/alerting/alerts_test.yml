@@ -1,6 +1,7 @@
 rule_files:
   - rendered/prometheus/rules/alerts.yml
   - rendered/prometheus/rules/container_uptime.yml
+  - rendered/prometheus/rules/container_resources.yml
 
 evaluation_interval: 1m
 
@@ -212,6 +213,63 @@ tests:
       - eval_time: 20m
         alertname: ContainerUnhealthy
         exp_alerts: []
+
+  - name: Container resources come down to one series per container across a recreation
+    interval: 1m
+    input_series:
+      - series: 'container_memory_working_set_bytes{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/old"}'
+        values: '100x5 _x10'
+      - series: 'container_memory_working_set_bytes{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new"}'
+        values: '_x5 200x10'
+      - series: 'container_memory_working_set_bytes{job="cadvisor",instance="VPS",name="/",id="/"}'
+        values: '999x15'
+      - series: 'container_spec_memory_limit_bytes{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new"}'
+        values: '1000x15'
+      - series: 'container_spec_memory_limit_bytes{job="cadvisor",instance="VPS",name="web_loki",id="/docker/ghi"}'
+        values: '0x15'
+      - series: 'container_cpu_usage_seconds_total{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new"}'
+        values: '0+30x15'
+      - series: 'container_spec_cpu_quota{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new"}'
+        values: '50000x15'
+      - series: 'container_spec_cpu_period{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new"}'
+        values: '100000x15'
+      - series: 'container_network_receive_bytes_total{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new",interface="eth0"}'
+        values: '0+600x15'
+      - series: 'container_network_receive_bytes_total{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new",interface="eth1"}'
+        values: '0+60x15'
+      - series: 'container_oom_events_total{job="cadvisor",instance="VPS",name="web_grafana",id="/docker/new"}'
+        values: '0x5 1x10'
+    promql_expr_test:
+      - expr: name:container_memory_working_set_bytes:max
+        eval_time: 12m
+        exp_samples:
+          - labels: 'name:container_memory_working_set_bytes:max{instance="VPS",name="web_grafana"}'
+            value: 200
+      - expr: name:container_spec_memory_limit_bytes:max
+        eval_time: 12m
+        exp_samples:
+          - labels: 'name:container_spec_memory_limit_bytes:max{instance="VPS",name="web_grafana"}'
+            value: 1000
+      - expr: name:container_cpu_usage_seconds:rate5m
+        eval_time: 12m
+        exp_samples:
+          - labels: 'name:container_cpu_usage_seconds:rate5m{instance="VPS",name="web_grafana"}'
+            value: 0.5
+      - expr: name:container_spec_cpu_cores:max
+        eval_time: 12m
+        exp_samples:
+          - labels: 'name:container_spec_cpu_cores:max{instance="VPS",name="web_grafana"}'
+            value: 0.5
+      - expr: name:container_network_receive_bytes:rate5m
+        eval_time: 12m
+        exp_samples:
+          - labels: 'name:container_network_receive_bytes:rate5m{instance="VPS",name="web_grafana"}'
+            value: 11
+      - expr: name:container_oom_events_total:sum
+        eval_time: 12m
+        exp_samples:
+          - labels: 'name:container_oom_events_total:sum{instance="VPS",name="web_grafana"}'
+            value: 1
 
   - name: ContainerStopped fires for a container that disappears, not for the others
     interval: 1m

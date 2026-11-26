@@ -20,6 +20,13 @@
       mode: 0644
       backup: yes
     register: prometheus_uptime_rules
+  - name: Prometheus - Write container resource recording rules
+    copy:
+      src: prometheus/rules/container_resources.yml
+      dest: "{{ docker.paths.configs }}prometheus/rules/container_resources.yml"
+      mode: 0644
+      backup: yes
+    register: prometheus_resource_rules
   - name: Prometheus - Write infrastructure alerting rules
     template:
       src: prometheus/alerts_yml.j2
@@ -41,4 +48,5 @@
     when: >-
       (prometheus_config is defined and prometheus_config.changed) or
       prometheus_uptime_rules.changed or
+      prometheus_resource_rules.changed or
       prometheus_alert_rules.changed

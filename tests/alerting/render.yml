@@ -28,6 +28,9 @@
     - copy:
         src: ../../roles/web/files/prometheus/rules/container_uptime.yml
         dest: "{{ out }}/prometheus/rules/container_uptime.yml"
+    - copy:
+        src: ../../roles/web/files/prometheus/rules/container_resources.yml
+        dest: "{{ out }}/prometheus/rules/container_resources.yml"
     - template:
         src: "{{ templates }}/{{ item.src }}"
         dest: "{{ out }}/{{ item.dest }}"
