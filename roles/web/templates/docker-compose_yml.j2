@@ -214,7 +214,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
-    image: prom/node-exporter:v1.11.1
+    image: prom/node-exporter:v1.13.1
     container_name: web_node-exporter
     mem_limit: 128M
     cpus: 0.25
@@ -248,7 +248,7 @@ services:
     restart: unless-stopped
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    image: ghcr.io/google/cadvisor:v0.61.1
     container_name: web_cadvisor
     cap_add:
       - SYS_PTRACE
@@ -733,7 +733,7 @@ services:
     restart: unless-stopped
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.19.1
+    image: prometheuscommunity/postgres-exporter:v0.21.1
     container_name: web_postgres-exporter
     mem_limit: 128M
     cpus: 0.25
@@ -748,14 +748,13 @@ services:
       - --collector.stat_statements.include_query
       - --collector.stat_statements.query_length=1000
       - --collector.stat_statements.limit=200
+      - --datasource.uri=timescaledb:5432/timescale_home?sslmode=disable
+      - --datasource.pass-file=/run/secrets/timescale_grafana_ro_password
+      - --extend.query-path=/etc/postgres_exporter/queries.yml
     expose:
       - 9187
     environment:
-      - DATA_SOURCE_URI=timescaledb:5432/timescale_home?sslmode=disable
       - DATA_SOURCE_USER=grafana_ro
-      - DATA_SOURCE_PASS_FILE=/run/secrets/timescale_grafana_ro_password
-      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yml
-      - PG_EXPORTER_CONFIG_FILE=/etc/postgres_exporter/queries.yml
     secrets:
       - timescale_grafana_ro_password
     volumes:

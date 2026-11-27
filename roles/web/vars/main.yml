@@ -183,6 +183,11 @@
     - coturn
     - loki
     - alloy
+    - socket-proxy
+    - rendezvous
+    - setup-model-private
+    - minecraft
+    - photoprism
 
   restart_container: no
 
