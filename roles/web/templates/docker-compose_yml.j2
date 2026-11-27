@@ -423,7 +423,7 @@ services:
     restart: unless-stopped
 
   grafana-pg:
-    image: postgres:18-alpine
+    image: postgres:18.7-alpine
     container_name: grafana-pg
     user: "70:70"
     mem_limit: 256M
@@ -617,7 +617,7 @@ services:
     restart: unless-stopped
 
   timescaledb:
-    image: timescale/timescaledb-ha:pg16.15-ts2.31.0
+    image: timescale/timescaledb-ha:pg16.16-ts2.32.1
     container_name: web_timescaledb
     mem_limit: 2560m
     memswap_limit: 2560m
@@ -803,7 +803,7 @@ services:
     restart: unless-stopped
 
   photoprism-mariadb:
-    image: mariadb:10.11.16
+    image: mariadb:10.11.19
     container_name: photoprism-mariadb
     mem_limit: 512M
     restart: unless-stopped
@@ -837,7 +837,7 @@ services:
       start_period: 30s
 
   photoprism:
-    image: photoprism/photoprism:260523
+    image: photoprism/photoprism:261029
     container_name: photoprism
     mem_limit: 2G
     depends_on:
@@ -856,6 +856,8 @@ services:
       - PHOTOPRISM_AUTH_MODE=password
       - PHOTOPRISM_SITE_URL=https://{{ photoprism.domain }}/
       - PHOTOPRISM_DISABLE_TLS=true
+      - PHOTOPRISM_TRUSTED_PROXY=172.16.0.0/12
+      - PHOTOPRISM_DISABLE_MCP=true
       - PHOTOPRISM_DEFAULT_TLS=false
       - PHOTOPRISM_ORIGINALS_LIMIT=5000
       - PHOTOPRISM_HTTP_COMPRESSION=gzip
