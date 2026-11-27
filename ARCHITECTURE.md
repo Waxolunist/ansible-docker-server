@@ -194,7 +194,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 18 | `conduit` | `matrixconduit/matrix-conduit:v0.10.17` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
 | 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `picoclaw_ui` | `picoclaw.v-collaborate.com` |
 | 20 | `code-server` | `lscr.io/linuxserver/code-server:4.146.0-ls378` | Browser-based VS Code IDE | — | `code_ui` | `code.v-collaborate.com` |
-| 21 | `coturn` | `coturn/coturn:4.6` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
+| 21 | `coturn` | `coturn/coturn:4.19.2` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
 | 22 | `otterwiki` | `redimp/otterwiki:2.27.0` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
 | 23 | `alertmanager` | `prom/alertmanager:v0.35.1` | Groups, routes and silences the Prometheus alerts | `10.8.0.1:9093` (WireGuard only) | `monitoring_ui`, `prometheus` | `alerts.v-collaborate.com` |
 | 24 | `matrix-receiver` | `metio/matrix-alertmanager-receiver:2026.9.23` | Posts the alerts to the Matrix rooms on Conduit | `10.8.0.1:12345` (WireGuard only) | `proxy`, `prometheus` | — |
