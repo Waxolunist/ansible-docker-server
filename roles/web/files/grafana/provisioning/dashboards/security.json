@@ -357,7 +357,7 @@
         "type": "prometheus",
         "uid": "BfDiy2hMk"
       },
-      "description": "Time since the fail2ban metrics were written. They are written every minute; red means the fail2ban-metrics timer on that host stopped.",
+      "description": "Time since the fail2ban metrics were written. They are written every 5 minutes; red means the fail2ban-metrics timer on that host stopped.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -374,11 +374,11 @@
               },
               {
                 "color": "orange",
-                "value": 180
+                "value": 420
               },
               {
                 "color": "red",
-                "value": 600
+                "value": 900
               }
             ]
           },
