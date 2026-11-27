@@ -167,6 +167,7 @@
     - grafana-pg
     - grafana
     - alertmanager
+    - conduit
     - matrix-receiver
     - postgres-exporter
     - sql-exporter
