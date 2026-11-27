@@ -53,7 +53,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
   socket-proxy:
-    image: tecnativa/docker-socket-proxy:v0.4.2
+    image: tecnativa/docker-socket-proxy:lts@sha256:be1ac64f33bd82043beb504822a17ba6b71668ea1ad7cf51a9a01d27bb7ab047
     container_name: web_socket-proxy
     environment:
       - CONTAINERS=1
@@ -214,7 +214,7 @@ services:
     restart: unless-stopped
 
   node-exporter:
-    image: prom/node-exporter:v1.11.1
+    image: prom/node-exporter:v1.13.1
     container_name: web_node-exporter
     mem_limit: 128M
     cpus: 0.25
@@ -248,7 +248,7 @@ services:
     restart: unless-stopped
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    image: ghcr.io/google/cadvisor:v0.61.1
     container_name: web_cadvisor
     cap_add:
       - SYS_PTRACE
@@ -423,7 +423,7 @@ services:
     restart: unless-stopped
 
   grafana-pg:
-    image: postgres:18-alpine
+    image: postgres:18.7-alpine
     container_name: grafana-pg
     user: "70:70"
     mem_limit: 256M
@@ -505,7 +505,7 @@ services:
     restart: unless-stopped
 
   minecraft:
-    image: itzg/minecraft-server:2026.4.1
+    image: itzg/minecraft-server:2026.11.1
     container_name: minecraft
     environment:
       - EULA=TRUE
@@ -569,7 +569,7 @@ services:
   # a six-character code, the joiner takes it and leaves the answer. Two blobs,
   # once each, then the session is dropped -- no game traffic passes here.
   rendezvous:
-    image: node:22-alpine
+    image: node:22.23.5-alpine
     container_name: web_rendezvous
     mem_limit: 128M
     cpus: 0.5
@@ -617,7 +617,7 @@ services:
     restart: unless-stopped
 
   timescaledb:
-    image: timescale/timescaledb-ha:pg16.15-ts2.31.0
+    image: timescale/timescaledb-ha:pg16.16-ts2.32.1
     container_name: web_timescaledb
     mem_limit: 2560m
     memswap_limit: 2560m
@@ -673,7 +673,7 @@ services:
     restart: unless-stopped
 
   loki:
-    image: grafana/loki:3.5.12
+    image: grafana/loki:3.7.11
     container_name: web_loki
     mem_limit: 1G
     cpus: 0.5
@@ -687,15 +687,9 @@ services:
     command: -config.file=/etc/loki/loki.yml
     networks:
       - grafana
+      - prometheus
     labels:
-      - autoheal=true
       - traefik.enable=false
-    healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3100/ready || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     restart: unless-stopped
 
   alloy:
@@ -733,7 +727,7 @@ services:
     restart: unless-stopped
 
   postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:v0.19.1
+    image: prometheuscommunity/postgres-exporter:v0.21.1
     container_name: web_postgres-exporter
     mem_limit: 128M
     cpus: 0.25
@@ -748,14 +742,13 @@ services:
       - --collector.stat_statements.include_query
       - --collector.stat_statements.query_length=1000
       - --collector.stat_statements.limit=200
+      - --datasource.uri=timescaledb:5432/timescale_home?sslmode=disable
+      - --datasource.pass-file=/run/secrets/timescale_grafana_ro_password
+      - --extend.query-path=/etc/postgres_exporter/queries.yml
     expose:
       - 9187
     environment:
-      - DATA_SOURCE_URI=timescaledb:5432/timescale_home?sslmode=disable
       - DATA_SOURCE_USER=grafana_ro
-      - DATA_SOURCE_PASS_FILE=/run/secrets/timescale_grafana_ro_password
-      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yml
-      - PG_EXPORTER_CONFIG_FILE=/etc/postgres_exporter/queries.yml
     secrets:
       - timescale_grafana_ro_password
     volumes:
@@ -810,7 +803,7 @@ services:
     restart: unless-stopped
 
   photoprism-mariadb:
-    image: mariadb:10.11.16
+    image: mariadb:10.11.19
     container_name: photoprism-mariadb
     mem_limit: 512M
     restart: unless-stopped
@@ -844,7 +837,7 @@ services:
       start_period: 30s
 
   photoprism:
-    image: photoprism/photoprism:260523
+    image: photoprism/photoprism:261029
     container_name: photoprism
     mem_limit: 2G
     depends_on:
@@ -863,6 +856,8 @@ services:
       - PHOTOPRISM_AUTH_MODE=password
       - PHOTOPRISM_SITE_URL=https://{{ photoprism.domain }}/
       - PHOTOPRISM_DISABLE_TLS=true
+      - PHOTOPRISM_TRUSTED_PROXY=172.16.0.0/12
+      - PHOTOPRISM_DISABLE_MCP=true
       - PHOTOPRISM_DEFAULT_TLS=false
       - PHOTOPRISM_ORIGINALS_LIMIT=5000
       - PHOTOPRISM_HTTP_COMPRESSION=gzip
@@ -948,7 +943,7 @@ services:
     restart: unless-stopped
 
   picoclaw:
-    image: docker.io/sipeed/picoclaw:v0.2.8-launcher
+    image: docker.io/sipeed/picoclaw:v0.3.1-launcher
     container_name: web_picoclaw
     mem_limit: 512M
     cpus: 1.0

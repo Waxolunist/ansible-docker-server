@@ -66,7 +66,7 @@ Upgrade Timescale
 -----------------
 
 The image tag in `roles/web/templates/docker-compose_yml.j2` is pinned to an exact
-PostgreSQL minor and TimescaleDB version (`pg16.15-ts2.31.0`), so an upgrade is a
+PostgreSQL minor and TimescaleDB version (`pg16.16-ts2.32.1`), so an upgrade is a
 deliberate tag change. Pick the newest `pg<major>.<minor>-ts<version>` tag on Docker Hub
 and read the TimescaleDB changelog from the running version to the target first.
 

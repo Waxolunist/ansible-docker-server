@@ -183,6 +183,11 @@
     - coturn
     - loki
     - alloy
+    - socket-proxy
+    - rendezvous
+    - setup-model-private
+    - minecraft
+    - photoprism
 
   restart_container: no
 
@@ -225,6 +230,7 @@
       - sql_exporter
       - roborock
       - alloy
+      - loki
     memory_available_min_ratio: 0.1
     swap_used_max_bytes: 2147483648
     swap_used_max_ratio: 0.6
