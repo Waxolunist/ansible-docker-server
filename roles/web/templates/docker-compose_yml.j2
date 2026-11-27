@@ -673,7 +673,7 @@ services:
     restart: unless-stopped
 
   loki:
-    image: grafana/loki:3.5.12
+    image: grafana/loki:3.7.11
     container_name: web_loki
     mem_limit: 1G
     cpus: 0.5
@@ -687,15 +687,9 @@ services:
     command: -config.file=/etc/loki/loki.yml
     networks:
       - grafana
+      - prometheus
     labels:
-      - autoheal=true
       - traefik.enable=false
-    healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3100/ready || exit 1"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
     restart: unless-stopped
 
   alloy:
