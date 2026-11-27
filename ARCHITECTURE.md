@@ -176,23 +176,23 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 |---|---|---|---|---|---|---|
 | 1 | `registry` | `registry:3.1.2` | Private Docker registry | — | `monitoring_ui` | `registry.v-collaborate.com` |
 | 2 | `autoheal` | `willfarrell/autoheal:latest@sha256:7ab2ddc7…` (pinned by digest: no version tags since 1.2.0 in 2021) | Automatic container restart on failure | — | — | — |
-| 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
+| 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:lts@sha256:be1ac64f…` (v0.6.0, pinned by digest: no version tags since v0.6.0) | Secure Docker socket proxy | — | `socket_proxy` | — |
 | 4 | `reverse-proxy` | `traefik:v3.7.20` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `setup_model_ui`, `task_manager_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
 | 5 | `prometheus` | `prom/prometheus:v3.16.0` | Metrics collection | — | `monitoring_ui`, `prometheus` | `metrics.v-collaborate.com` |
-| 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
-| 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `monitoring_ui`, `prometheus` | `cadvisor.v-collaborate.com` |
+| 6 | `node-exporter` | `prom/node-exporter:v1.13.1` | Host metrics exporter | — | `prometheus` | — |
+| 7 | `cadvisor` | `ghcr.io/google/cadvisor:v0.61.1` | Container resource metrics | — | `monitoring_ui`, `prometheus` | `cadvisor.v-collaborate.com` |
 | 8 | `authelia` | `authelia/authelia:4.39.28` | Authentication / SSO | — | `proxy`, `prometheus` | `auth.v-collaborate.com` |
-| 9 | `grafana-pg` | `postgres:18-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
+| 9 | `grafana-pg` | `postgres:18.7-alpine` | Grafana PostgreSQL database | — | `grafana` | — |
 | 10 | `grafana` | `grafana/grafana:13.2.7` | Dashboarding and visualization | — | `grafana_ui`, `grafana`, `prometheus` | `graph.v-collaborate.com` |
-| 11 | `minecraft` | `itzg/minecraft-server:2026.4.1` | Minecraft game server | `25565` | — | — |
-| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16.15-ts2.31.0` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
-| 13 | `loki` | `grafana/loki:3.5.12` | Log aggregation and storage; receives the Pi's logs on `10.8.0.1:3100` | — | `grafana` | `10.8.0.1:3100` (WireGuard only) |
+| 11 | `minecraft` | `itzg/minecraft-server:2026.11.1` | Minecraft game server | `25565` | — | — |
+| 12 | `timescaledb` | `timescale/timescaledb-ha:pg16.16-ts2.32.1` | Time-series database | `10.8.0.1:5432` (WireGuard only) | `grafana` | — |
+| 13 | `loki` | `grafana/loki:3.7.11` | Log aggregation and storage; receives the Pi's logs on `10.8.0.1:3100` | — | `grafana`, `prometheus` | `10.8.0.1:3100` (WireGuard only) |
 | 14 | `alloy` | `grafana/alloy:v1.22.0` | Log shipper: every container's output (via socket-proxy) and the systemd journal | — | `grafana`, `socket_proxy` | — |
-| 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.19.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
-| 16 | `photoprism-mariadb` | `mariadb:10.11.16` | PhotoPrism MariaDB database | — | `photoprism` | — |
-| 17 | `photoprism` | `photoprism/photoprism:260523` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
+| 15 | `postgres-exporter` | `prometheuscommunity/postgres-exporter:v0.21.1` | Exposes `pg_stat_activity` as Prometheus metrics | — | `grafana`, `prometheus` | — |
+| 16 | `photoprism-mariadb` | `mariadb:10.11.19` | PhotoPrism MariaDB database | — | `photoprism` | — |
+| 17 | `photoprism` | `photoprism/photoprism:261029` | AI-powered photo management | — | `proxy`, `photoprism` | `photos.v-collaborate.com` |
 | 18 | `conduit` | `matrixconduit/matrix-conduit:v0.10.17` | Matrix homeserver | — | `proxy` | `matrix.v-collaborate.com` |
-| 19 | `picoclaw` | `sipeed/picoclaw:v0.2.8-launcher` | AI assistant | — | `picoclaw_ui` | `picoclaw.v-collaborate.com` |
+| 19 | `picoclaw` | `sipeed/picoclaw:v0.3.1-launcher` | AI assistant | — | `picoclaw_ui` | `picoclaw.v-collaborate.com` |
 | 20 | `code-server` | `lscr.io/linuxserver/code-server:4.146.0-ls378` | Browser-based VS Code IDE | — | `code_ui` | `code.v-collaborate.com` |
 | 21 | `coturn` | `coturn/coturn:4.19.2` | STUN/TURN server for Hulls & Hellfire multiplayer | `3478`, `5349`, `49152-49200/udp` | host | `turn.v-collaborate.com` (TLS cert only) |
 | 22 | `otterwiki` | `redimp/otterwiki:2.27.0` | Collaborative wiki, pages stored in git | — | `wiki` | `wiki.v-collaborate.com` |
@@ -602,6 +602,7 @@ graph LR
 | `alertmanager` | `alertmanager:9093` | Alertmanager's own metrics, including failed notifications |
 | `matrix_receiver` | `matrix-receiver:12345` | The bridge's counters of sent and failed Matrix messages |
 | `sql_exporter` | `sql-exporter:9399` | `data_newest_row_timestamp_seconds{table}`, every minute |
+| `loki` | `loki:3100` | Loki's build info and ingest counters only (`metric_relabel_configs` keeps `loki_build_info`, `loki_distributor_*_received_total`, `loki_discarded_samples_total`, `loki_ingester_memory_streams`); mainly there for `TargetDown_loki`, since Loki has no healthcheck |
 | `collector` | `10.8.0.2:9105` | The collector's `/metrics` on the Pi, over WireGuard: job results, live grid power, PSA login and health, ignition. The collector's own `job` label becomes `collector_job` (`metric_relabel_configs`), so `job` stays `collector` |
 
 The `docker.host` target resolves to the Docker bridge IP via the `extra_hosts` directive in the compose file.
@@ -638,16 +639,17 @@ All alert rules are Prometheus rules in [`alerts_yml.j2`](roles/web/templates/pr
 
 ### Node Exporter
 
-Node Exporter v1.11.1 runs on the `prometheus` network, exposing host-level metrics on port 9100. It has no Traefik labels and is not accessible externally.
+Node Exporter v1.13.1 runs on the `prometheus` network, exposing host-level metrics on port 9100. It has no Traefik labels and is not accessible externally.
 
 ### Loki & Alloy
 
-[Loki v3.5.12](roles/web/templates/loki/loki_yml.j2) provides log aggregation and storage:
+[Loki v3.7.11](roles/web/templates/loki/loki_yml.j2) provides log aggregation and storage:
 
 - **Storage**: Local filesystem under `/var/loki` with TSDB index
 - **Retention**: 90 days (compactor with deletion enabled)
-- **Network**: `grafana`, plus `10.8.0.1:3100` published on the WireGuard address only, so the Pi's Alloy can push; no authentication, like Alertmanager, since only tunnel peers reach it
+- **Network**: `grafana` and `prometheus` (for the scrape), plus `10.8.0.1:3100` published on the WireGuard address only, so the Pi's Alloy can push; no authentication, like Alertmanager, since only tunnel peers reach it
 - **Data source UID**: `loki` (provisioned automatically in Grafana)
+- **Health**: no Docker healthcheck, since the image has no shell or wget since 3.6 (BusyBox removed). Prometheus scrapes it in job `loki` (only build info and ingest counters are kept), and `TargetDown_loki` fires when it stops answering; `restart: unless-stopped` covers crashes
 
 [Alloy v1.22.0](roles/web/files/alloy/config.alloy) ships every log of the VPS to Loki. It replaced Promtail, which reached end of life on 2026-03-02:
 
