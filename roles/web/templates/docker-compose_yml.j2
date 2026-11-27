@@ -53,7 +53,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
 
   socket-proxy:
-    image: tecnativa/docker-socket-proxy:v0.4.2
+    image: tecnativa/docker-socket-proxy:lts@sha256:be1ac64f33bd82043beb504822a17ba6b71668ea1ad7cf51a9a01d27bb7ab047
     container_name: web_socket-proxy
     environment:
       - CONTAINERS=1
@@ -505,7 +505,7 @@ services:
     restart: unless-stopped
 
   minecraft:
-    image: itzg/minecraft-server:2026.4.1
+    image: itzg/minecraft-server:2026.11.1
     container_name: minecraft
     environment:
       - EULA=TRUE
@@ -569,7 +569,7 @@ services:
   # a six-character code, the joiner takes it and leaves the answer. Two blobs,
   # once each, then the session is dropped -- no game traffic passes here.
   rendezvous:
-    image: node:22-alpine
+    image: node:22.23.5-alpine
     container_name: web_rendezvous
     mem_limit: 128M
     cpus: 0.5
@@ -947,7 +947,7 @@ services:
     restart: unless-stopped
 
   picoclaw:
-    image: docker.io/sipeed/picoclaw:v0.2.8-launcher
+    image: docker.io/sipeed/picoclaw:v0.3.1-launcher
     container_name: web_picoclaw
     mem_limit: 512M
     cpus: 1.0
