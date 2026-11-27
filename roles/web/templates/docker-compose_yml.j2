@@ -1,6 +1,6 @@
 services:
   registry:
-    image: registry:3.0.0
+    image: registry:3.1.2
     container_name: web_registry
     mem_limit: 256M
     cpus: 0.5
@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
 
   reverse-proxy:
-    image: traefik:v3.6.13
+    image: traefik:v3.7.20
     container_name: web_reverse-proxy
     depends_on:
       - socket-proxy
@@ -167,7 +167,7 @@ services:
     restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v3.11.1
+    image: prom/prometheus:v3.16.0
     container_name: web_prometheus
     read_only: true
     tmpfs:
@@ -297,7 +297,7 @@ services:
     restart: unless-stopped
 
   alertmanager:
-    image: prom/alertmanager:v0.34.1
+    image: prom/alertmanager:v0.35.1
     container_name: web_alertmanager
     read_only: true
     mem_limit: 128M
@@ -456,7 +456,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:13.2.4
+    image: grafana/grafana:13.2.7
     container_name: web_grafana
     mem_limit: 1536m
     cpus: 1.0
@@ -530,7 +530,7 @@ services:
     restart: unless-stopped
 
   coturn:
-    image: coturn/coturn:4.6
+    image: coturn/coturn:4.19.2
     container_name: web_coturn
     mem_limit: 256M
     cpus: 0.5
@@ -699,7 +699,7 @@ services:
     restart: unless-stopped
 
   alloy:
-    image: grafana/alloy:v1.21.3
+    image: grafana/alloy:v1.22.0
     container_name: web_alloy
     mem_limit: 256M
     cpus: 0.25
@@ -778,7 +778,7 @@ services:
     restart: unless-stopped
 
   sql-exporter:
-    image: burningalchemist/sql_exporter:0.24.11
+    image: burningalchemist/sql_exporter:0.24.14
     container_name: web_sql-exporter
     read_only: true
     mem_limit: 64M
@@ -918,7 +918,7 @@ services:
       start_period: 30s
 
   conduit:
-    image: matrixconduit/matrix-conduit:v0.10.12
+    image: matrixconduit/matrix-conduit:v0.10.17
     container_name: web_conduit
     mem_limit: 512M
     cpus: 0.5
@@ -996,7 +996,7 @@ services:
     restart: unless-stopped
 
   code-server:
-    image: lscr.io/linuxserver/code-server:4.117.0-ls335
+    image: lscr.io/linuxserver/code-server:4.146.0-ls378
     container_name: web_code-server
     mem_limit: 4G
     cpus: 2.0
@@ -1061,7 +1061,7 @@ services:
     restart: unless-stopped
 
   otterwiki:
-    image: redimp/otterwiki:2.26.0
+    image: redimp/otterwiki:2.27.0
     container_name: web_otterwiki
     mem_limit: 256M
     cpus: 0.5
