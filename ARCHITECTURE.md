@@ -177,7 +177,7 @@ All 25 services are defined in the [`docker-compose_yml.j2`](roles/web/templates
 | 1 | `registry` | `registry:3.1.2` | Private Docker registry | — | `monitoring_ui` | `registry.v-collaborate.com` |
 | 2 | `autoheal` | `willfarrell/autoheal:latest@sha256:7ab2ddc7…` (pinned by digest: no version tags since 1.2.0 in 2021) | Automatic container restart on failure | — | — | — |
 | 3 | `socket-proxy` | `tecnativa/docker-socket-proxy:v0.4.2` | Secure Docker socket proxy | — | `socket_proxy` | — |
-| 4 | `reverse-proxy` | `traefik:v3.6.13` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `setup_model_ui`, `task_manager_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
+| 4 | `reverse-proxy` | `traefik:v3.7.20` | Reverse proxy with Let's Encrypt | `80`, `443` | `proxy`, `socket_proxy`, `wiki`, `grafana_ui`, `monitoring_ui`, `code_ui`, `setup_model_ui`, `task_manager_ui`, `picoclaw_ui` | `proxy.v-collaborate.com` |
 | 5 | `prometheus` | `prom/prometheus:v3.11.1` | Metrics collection | — | `monitoring_ui`, `prometheus` | `metrics.v-collaborate.com` |
 | 6 | `node-exporter` | `prom/node-exporter:v1.11.1` | Host metrics exporter | — | `prometheus` | — |
 | 7 | `cadvisor` | `gcr.io/cadvisor/cadvisor:v0.55.1` | Container resource metrics | — | `monitoring_ui`, `prometheus` | `cadvisor.v-collaborate.com` |

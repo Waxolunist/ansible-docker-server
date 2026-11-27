@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
 
   reverse-proxy:
-    image: traefik:v3.6.13
+    image: traefik:v3.7.20
     container_name: web_reverse-proxy
     depends_on:
       - socket-proxy
