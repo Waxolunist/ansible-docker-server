@@ -316,11 +316,11 @@
           dest: /etc/systemd/system/fail2ban-metrics.timer
           content: |
             [Unit]
-            Description=Write fail2ban metrics every minute
+            Description=Write fail2ban metrics every 5 minutes
 
             [Timer]
             OnBootSec=1min
-            OnUnitActiveSec=1min
+            OnUnitActiveSec=5min
             AccuracySec=5s
 
             [Install]
