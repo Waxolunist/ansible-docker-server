@@ -9,3 +9,4 @@ if [ ! -f "$digest" ] || [ "$(date -r "$digest" +%Y-%m-%d)" != "$(date +%Y-%m-%d
   exit 0
 fi
 cat "$digest"
+printf '\nFull report: https://%s/Legacy%%20Radar/%s\n' "$(cat /root/.picoclaw/workspace/legacy-radar/wiki_host)" "$(date +%Y-%m-%d)"
