@@ -182,6 +182,14 @@
     become: yes
     when: rendezvous_source is defined and rendezvous_source.changed
 
+  - name: PicoClaw - Restart when its configuration or agent files changed
+    command: docker restart web_picoclaw
+    become: yes
+    when: >-
+      (picoclaw_config is defined and picoclaw_config.changed) or
+      (picoclaw_security is defined and picoclaw_security.changed) or
+      (picoclaw_legacy_radar is defined and picoclaw_legacy_radar.changed)
+
   # Without --force-recreate, compose only recreates a service whose config
   # hash differs from the running container's, so this is a no-op unless
   # something actually changed.

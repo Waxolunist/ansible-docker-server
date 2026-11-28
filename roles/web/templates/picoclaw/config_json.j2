@@ -31,6 +31,56 @@
         "separate_messages": false
       },
       "split_on_marker": false
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true
+      },
+      {
+        "id": "legacy-radar",
+        "name": "Legacy Radar",
+        "workspace": "/root/.picoclaw/workspace/legacy-radar",
+        "model": {
+          "primary": "nemotron-3-ultra-free",
+          "fallbacks": [
+            "ernie-5.5-flash-free",
+            "gemma-4-31b-free",
+            "deepseek-v4-flash"
+          ]
+        },
+        "skills": [
+          "legacy-radar"
+        ]
+      }
+    ],
+    "dispatch": {
+      "rules": [
+        {
+          "name": "legacy-radar-room",
+          "agent": "legacy-radar",
+          "when": {
+            "channel": "matrix",
+            "chat": "group:{{ vault_picoclaw_legacy_radar_room | lower }}"
+          }
+        },
+        {
+          "name": "legacy-radar-room-direct",
+          "agent": "legacy-radar",
+          "when": {
+            "channel": "matrix",
+            "chat": "direct:{{ vault_picoclaw_legacy_radar_room | lower }}"
+          }
+        },
+        {
+          "name": "legacy-radar-cron",
+          "agent": "legacy-radar",
+          "when": {
+            "channel": "cli",
+            "chat": "direct:legacy-radar"
+          }
+        }
+      ]
     }
   },
   "channel_list": {
@@ -253,6 +303,30 @@
       "model_name": "openrouter",
       "provider": "openrouter",
       "model": "openrouter/auto",
+      "api_base": "https://openrouter.ai/api/v1"
+    },
+    {
+      "model_name": "nemotron-3-ultra-free",
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "api_base": "https://openrouter.ai/api/v1"
+    },
+    {
+      "model_name": "ernie-5.5-flash-free",
+      "provider": "openrouter",
+      "model": "baidu/ernie-5.5-flash-preview:free",
+      "api_base": "https://openrouter.ai/api/v1"
+    },
+    {
+      "model_name": "gemma-4-31b-free",
+      "provider": "openrouter",
+      "model": "google/gemma-4-31b-it:free",
+      "api_base": "https://openrouter.ai/api/v1"
+    },
+    {
+      "model_name": "deepseek-v4-flash",
+      "provider": "openrouter",
+      "model": "deepseek/deepseek-v4-flash-0731",
       "api_base": "https://openrouter.ai/api/v1"
     }
   ],

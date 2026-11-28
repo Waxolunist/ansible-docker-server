@@ -99,6 +99,7 @@ ansible-vault edit group_vars/system/vault.yml --vault-password-file=.vault_pass
 | Variable | Used in | Docker secret | Description |
 |---|---|---|---|
 | `vault_picoclaw_crypto_passphrase` | `picoclaw/config_json.j2` | — | Passphrase for Matrix E2E encryption key storage |
+| `vault_picoclaw_legacy_radar_room` | `picoclaw/config_json.j2` | — | Matrix room id of "Legacy Radar"; the dispatch rule sends this room to the `legacy-radar` agent |
 
 ### Code-Server
 
