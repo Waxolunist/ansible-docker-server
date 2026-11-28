@@ -34,7 +34,10 @@ tight (50 tool calls), so spend it on searches and fetches.
    posting is live and to read the details.
 5. Below-threshold tenders: use `web_search` with the portal queries in
    `sources.md`, with `range` set to `m`, at most 4 searches.
-6. Keep a hit only if it is about migrating, replacing or modernising an
+6. Every hit needs the URL of its own page (the notice, the posting, the
+   article). A search or category page that lists many hits is not enough:
+   fetch it and take the single entry's link, or drop the hit.
+   Keep a hit only if it is about migrating, replacing or modernising an
    existing system (or AI applied to that), is in Germany, Austria or
    Switzerland, and is not in `state/seen.txt`. Awards count as market
    signals (who buys what, who wins), not as leads. Drop pure hardware,
@@ -49,7 +52,8 @@ tight (50 tool calls), so spend it on searches and fetches.
    Take dates and deadlines only from the source: the deadline column of
    `ted.sh`, or the fetched page. `-` means unknown; write "deadline unknown",
    never the publication date.
-8. Write `reports/<today>.md`, the full report:
+8. Write `reports/<today>.md` with `write_file` and `overwrite` set to true
+   (an earlier run of the same day may have written it), the full report:
    - a header with the date and the counts per section;
    - sections Tenders, Jobs and projects, News and market, each sorted by
      score, then deadline;
@@ -57,8 +61,9 @@ tight (50 tool calls), so spend it on searches and fetches.
      date, one sentence on why it matters, URL;
    - at the end, a "Sources not reachable" line for every script or search
      that failed.
-9. Write `reports/digest.md`, the message posted at 07:00, at most 3500
-   characters:
+9. Write `reports/digest.md` with `write_file` and `overwrite` set to true (it
+   always exists from the last run), the message posted at 07:00, at most
+   3500 characters:
    - first line: `Legacy Radar <today>: <n> tenders, <n> jobs/projects, <n> news`,
      counting the hits in the report;
    - the hits with score 3 and 2 (at most 12), shortest form: score,
