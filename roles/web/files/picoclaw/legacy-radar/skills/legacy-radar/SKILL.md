@@ -10,6 +10,8 @@ and writes two files. A separate scheduled job posts the digest at 07:00, so
 do not post anything yourself during a scheduled run.
 
 All paths are relative to the workspace. Today's date is `date +%Y-%m-%d`.
+Run the scripts as given; do not read or list them first. The step budget is
+tight (50 tool calls), so spend it on searches and fetches.
 
 ## Steps
 
@@ -26,10 +28,12 @@ All paths are relative to the workspace. Today's date is `date +%Y-%m-%d`.
    `skills/legacy-radar/sources.md` (Austria, Germany and Switzerland in one
    call).
 4. Jobs and freelance projects: use `web_search` with the job queries in
-   `sources.md`, at most 12 searches in total. Then `web_fetch` only the
-   promising results to confirm the posting is live and to read the details.
+   `sources.md`, exactly as written, with `range` set to `m` (past month), at
+   most 12 searches in total. Do not retry an empty search with a variant.
+   Then `web_fetch` only the promising results (at most 6) to confirm the
+   posting is live and to read the details.
 5. Below-threshold tenders: use `web_search` with the portal queries in
-   `sources.md`, at most 4 searches.
+   `sources.md`, with `range` set to `m`, at most 4 searches.
 6. Keep a hit only if it is about migrating, replacing or modernising an
    existing system (or AI applied to that), is in Germany, Austria or
    Switzerland, and is not in `state/seen.txt`. Awards count as market
@@ -38,8 +42,13 @@ All paths are relative to the workspace. Today's date is `date +%Y-%m-%d`.
 7. Score each kept hit from 1 to 3: 3 means an open tender or posting that
    directly asks for legacy migration (mainframe, COBOL, Natural/Adabas, PL/I,
    RPG, Oracle Forms, Delphi, VB6, host replacement) or AI-supported code
-   migration; 2 means a modernisation or replacement project with a likely
-   legacy part; 1 means a market signal or news.
+   migration; 2 means an open modernisation or replacement project with a
+   likely legacy part; 1 means a market signal or news. Awards
+   (`can-*`, `award`, `direct_award`) and anything whose deadline has passed
+   score 1 at most.
+   Take dates and deadlines only from the source: the deadline column of
+   `ted.sh`, or the fetched page. `-` means unknown; write "deadline unknown",
+   never the publication date.
 8. Write `reports/<today>.md`, the full report:
    - a header with the date and the counts per section;
    - sections Tenders, Jobs and projects, News and market, each sorted by
@@ -50,9 +59,11 @@ All paths are relative to the workspace. Today's date is `date +%Y-%m-%d`.
      that failed.
 9. Write `reports/digest.md`, the message posted at 07:00, at most 3500
    characters:
-   - first line: `Legacy Radar <today>: <n> tenders, <n> jobs/projects, <n> news`;
+   - first line: `Legacy Radar <today>: <n> tenders, <n> jobs/projects, <n> news`,
+     counting the hits in the report;
    - the hits with score 3 and 2 (at most 12), shortest form: score,
-     title, organisation, deadline, URL;
+     title, organisation, deadline, URL; for news, the publisher instead of
+     the long Google News link;
    - one line with the count of score-1 hits and the report file name.
    If nothing new was found, write only the first line and "Nothing new".
 10. Append every reported URL to `state/seen.txt`.
