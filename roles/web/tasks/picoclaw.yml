@@ -8,6 +8,7 @@
       mode: 0600
       backup: yes
     become: yes
+    register: picoclaw_config
 
   - name: PicoClaw - Write security configuration
     template:
@@ -18,6 +19,7 @@
       mode: 0600
       backup: yes
     become: yes
+    register: picoclaw_security
 
   - name: PicoClaw - Set data directory ownership
     file:
@@ -27,3 +29,26 @@
       group: root
       mode: '0755'
     become: yes
+
+  - name: PicoClaw - Create the Legacy Radar workspace
+    file:
+      path: "{{ docker.paths.data }}picoclaw/workspace/legacy-radar/{{ item }}"
+      state: directory
+      owner: root
+      group: root
+      mode: '0755'
+    loop:
+      - ""
+      - reports
+      - state
+    become: yes
+
+  - name: PicoClaw - Copy the Legacy Radar agent, skill and scripts
+    copy:
+      src: picoclaw/legacy-radar/
+      dest: "{{ docker.paths.data }}picoclaw/workspace/legacy-radar/"
+      owner: root
+      group: root
+      mode: preserve
+    become: yes
+    register: picoclaw_legacy_radar
