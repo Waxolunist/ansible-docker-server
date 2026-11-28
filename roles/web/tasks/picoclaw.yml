@@ -52,3 +52,28 @@
       mode: preserve
     become: yes
     register: picoclaw_legacy_radar
+
+  - name: PicoClaw - Write the wiki host for the Legacy Radar digest
+    copy:
+      content: "{{ otterwiki.domain }}\n"
+      dest: "{{ docker.paths.data }}picoclaw/workspace/legacy-radar/wiki_host"
+      owner: root
+      group: root
+      mode: '0644'
+    become: yes
+
+  - name: PicoClaw - Write the Legacy Radar publish scripts
+    copy:
+      src: "{{ item }}"
+      dest: "{{ docker_base_path }}/{{ item }}"
+      mode: "{{ '0755' if item.endswith('.sh') else '0644' }}"
+    loop:
+      - legacy_radar_publish.sh
+      - legacy_radar_publish.py
+
+  - name: PicoClaw - Publish Legacy Radar reports to Otterwiki every 15 minutes
+    cron:
+      name: "legacy radar publish"
+      minute: "*/15"
+      user: "{{ ansible_user }}"
+      job: "{{ docker_base_path }}/legacy_radar_publish.sh >> {{ docker.paths.logs }}legacy_radar_publish.log 2>&1"
