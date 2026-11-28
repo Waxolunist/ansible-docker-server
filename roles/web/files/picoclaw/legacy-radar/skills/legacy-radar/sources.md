@@ -12,32 +12,36 @@ carry their own keyword lists for the tender APIs.
 - `Application Modernization KI`
 - `Host Ablösung Bank OR Versicherung OR Verwaltung`
 
-## Job and freelance queries (`web_search`)
+## Job and freelance queries (`web_search`, range `m`)
+
+Plain words, no `OR`: the search engine returns nothing for long `OR` chains.
 
 Germany:
-- `site:freelancermap.de Projekt Legacy Migration`
-- `site:gulp.de Projekt COBOL OR Mainframe OR Migration`
-- `site:freelance.de Projekt Altsystem Ablösung OR Legacy Modernisierung`
-- `site:stepstone.de Legacy Modernisierung OR Mainframe Migration`
+- `freelancermap Legacy Migration Projekt`
+- `gulp COBOL Projekt`
+- `Mainframe Migration Freelance Projekt`
+- `stepstone Legacy Modernisierung`
 
 Austria:
-- `site:karriere.at Legacy Migration OR Mainframe OR COBOL`
-- `site:jobs.ams.at OR site:karriere.at Modernisierung Altsystem`
+- `karriere.at Mainframe`
+- `Legacy Migration Job Wien`
 
 Switzerland:
-- `site:jobs.ch Legacy Migration OR Mainframe OR COBOL`
-- `site:jobup.ch OR site:jobs.ch Modernisierung Altsystem`
+- `jobs.ch Mainframe`
+- `Legacy Migration Job Zürich`
 
 All DACH:
-- `"Legacy Modernisierung" Stelle OR Projekt 2026`
-- `"KI-gestützte Migration" OR "AI-assisted migration" Mainframe DACH`
+- `COBOL Entwickler Migration`
+- `KI-gestützte Migration Mainframe`
+- `Natural Adabas Ablösung`
+- `Host Ablösung Projekt`
 
-## Below-threshold tender queries (`web_search`)
+## Below-threshold tender queries (`web_search`, range `m`)
 
-- `site:service.bund.de Ausschreibung Migration Altsystem`
-- `site:evergabe-online.de Ablösung Fachverfahren`
-- `site:auftrag.at Migration OR Ablösung IT`
-- `site:ausschreibungen-deutschland.de Legacy Migration`
+- `service.bund.de Ausschreibung Ablösung Fachverfahren`
+- `Ausschreibung Migration Altsystem Kommune`
+- `auftrag.at Ausschreibung Software Ablösung`
+- `Ausschreibung Mainframe Migration`
 
 ## Keywords for judging relevance
 
